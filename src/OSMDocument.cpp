@@ -20,35 +20,16 @@
 
 #include "stdafx.h"
 #include "OSMDocument.h"
+#include "Configuration.h"
 #include "Node.h"
 #include "Way.h"
 #include "math_functions.h"
 
-template< class Map >
-inline void ez_mapdelete( Map& c )
-{
-	typename Map::iterator it( c.begin() );
-	typename Map::iterator last( c.end() );
-	while( it!=last )
-	{
-		delete (*it++).second;
-	}
-}
 
-template< class Vector >
-inline void ez_vectordelete( Vector& c )
-{
-	typename Vector::iterator it( c.begin() );
-	typename Vector::iterator last( c.end() );
-	while( it!=last )
-	{
-		delete (*it++);
-	}
-}
 namespace osm
 {
 
-OSMDocument::OSMDocument()
+OSMDocument::OSMDocument( Configuration& config ) : m_rConfig( config )
 {
 }
 
@@ -104,7 +85,8 @@ void OSMDocument::SplitWays()
 			
 			Way* splitted_way = new Way( id++, currentWay->visible );
 			splitted_way->name=currentWay->name;
-			splitted_way->highway=currentWay->highway;
+			splitted_way->type=currentWay->type;
+			splitted_way->clss=currentWay->clss;
 
 	//GeometryFromText('MULTILINESTRING(('||x1||' '||y1||','||x2||' '||y2||'))',4326);
 			

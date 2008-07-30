@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <type name="highway" id="1">
+    <class name="motorway" id="101" />
+    <class name="motorway_link" id="102" />
+    <class name="motorway_junction" id="103" />
+    <class name="trunk" id="104" />
+    <class name="trunk_link" id="105" />    
+    <class name="primary" id="106" />
+    <class name="primary_link" id="107" />    
+    <class name="secondary" id="106" />
+    <class name="tertiary" id="107" />
+    <class name="residential" id="107" />
+    <class name="living_street" id="108" />
+    <class name="service" id="109" />
+    <class name="track" id="110" />
+    <class name="pedestrian" id="111" />
+    <class name="services" id="112" />
+    <class name="bus_guideway" id="113" />
+    <class name="path" id="114" />
+    <class name="cicleway" id="115" />
+    <class name="footway" id="116" />
+    <class name="bridleway" id="117" />
+    <class name="byway" id="118" />
+    <class name="steps" id="119" />
+        
+    <class name="unclassified" id="100" />
+    <class name="road" id="100" />
+  </type>
+  <type name="cicleway" id="2">
+    <class name="lane" id="201" />
+    <class name="track" id="202" />
+    <class name="opposite_lane" id="203" />
+    <class name="opposite" id="204" />
+  </type>  
+  <type name="tracktype" id="3">
+    <class name="grade1" id="301" />
+    <class name="grade2" id="302" />
+    <class name="grade3" id="303" />
+    <class name="grade4" id="304" />
+    <class name="grade5" id="305" />
+  </type>  
+  <type name="junction" id="4">
+    <class name="roundabout" id="401" />
+  </type>  
+</configuration>

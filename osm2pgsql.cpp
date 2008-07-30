@@ -19,6 +19,8 @@
  ***************************************************************************/
  
 #include "stdafx.h"
+#include "Configuration.h"
+#include "ConfigurationParserCallback.h"
 #include "OSMDocument.h"
 #include "OSMDocumentParserCallback.h"
 #include "Way.h"
@@ -33,33 +35,42 @@ void _error()
 {
 				cout << "following params are required: " << endl;
 				cout << "-file <file>  -- name of your osm xml file" << endl;
+				cout << "-conf <conf>  -- name of your configuration xml file" << endl;
 				cout << "-dbname <dbname> -- name of your database" << endl;
 				cout << "-user <user> -- name of the user, which have write access to the database" << endl;
 				cout << "optional:" << endl;
 				cout << "-host <host>  -- host of your postgresql database (default: 127.0.0.1)" << endl;
 				cout << "-port <port> -- port of your database (default: 5432)" << endl;
 				cout << "-passwd <passwd> --  password for database access" << endl;
+				cout << "-clean -- drop peviously created tables" << endl;
 					
 }
 
 int main(int argc, char* argv[])
 {
 	std::string file;
+	std::string cFile;
 	std::string host="127.0.0.1";
 	std::string user;
 	std::string port="5432";
 	std::string dbname;
 	std::string passwd;
+	bool clean = false;
 	if(argc >=7 && argc <=13)
 	{
 		int i=1;
 		while( i<argc)
 		{
-			
 			if(strcmp(argv[i],"-file")==0)
 			{	
 				i++;
 				file = argv[i];
+			}
+
+			else if(strcmp(argv[i],"-conf")==0)
+			{	
+				i++;
+				cFile = argv[i];
 			}
 				
 			else if(strcmp(argv[i],"-host")==0)
@@ -87,6 +98,10 @@ int main(int argc, char* argv[])
 				i++;
 				passwd = argv[i];
 			}
+			else if(strcmp(argv[i],"-clean")==0)
+			{
+				clean = true;
+			}
 			else
 			{
 				cout << "unknown paramer: " << argv[i] << endl;
@@ -104,7 +119,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	
-	if(file.empty() || dbname.empty() || user.empty())
+	if(file.empty() || cFile.empty() || dbname.empty() || user.empty())
 	{
 		_error();
 		return 1;
@@ -114,20 +129,64 @@ int main(int argc, char* argv[])
 	if(test.connect()==1)
 		return 1;
 
-	//std::string fileName = "../data/oldenburg.osm";
-	OSMDocument document;
-    OSMDocumentParserCallback callback( document );
 
 	XMLParser parser;
-	int ret = parser.Parse( callback, file.c_str() );
+	
+	cout << "Trying to load config file " << cFile.c_str() << endl;
+
+	Configuration* config = new Configuration();
+        ConfigurationParserCallback cCallback( *config );
+
+	cout << "Trying to parse config" << endl;
+
+	int ret = parser.Parse( cCallback, cFile.c_str() );
 	if( ret!=0 ) return 1;
 
-	document.SplitWays();
+	cout << "Trying to load data" << endl;
+
+	OSMDocument* document = new OSMDocument( *config );
+        OSMDocumentParserCallback callback( *document );
+
+	cout << "Trying to parse data" << endl;
+
+	ret = parser.Parse( callback, file.c_str() );
+	if( ret!=0 ) return 1;
+	
+	cout << "Split ways" << endl;
+
+	document->SplitWays();
 	//############# Export2DB
 	{
 
+		if( clean )
+		{
+			test.dropTables();
+		}
+		
 		test.createTables();
-		std::map<long long, Node*>& nodes= document.m_Nodes;
+		
+		std::map<std::string, Type*>& types= config->m_Types;
+		std::map<std::string, Type*>::iterator tIt(types.begin());
+		std::map<std::string, Type*>::iterator tLast(types.end());
+		
+		while(tIt!=tLast)
+		{
+			Type* type = (*tIt++).second;
+			test.exportType(type);
+
+			std::map<std::string, Class*>& classes= type->m_Classes;
+			std::map<std::string, Class*>::iterator cIt(classes.begin());
+			std::map<std::string, Class*>::iterator cLast(classes.end());
+
+			while(cIt!=cLast)
+			{
+				Class* clss = (*cIt++).second;
+				test.exportClass(type, clss);
+			}
+		}
+		
+
+		std::map<long long, Node*>& nodes= document->m_Nodes;
 		std::map<long long, Node*>::iterator it(nodes.begin());
 		std::map<long long, Node*>::iterator last(nodes.end());
 		
@@ -137,7 +196,7 @@ int main(int argc, char* argv[])
 			test.exportNode(node->id,node->lon, node->lat, node->numsOfUse);
 		}
 		
-		std::vector<Way*>& ways= document.m_SplittedWays;
+		std::vector<Way*>& ways= document->m_SplittedWays;
 		std::vector<Way*>::iterator it_way( ways.begin() );
 		std::vector<Way*>::iterator last_way( ways.end() );	
 		while( it_way!=last_way )
@@ -185,8 +244,8 @@ int main(int argc, char* argv[])
 	
 	cout << "#########################" << endl;
 	
-	cout << "size of streets: " << document.m_Ways.size() <<	endl;
-	cout << "size of splitted ways : " << document.m_SplittedWays.size() <<	endl;
+	cout << "size of streets: " << document->m_Ways.size() <<	endl;
+	cout << "size of splitted ways : " << document->m_SplittedWays.size() <<	endl;
 
 	cout << "finished" << endl;
 

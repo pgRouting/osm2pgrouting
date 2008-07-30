@@ -26,7 +26,7 @@
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
-#define _FILTER if(m_pActWay->highway == "motorway" || m_pActWay->highway == "primary" || m_pActWay->highway == "secondary")
+//#define _FILTER if(m_pActWay->highway == "motorway" || m_pActWay->highway == "primary" || m_pActWay->highway == "secondary")
 
 namespace osm
 {
@@ -106,9 +106,11 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					m_pActWay->name = v;
 				}
-				else if( m_pActWay && k.compare("highway")==0 )
+				//else if( m_pActWay && k.compare("highway")==0 )
+				else if( m_pActWay && m_rDocument.m_rConfig.m_Types.count(k) )
 				{
-					m_pActWay->highway = v;
+					m_pActWay->type = k;
+					m_pActWay->clss = v;
 				}
 			}
 		}
@@ -151,19 +153,24 @@ void OSMDocumentParserCallback::EndElement( const char* name )
 {
 	if( strcmp(name,"way") == 0 )
 	{
-		#ifdef RESTRICT
-		_FILTER
+		//#ifdef RESTRICT
+		//_FILTER
+		
+		if( m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss) )
 		{
-		#endif
+		//#endif
+		std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
 		
 			m_rDocument.AddWay( m_pActWay );
-		#ifdef RESTRICT
+
+		//#ifdef RESTRICT
 		}
 		else
 		{
+		std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
 			delete m_pActWay;
 		}
-		#endif
+		//#endif
 		
 		m_pActWay = 0;
 	}

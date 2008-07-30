@@ -59,7 +59,7 @@ int XMLParser::Parse( XMLParserCallback& rCallback, const char* chFileName )
     int done;
     do // loop over whole file content
     {
-  	char buf[BUFSIZ];
+      char buf[BUFSIZ];
       size_t len = fread(buf, 1, sizeof(buf), fp);	// read chunk of data
       done = len < sizeof(buf);	// end of file reached if buffer not completely filled
       if (!XML_Parse(parser, buf, (int)len, done))

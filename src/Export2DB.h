@@ -21,9 +21,12 @@
 #ifndef EXPORT2DB_H
 #define EXPORT2DB_H
 
-#include "postgresql/libpq-fe.h"
+//#include "postgresql/libpq-fe.h"
+#include "libpq-fe.h"
 #include "Node.h"
 #include "Way.h"
+#include "Type.h"
+#include "Class.h"
 
 using namespace osm;
 
@@ -58,6 +61,11 @@ public:
  	void exportNode(long long id, double lon, double lat, ushort numOfUse );
  	//! exports ways to the database
  	void exportWay(Way* way);
+
+ 	void exportType(Type* type);
+ 	void exportClass(Type* type, Class* clss);
+
+
  	/** 
  	 * creates the topology
  	 * Be careful, it takes some time.

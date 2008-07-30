@@ -21,8 +21,11 @@
 #ifndef OSMDOCUMENT_H
 #define OSMDOCUMENT_H
 
+#include "Configuration.h"
+
 namespace osm
 {
+
 
 class Node;
 class Way;
@@ -39,10 +42,11 @@ public:
 	std::vector<Way*> m_Ways;
 	//! splitted ways
 	std::vector<Way*> m_SplittedWays;
+	Configuration& m_rConfig;
 public:
 
 	//! Constructor
-	OSMDocument();
+	OSMDocument( Configuration& config);
 	//! Destructor
 	virtual ~OSMDocument();
 	//! add node to the map

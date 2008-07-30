@@ -56,7 +56,14 @@ public:
 	//! name of the street
 	std::string name;
 	//! type of the street, for example "motorway"
-	std::string highway;
+	//std::string highway;
+	
+	std::string type;
+	std::string clss;
+
+	//long long type;
+	//long long clss;
+	
 	//! geometry of the street
 	std::string geom;
 	//! length of the street
