@@ -115,7 +115,7 @@ void Export2DB::exportWay(Way* way)
 		 + boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lon)  + ","+ boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lat) + ",";
 	query+="GeometryFromText('" + way->geom +"', 4326)";
 	if(!way->name.empty())
-		query+=",'"+ way->name +"'";
+		query+=",$$"+ way->name +"$$";
 	query+=");";
 		std::cout << query <<std::endl;
 	PGresult *result = PQexec(mycon, query.c_str());
