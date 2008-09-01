@@ -83,7 +83,7 @@ void OSMDocument::SplitWays()
 			Node* secondNode=0;
 			Node* lastNode=0;
 			
-			Way* splitted_way = new Way( id++, currentWay->visible );
+			Way* splitted_way = new Way( ++id, currentWay->visible );
 			splitted_way->name=currentWay->name;
 			splitted_way->type=currentWay->type;
 			splitted_way->clss=currentWay->clss;
