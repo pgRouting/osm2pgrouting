@@ -106,6 +106,12 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					m_pActWay->name = v;
 				}
+				else if( m_pActWay && k.compare("oneway")==0 )
+				{
+					m_pActWay->oneway = true;					
+					std::cout<<"Edge "<<m_pActWay->id<<" is oneway"<<std::endl;
+
+				}				
 				//else if( m_pActWay && k.compare("highway")==0 )
 				else if( m_pActWay && m_rDocument.m_rConfig.m_Types.count(k) )
 				{

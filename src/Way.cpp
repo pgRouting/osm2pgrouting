@@ -29,7 +29,8 @@ Way::Way( long long id, bool visible )
 :
 	id(id),
 	visible(visible),
-	length(0)
+	length(0),
+	oneway(false)
 {
 }
 

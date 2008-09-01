@@ -87,6 +87,7 @@ void OSMDocument::SplitWays()
 			splitted_way->name=currentWay->name;
 			splitted_way->type=currentWay->type;
 			splitted_way->clss=currentWay->clss;
+			splitted_way->oneway=currentWay->oneway;
 
 	//GeometryFromText('MULTILINESTRING(('||x1||' '||y1||','||x2||' '||y2||'))',4326);
 			

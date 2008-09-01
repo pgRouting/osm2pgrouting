@@ -67,7 +67,10 @@ public:
 	//! geometry of the street
 	std::string geom;
 	//! length of the street
+
 	double length;
+	bool oneway;
+
 public:
 	/** 
 	 *	Constructor

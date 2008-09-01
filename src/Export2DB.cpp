@@ -69,7 +69,7 @@ void Export2DB::createTables()
 {
 	PGresult *result = PQexec(mycon, "CREATE TABLE nodes (ID integer PRIMARY KEY,  lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
 	std::cout << "Nodes table created" << std::endl;
-	result = PQexec(mycon, "CREATE TABLE ways (gid integer, class_id integer, cost double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, PRIMARY KEY(gid)); SELECT AddGeometryColumn('ways','the_geom',4326,'MULTILINESTRING',2);");
+	result = PQexec(mycon, "CREATE TABLE ways (gid integer, class_id integer, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, reverse_cost double precision,rule text, to_cost double precision, PRIMARY KEY(gid)); SELECT AddGeometryColumn('ways','the_geom',4326,'MULTILINESTRING',2);");
 	std::cout << "Ways table created" << std::endl;
 	result = PQexec(mycon, "CREATE TABLE types (id integer, name char(200));");
 	std::cout << "Types table created" << std::endl;
@@ -105,7 +105,7 @@ void Export2DB::exportNode(long long id, double lon, double lat, ushort numOfUse
 
 void Export2DB::exportWay(Way* way)
 {
-	std::string query = "INSERT into ways(gid, class_id, cost, x1, y1, x2, y2, the_geom";
+	std::string query = "INSERT into ways(gid, class_id, length, x1, y1, x2, y2, the_geom, reverse_cost";
 	if(!way->name.empty())
 		query+=", name";
 	query+=") values(";
@@ -114,10 +114,20 @@ void Export2DB::exportWay(Way* way)
 		 + boost::lexical_cast<std::string>(way->m_NodeRefs.front()->lon) + ","+ boost::lexical_cast<std::string>(way->m_NodeRefs.front()->lat) + ","
 		 + boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lon)  + ","+ boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lat) + ",";
 	query+="GeometryFromText('" + way->geom +"', 4326)";
+
+	if(way->oneway)
+	{
+	    query+=", "+ boost::lexical_cast<std::string>(way->length*1000000);
+	}
+	else
+	{
+	    query+=", "+ boost::lexical_cast<std::string>(way->length);
+	}	
+
 	if(!way->name.empty())
 		query+=",$$"+ way->name +"$$";
 	query+=");";
-//		std::cout << query <<std::endl;
+		//std::cout << query <<std::endl;
 	PGresult *result = PQexec(mycon, query.c_str());
 }
 
