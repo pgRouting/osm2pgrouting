@@ -117,7 +117,7 @@ void Export2DB::exportWay(Way* way)
 	if(!way->name.empty())
 		query+=",$$"+ way->name +"$$";
 	query+=");";
-		std::cout << query <<std::endl;
+//		std::cout << query <<std::endl;
 	PGresult *result = PQexec(mycon, query.c_str());
 }
 
@@ -143,7 +143,7 @@ void Export2DB::createTopology()
 	result = PQexec(mycon,"ALTER TABLE ways ADD COLUMN target integer;");
 	result = PQexec(mycon,"CREATE INDEX source_idx ON ways(source);");
 	result = PQexec(mycon,"CREATE INDEX target_idx ON ways(target);");
-    result = PQexec(mycon,"CREATE INDEX geom_idx ON ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
-	result = PQexec(mycon,"SELECT assign_vertex_id('ways', 0.0001, 'the_geom', 'id');");
+        result = PQexec(mycon,"CREATE INDEX geom_idx ON ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
+	result = PQexec(mycon,"SELECT assign_vertex_id('ways', 0.0001, 'the_geom', 'gid');");
 	
 }
