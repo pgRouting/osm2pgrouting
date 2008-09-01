@@ -27,7 +27,7 @@
     <class name="unclassified" id="100" />
     <class name="road" id="100" />
   </type>
-  <type name="cicleway" id="2">
+  <type name="cycleway" id="2">
     <class name="lane" id="201" />
     <class name="track" id="202" />
     <class name="opposite_lane" id="203" />
