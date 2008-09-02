@@ -5,6 +5,7 @@ you need to install
 2. postgis
 3. pgrouting
 4. boost
+5. expat
 
 and to prepare a database.
 
