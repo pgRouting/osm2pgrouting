@@ -4,7 +4,7 @@ SRC = src/Export2DB.cpp src/math_functions.cpp src/Node.cpp src/OSMDocumentParse
 
 DEPS = src/XMLParser.cpp
 
-INC = -I./ -Isrc -I/usr/include/pgsql
+INC = -I./ -Isrc -I/usr/include/pgsql -I/usr/include/postgresql
 
 MAIN = src/osm2pgrouting.cpp
 
