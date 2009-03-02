@@ -21,6 +21,7 @@
 #ifndef OSMDOCUMENTPARSERCALLBACK_H
 #define OSMDOCUMENTPARSERCALLBACK_H
 
+#include <string.h>
 #include "XMLParser.h"
 
 namespace osm

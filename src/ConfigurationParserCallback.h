@@ -21,7 +21,9 @@
 #ifndef CONFIGURATIONPARSERCALLBACK_H
 #define CONFIGURATIONPARSERCALLBACK_H
 
+#include <string.h>
 #include "XMLParser.h"
+
 
 namespace osm
 {
