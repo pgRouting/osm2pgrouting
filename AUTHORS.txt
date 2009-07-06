@@ -4,6 +4,5 @@ Daniel Wendt
 Anton Patrushev
 Daniel Kastl
 
-
 The project is graciously supported by Orkney, Inc.
 <http://www.orkney.co.jp/>
