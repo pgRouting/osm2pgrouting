@@ -8,21 +8,21 @@
     <class name="trunk_link" id="105" />    
     <class name="primary" id="106" />
     <class name="primary_link" id="107" />    
-    <class name="secondary" id="106" />
-    <class name="tertiary" id="107" />
-    <class name="residential" id="107" />
-    <class name="living_street" id="108" />
-    <class name="service" id="109" />
-    <class name="track" id="110" />
-    <class name="pedestrian" id="111" />
-    <class name="services" id="112" />
-    <class name="bus_guideway" id="113" />
-    <class name="path" id="114" />
-    <class name="cicleway" id="115" />
-    <class name="footway" id="116" />
-    <class name="bridleway" id="117" />
-    <class name="byway" id="118" />
-    <class name="steps" id="119" />
+    <class name="secondary" id="108" />
+    <class name="tertiary" id="109" />
+    <class name="residential" id="110" />
+    <class name="living_street" id="111" />
+    <class name="service" id="112" />
+    <class name="track" id="113" />
+    <class name="pedestrian" id="114" />
+    <class name="services" id="115" />
+    <class name="bus_guideway" id="116" />
+    <class name="path" id="117" />
+    <class name="cicleway" id="118" />
+    <class name="footway" id="119" />
+    <class name="bridleway" id="120" />
+    <class name="byway" id="121" />
+    <class name="steps" id="122" />
         
     <class name="unclassified" id="100" />
     <class name="road" id="100" />
