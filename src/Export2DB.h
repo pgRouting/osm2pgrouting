@@ -23,8 +23,10 @@
 
 //#include "postgresql/libpq-fe.h"
 #include "libpq-fe.h"
+#include "Tag.h"
 #include "Node.h"
 #include "Way.h"
+#include "Relation.h"
 #include "Type.h"
 #include "Class.h"
 
@@ -61,7 +63,8 @@ public:
  	void exportNode(long long id, double lon, double lat, ushort numOfUse );
  	//! exports ways to the database
  	void exportWay(Way* way);
-
+ 	void exportRelation(Relation* relation);
+	
  	void exportType(Type* type);
  	void exportClass(Type* type, Class* clss);
 

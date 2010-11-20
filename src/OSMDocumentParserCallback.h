@@ -29,6 +29,10 @@ namespace osm
 
 class OSMDocument;
 class Way;
+<<<<<<< HEAD
+=======
+class Relation;
+>>>>>>> relations
 
 /**
 	Parser callback for OSMDocument files
@@ -39,6 +43,10 @@ class OSMDocumentParserCallback : public xml::XMLParserCallback
 	OSMDocument& m_rDocument;
 	//! current way, which will be parsed
 	Way* m_pActWay;
+<<<<<<< HEAD
+=======
+	Relation* m_pActRelation;
+>>>>>>> relations
 
 	virtual void StartElement( const char *name, const char** atts );
 
@@ -64,7 +72,13 @@ public:
 	OSMDocumentParserCallback( OSMDocument& doc )
 	:
 		m_rDocument( doc ),
+<<<<<<< HEAD
 		m_pActWay( 0 )
+=======
+		m_pActWay( 0 ),
+		m_pActRelation( 0 )
+
+>>>>>>> relations
 	{
 	}
 
