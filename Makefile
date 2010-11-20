@@ -1,6 +1,6 @@
 CC = g++
 
-SRC = src/Export2DB.cpp src/math_functions.cpp src/Node.cpp src/OSMDocumentParserCallback.cpp src/Way.cpp src/OSMDocument.cpp src/Type.cpp src/Class.cpp src/Configuration.cpp src/ConfigurationParserCallback.cpp
+SRC = src/Export2DB.cpp src/math_functions.cpp src/Node.cpp src/Tag.cpp src/OSMDocumentParserCallback.cpp src/Way.cpp src/OSMDocument.cpp src/Type.cpp src/Class.cpp src/Configuration.cpp src/ConfigurationParserCallback.cpp src/Relation.cpp
 
 DEPS = src/XMLParser.cpp
 

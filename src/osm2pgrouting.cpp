@@ -25,11 +25,8 @@
 #include "OSMDocumentParserCallback.h"
 #include "Way.h"
 #include "Node.h"
-<<<<<<< HEAD
-=======
 #include "Tag.h"
 #include "Relation.h"
->>>>>>> relations
 #include "Export2DB.h"
 
 using namespace osm;
@@ -48,11 +45,8 @@ void _error()
 				cout << "-port <port> -- port of your database (default: 5432)" << endl;
 				cout << "-passwd <passwd> --  password for database access" << endl;
 				cout << "-clean -- drop peviously created tables" << endl;
-<<<<<<< HEAD
-=======
                 cout << "-skipnodes -- don't import the nodes table" << endl;
 
->>>>>>> relations
 					
 }
 
@@ -65,10 +59,7 @@ int main(int argc, char* argv[])
 	std::string port="5432";
 	std::string dbname;
 	std::string passwd;
-<<<<<<< HEAD
-=======
 	bool skipnodes = false;
->>>>>>> relations
 	bool clean = false;
 	if(argc >=7 && argc <=13)
 	{
@@ -116,13 +107,10 @@ int main(int argc, char* argv[])
 			{
 				clean = true;
 			}
-<<<<<<< HEAD
-=======
 			else if(strcmp(argv[i],"-skipnodes")==0)
             {
                 skipnodes = true;
             }
->>>>>>> relations
 			else
 			{
 				cout << "unknown paramer: " << argv[i] << endl;
@@ -149,13 +137,8 @@ int main(int argc, char* argv[])
 	Export2DB test(host, user, dbname, port, passwd);
 	if(test.connect()==1)
 		return 1;
-<<<<<<< HEAD
 
 
-=======
-
-
->>>>>>> relations
 	XMLParser parser;
 	
 	cout << "Trying to load config file " << cFile.c_str() << endl;
@@ -215,19 +198,6 @@ int main(int argc, char* argv[])
 			}
 		}
 		
-<<<<<<< HEAD
-
-		std::map<long long, Node*>& nodes= document->m_Nodes;
-		std::map<long long, Node*>::iterator it(nodes.begin());
-		std::map<long long, Node*>::iterator last(nodes.end());
-		
-		while(it!=last)
-		{
-			Node* node = (*it++).second;
-			test.exportNode(node->id,node->lon, node->lat, node->numsOfUse);
-		}
-		
-=======
 		
 		cout << "Adding relations to database..." << endl;
 
@@ -260,7 +230,6 @@ int main(int argc, char* argv[])
 		}
 
         cout << "Adding ways to database..." << endl;
->>>>>>> relations
 		std::vector<Way*>& ways= document->m_SplittedWays;
 		std::vector<Way*>::iterator it_way( ways.begin() );
 		std::vector<Way*>::iterator last_way( ways.end() );	
@@ -269,11 +238,7 @@ int main(int argc, char* argv[])
 			Way* pWay = *it_way++;
 			test.exportWay(pWay);
 		}
-<<<<<<< HEAD
-		cout << "create topology" << endl;
-=======
 		cout << "Creating topology..." << endl;
->>>>>>> relations
 		test.createTopology();
 	}	
 	
@@ -317,17 +282,8 @@ int main(int argc, char* argv[])
 	cout << "size of splitted ways : " << document->m_SplittedWays.size() <<	endl;
 
 	cout << "finished" << endl;
-<<<<<<< HEAD
 
 	//string n;
 	//getline( cin, n );
 	return 0;
 }
-
-=======
-
-	//string n;
-	//getline( cin, n );
-	return 0;
-}
->>>>>>> relations

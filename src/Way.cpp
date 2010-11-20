@@ -20,30 +20,19 @@
 
 #include "stdafx.h"
 #include "Way.h"
-<<<<<<< HEAD
-=======
 #include "Tag.h"
->>>>>>> relations
 
 
 namespace osm
 {
 
-<<<<<<< HEAD
-Way::Way( long long id, bool visible )
-=======
 Way::Way( long long id, bool visible, long long osm_id )
->>>>>>> relations
 :
 	id(id),
 	visible(visible),
 	length(0),
-<<<<<<< HEAD
-	oneway(false)
-=======
 	oneway(false),
 	osm_id(osm_id)
->>>>>>> relations
 {
 }
 
@@ -56,13 +45,10 @@ void Way::AddNodeRef( Node* pNode )
 	if( pNode ) m_NodeRefs.push_back(pNode);
 }
 
-<<<<<<< HEAD
-=======
 void Way::AddTag( Tag* t )
 {
 	m_Tags.push_back( t );
 }
->>>>>>> relations
 
 } // end namespace osm
 

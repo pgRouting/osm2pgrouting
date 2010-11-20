@@ -21,13 +21,9 @@
 #include "stdafx.h"
 #include "OSMDocument.h"
 #include "Configuration.h"
-<<<<<<< HEAD
-#include "Node.h"
-=======
 #include "Tag.h"
 #include "Node.h"
 #include "Relation.h"
->>>>>>> relations
 #include "Way.h"
 #include "math_functions.h"
 
@@ -43,10 +39,7 @@ OSMDocument::~OSMDocument()
 {
 	ez_mapdelete( m_Nodes );
 	ez_vectordelete( m_Ways );		
-<<<<<<< HEAD
-=======
 	ez_vectordelete( m_Relations );		
->>>>>>> relations
 	ez_vectordelete( m_SplittedWays );
 }
 void OSMDocument::AddNode( Node* n )
@@ -59,14 +52,11 @@ void OSMDocument::AddWay( Way* w )
 	m_Ways.push_back( w );
 }
 
-<<<<<<< HEAD
-=======
 void OSMDocument::AddRelation( Relation* r )
 {
 	m_Relations.push_back( r );
 }
 
->>>>>>> relations
 Node* OSMDocument::FindNode( long long nodeRefId ) 
 const
 {
@@ -87,20 +77,12 @@ void OSMDocument::SplitWays()
 	{
 		Way* currentWay = *it++;
 		
-<<<<<<< HEAD
-=======
 		// ITERATE THROUGH THE NODES
->>>>>>> relations
 		std::vector<Node*>::const_iterator it_node( currentWay->m_NodeRefs.begin());	
 		std::vector<Node*>::const_iterator last_node( currentWay->m_NodeRefs.end());
 		
 		Node* backNode = currentWay->m_NodeRefs.back();
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> relations
 		while(it_node!=last_node)
 		{
 			
@@ -108,17 +90,11 @@ void OSMDocument::SplitWays()
 			Node* secondNode=0;
 			Node* lastNode=0;
 			
-<<<<<<< HEAD
-			Way* splitted_way = new Way( ++id, currentWay->visible );
-=======
 			Way* splitted_way = new Way( ++id, currentWay->visible, currentWay->osm_id );
->>>>>>> relations
 			splitted_way->name=currentWay->name;
 			splitted_way->type=currentWay->type;
 			splitted_way->clss=currentWay->clss;
 			splitted_way->oneway=currentWay->oneway;
-<<<<<<< HEAD
-=======
 			
 			std::vector<Tag*>::iterator it_tag( currentWay->m_Tags.begin() );
 			std::vector<Tag*>::iterator last_tag( currentWay->m_Tags.end() );
@@ -138,7 +114,6 @@ void OSMDocument::SplitWays()
 			
 			
 			
->>>>>>> relations
 
 	//GeometryFromText('MULTILINESTRING(('||x1||' '||y1||','||x2||' '||y2||'))',4326);
 			

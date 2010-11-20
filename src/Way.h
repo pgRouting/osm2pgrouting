@@ -22,11 +22,7 @@
 
 namespace osm
 {
-<<<<<<< HEAD
-
-=======
 	class Tag;
->>>>>>> relations
 	class Node;
 
 /**
@@ -54,10 +50,7 @@ class Way
 public:
 	//! Do not delete nodes in this container!
 	std::vector<Node*> m_NodeRefs;
-<<<<<<< HEAD
-=======
 	std::vector<Tag*> m_Tags;
->>>>>>> relations
 	//! ID of the way
 	long long id;
 	bool visible;
@@ -75,28 +68,18 @@ public:
 	//! geometry of the street
 	std::string geom;
 	//! length of the street
-<<<<<<< HEAD
-
-	double length;
-	bool oneway;
-=======
 	double length;
 	bool oneway;
 	
 	long long osm_id;
 
->>>>>>> relations
 
 public:
 	/** 
 	 *	Constructor
 	 *	@param id ID of the way
 	 */
-<<<<<<< HEAD
-	Way( long long id, bool visible );
-=======
 	Way( long long id, bool visible, long long osm_id );
->>>>>>> relations
 	//! Destructor
 	~Way();
 	/**
@@ -104,11 +87,8 @@ public:
 	 *	@param pNode node
 	 */
 	void AddNodeRef( Node* pNode );
-<<<<<<< HEAD
-=======
 	void AddTag( Tag* t );
 
->>>>>>> relations
 };
 
 

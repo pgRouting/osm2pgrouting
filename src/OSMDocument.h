@@ -29,10 +29,7 @@ namespace osm
 
 class Node;
 class Way;
-<<<<<<< HEAD
-=======
 class Relation;
->>>>>>> relations
 
 /**
 	An osm-document.
@@ -46,13 +43,10 @@ public:
 	std::vector<Way*> m_Ways;
 	//! splitted ways
 	std::vector<Way*> m_SplittedWays;
-<<<<<<< HEAD
-=======
 
 	std::vector<Relation*> m_Relations;
 
 
->>>>>>> relations
 	Configuration& m_rConfig;
 public:
 
@@ -69,12 +63,9 @@ public:
 	//! split the ways
 	void SplitWays();
 	//Node* getNode( long long nodeRefId );
-<<<<<<< HEAD
-=======
 
 	void AddRelation( Relation* r );
 
->>>>>>> relations
 };
 
 
