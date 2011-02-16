@@ -44,7 +44,7 @@ void _error()
 				cout << "-host <host>  -- host of your postgresql database (default: 127.0.0.1)" << endl;
 				cout << "-port <port> -- port of your database (default: 5432)" << endl;
 				cout << "-passwd <passwd> --  password for database access" << endl;
-				cout << "-clean -- drop peviously created tables" << endl;
+				cout << "-clean -- drop previously created tables" << endl;
                 cout << "-skipnodes -- don't import the nodes table" << endl;
 
 					

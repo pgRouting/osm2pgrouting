@@ -32,5 +32,5 @@ optional:
 -host <host>  		-- host of your postgresql database (default: 127.0.0.1)
 -port <port> 		-- port of your database (default: 5432)
 -passwd <passwd> 	-- password for database access
--clean 				-- drop peviously created tables
+-clean 				-- drop previously created tables
 -skipnodes			-- do not load nodes into the node table (reduces runtime) 
