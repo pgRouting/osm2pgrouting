@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 			while(it!=last)
 			{
 				Node* node = (*it++).second;
-				test.exportNode(node->id,node->lon, node->lat, node->numsOfUse);
+				test.exportNode(node);
 			}
 		}
 

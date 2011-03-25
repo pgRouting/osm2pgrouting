@@ -60,7 +60,7 @@ public:
  	//! creates needed tables
  	void createTables();
  	//! exports nodes to the database
- 	void exportNode(long long id, double lon, double lat, ushort numOfUse );
+ 	void exportNode(Node* node);
  	//! exports ways to the database
  	void exportWay(Way* way);
  	void exportRelation(Relation* relation);

@@ -150,15 +150,15 @@ void Export2DB::dropTables()
 	PGresult *result = PQexec(mycon, "DROP TABLE ways; DROP TABLE nodes; DROP TABLE types; DROP TABLE classes; DROP TABLE way_tag; DROP TABLE relations; DROP TABLE relation_ways;");
 }
 
-void Export2DB::exportNode(long long id, double lon, double lat, ushort numOfUse )
+void Export2DB::exportNode(Node* node)
 {
 	char tmp_id[20];
 	char tmp_lon[15];
 	char tmp_lat[15];
 	
-	sprintf(tmp_id,"%lld",id);
-	gcvt(lon,12,tmp_lon);
-	gcvt(lat,12,tmp_lat);
+	sprintf(tmp_id,"%lld",node->id);
+	gcvt(node->lon,12,tmp_lon);
+	gcvt(node->lat,12,tmp_lat);
 	
 	std::string query = "INSERT into nodes(id,lon,lat) values(";
 				query+= tmp_id;
