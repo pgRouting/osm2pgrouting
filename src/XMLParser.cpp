@@ -68,7 +68,7 @@ int XMLParser::Parse( XMLParserCallback& rCallback, const char* chFileName )
   	  // a parse error occured:
         fprintf(stderr,
   	      "%s at line %d\n",
-  	      XML_ErrorString(XML_GetErrorCode(parser)),
+  	      XML_ErrorString(XML_GetErrorCode(parser)),(int)
   	      XML_GetCurrentLineNumber(parser));
   	       fclose(fp);
         ret = 2;	// quit, return = 2 indicating parsing error
