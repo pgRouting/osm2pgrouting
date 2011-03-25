@@ -4,15 +4,17 @@ SRC = src/Export2DB.cpp src/math_functions.cpp src/Node.cpp src/Tag.cpp src/OSMD
 
 DEPS = src/XMLParser.cpp
 
-INC = -I./ -Isrc -I/usr/include/pgsql -I/usr/include/postgresql
+INC = -I./ -Isrc -I/usr/include/pgsql -I/usr/include/postgresql -I/usr/local/pgsql/include
+
+LIB_DIRS = -L/usr/local/pgsql/lib -L/usr/local/lib/pgsql
 
 MAIN = src/osm2pgrouting.cpp
 
 all:
 	$(CC) -c $(SRC) $(INC) -ggdb3
 	$(CC) -c $(DEPS) $(INC) -ggdb3
-	$(CC) -o osm2pgrouting $(MAIN) *.o $(INC) -lexpat -ggdb3 -lpq
+	$(CC) -o osm2pgrouting $(MAIN) *.o $(INC) -lexpat -ggdb3 $(LIB_DIRS) -lpq
 	rm *.o
 clean:
-	rm osm2pgrouting
+	rm -f *.o osm2pgrouting
 
