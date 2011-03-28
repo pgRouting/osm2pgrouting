@@ -20,6 +20,9 @@
 
 #include "stdafx.h" 
 #include "Export2DB.h"
+#include "boost/algorithm/string/replace.hpp"
+
+#define TO_STR(x)	boost::lexical_cast<std::string>(x)
 
 using namespace std;
 
@@ -150,104 +153,83 @@ void Export2DB::dropTables()
 	PGresult *result = PQexec(mycon, "DROP TABLE ways; DROP TABLE nodes; DROP TABLE types; DROP TABLE classes; DROP TABLE way_tag; DROP TABLE relations; DROP TABLE relation_ways;");
 }
 
-void Export2DB::exportNode(Node* node)
-{
-	char tmp_id[20];
-	char tmp_lon[15];
-	char tmp_lat[15];
-	
-	sprintf(tmp_id,"%lld",node->id);
-	gcvt(node->lon,12,tmp_lon);
-	gcvt(node->lat,12,tmp_lat);
-	
-	std::string query = "INSERT into nodes(id,lon,lat) values(";
-				query+= tmp_id;
-				query+=",";
-				query+= tmp_lon;
-				query+=",";
-				query+= tmp_lat;
-				query+=");";
-	
-	PGresult *result = PQexec(mycon, query.c_str());
+void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
+{	
+	std::map<long long, Node*>::iterator it(nodes.begin());
+	std::map<long long, Node*>::iterator last(nodes.end());
+	PGresult* res = PQexec(mycon, "COPY nodes(id, lon, lat) from STDIN");
+	PQclear(res);
+	while(it!=last)
+	{
+		Node* node = (*it++).second;
+		std::string row_data = TO_STR(node->id);
+		row_data += "\t";
+		row_data += TO_STR(node->lon);
+		row_data += "\t";
+		row_data += TO_STR(node->lat);
+		row_data += "\n";
+		PQputline(mycon, row_data.c_str());
+	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 }
 
-void Export2DB::exportRelation(Relation* relation )
+void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration* config)
 {
-	
-	std::vector<Tag*>::iterator it_tag( relation->m_Tags.begin() );
-	std::vector<Tag*>::iterator last_tag( relation->m_Tags.end() );
-	
-	while( it_tag!=last_tag )
+	std::vector<Relation*>::iterator it_relation( relations.begin() );
+	std::vector<Relation*>::iterator last_relation( relations.end() );	
+	PGresult* res = PQexec(mycon, "COPY relations(relation_id, type_id, class_id, name) from STDIN");
+	PQclear(res);
+	while( it_relation!=last_relation )
 	{
-		Tag* pTag = *it_tag++;
-		
-		std::string query = "INSERT into relations(relation_id, type_id, class_id";
-		if(!relation->name.empty()) query+=", name";
-    	query+=") values(";
-
-		query+= boost::lexical_cast<std::string>(relation->id) + ",";
-		query+= "(SELECT id FROM types WHERE name ='" + boost::lexical_cast<std::string>(pTag->key) + "'),";		
-		query+= "(SELECT id FROM classes WHERE name ='" + boost::lexical_cast<std::string>(pTag->value) + "' and type_id = (select id from types where name='"+ boost::lexical_cast<std::string>(pTag->key) + "'))";		
-		if(!relation->name.empty()) query+=",$$"+ relation->name +"$$";
-    	query+=");";
-
-		PGresult *result2 = PQexec(mycon, query.c_str());
-		if (PQresultStatus(result2) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "insert relations failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-	        std::cerr << "SQL:" << std::endl << query << std::endl;
-                PQclear(result2);
-        }
+		Relation* relation = *it_relation++;
+		std::vector<Tag*>::iterator it_tag( relation->m_Tags.begin() );
+		std::vector<Tag*>::iterator last_tag( relation->m_Tags.end() );
+		while( it_tag!=last_tag )
+		{
+			Tag* tag = *it_tag++;
+			std::string row_data = TO_STR(relation->id);
+			row_data += "\t";
+			row_data += TO_STR(config->FindType(tag->key)->id);
+			row_data += "\t";
+			row_data += TO_STR(config->FindClass(tag->key, tag->value)->id);
+			row_data += "\t";
+			if(!relation->name.empty())
+  		{
+  		  std::string escaped_name = relation->name;
+  			boost::replace_all(escaped_name, "\t", "\\\t");
+				row_data += escaped_name;
+			}
+			row_data += "\n";
+			PQputline(mycon, row_data.c_str());
+		}
 	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 	
-	/*
-	std::string query = "INSERT into relations(relation_id, type) values(";
-				query+= boost::lexical_cast<std::string>(relation->id);
-				query+=");";
-				
-	PGresult *result = PQexec(mycon, query.c_str());
-		if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "insert into relations failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-	        std::cerr << "SQL:" << std::endl << query << std::endl;
-                PQclear(result);
-        }
-	*/
-	
-	std::vector<long long>::iterator it_way( relation->m_WayRefs.begin() );
-	std::vector<long long>::iterator last_way( relation->m_WayRefs.end() );
-	// cout << "Number of tags: " << way->m_Tags.size() << endl;
-	// std::cout << "First tag: " << way->m_Tags.front()->key << ":" << way->m_Tags.front()->value << std::endl;
-
-	while( it_way!=last_way )
+	// Second round of iteration is needed to copy relation_ways
+	it_relation = relations.begin();
+	res = PQexec(mycon, "COPY relation_ways(relation_id, way_id) from STDIN");
+	PQclear(res);
+	while( it_relation!=last_relation )
 	{
-		
-		std::string query = "INSERT into relation_ways(relation_id, way_id) values";
+		Relation* relation = *it_relation++;
+		std::vector<long long>::iterator it_way( relation->m_WayRefs.begin() );
+		std::vector<long long>::iterator last_way( relation->m_WayRefs.end() );
 
-		query+= "(" + boost::lexical_cast<std::string>(relation->id) + ",";		
-		query+= boost::lexical_cast<std::string>(*it_way) + ")";
-		// std::cout << query << std::endl;
-		
-		PGresult *result2 = PQexec(mycon, query.c_str());
-		if (PQresultStatus(result2) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "insert relation_ways failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-	        std::cerr << "SQL:" << std::endl << query << std::endl;
-                PQclear(result2);
-        }
-        
-        ++it_way;
-        
+		while( it_way!=last_way )
+		{
+			long long way_id = *it_way++;
+			std::string row_data = TO_STR(relation->id);
+			row_data += "\t";
+			row_data += TO_STR(way_id);
+			row_data += "\n";
+			PQputline(mycon, row_data.c_str());
+		}
 	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 }
-
-
 
 /*
 <relation id="147411" version="5" timestamp="2010-01-22T17:02:14Z" uid="24299" user="james_hiebert" changeset="3684904">
@@ -265,96 +247,114 @@ void Export2DB::exportRelation(Relation* relation )
     <tag k="type" v="route"/>
   </relation>
  */
-
-
-
-void Export2DB::exportWay(Way* way)
+void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 {
-
-	std::vector<Tag*>::iterator it_tag( way->m_Tags.begin() );
-	std::vector<Tag*>::iterator last_tag( way->m_Tags.end() );
-	// cout << "Number of tags: " << way->m_Tags.size() << endl;
-	// std::cout << "First tag: " << way->m_Tags.front()->key << ":" << way->m_Tags.front()->value << std::endl;
-
-	while( it_tag!=last_tag )
+	std::vector<Way*>::iterator it_way( ways.begin() );
+	std::vector<Way*>::iterator last_way( ways.end() );
+	PGresult* res = PQexec(mycon, "COPY way_tag(type_id, class_id, way_id) from STDIN");
+	PQclear(res);
+	while( it_way!=last_way )
 	{
-		Tag* pTag = *it_tag++;
-		
-		std::string query = "INSERT into way_tag(type_id, class_id, way_id) values(";
-
-		query+= "(SELECT id FROM types WHERE name ='" + boost::lexical_cast<std::string>(pTag->key) + "'),";		
-		query+= "(SELECT id FROM classes WHERE name ='" + boost::lexical_cast<std::string>(pTag->value) + "' and type_id = (select id from types where name='"+ boost::lexical_cast<std::string>(pTag->key) + "')),";		
-		query+= boost::lexical_cast<std::string>(way->id) + ")";
-	// std::cout << query << std::endl;
-		
-		PGresult *result = PQexec(mycon, query.c_str());
-		if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create way_tag failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-	        std::cerr << "SQL:" << std::endl << query << std::endl;
-                PQclear(result);
-        }
+		Way* way = *it_way++;
+		std::vector<Tag*>::iterator it_tag( way->m_Tags.begin() );
+		std::vector<Tag*>::iterator last_tag( way->m_Tags.end() );
+		while( it_tag!=last_tag )
+		{
+			Tag* tag = *it_tag++;
+			std::string row_data = TO_STR(config->FindType(tag->key)->id);
+			row_data += "\t";
+			row_data += TO_STR(config->FindClass(tag->key, tag->value)->id);
+			row_data += "\t";
+			row_data += TO_STR(way->id);
+			row_data += "\n";
+			PQputline(mycon, row_data.c_str());
+		}
 	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 	
-
-	// for( int i = 0; i < way->m_Tags.size(); i++ ) {
-    //  cout << "About to insert tag: " << i << " is " << way->m_Tags[i] << endl;
-	// }
-
-	std::string query = "INSERT into ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost";
-	if(!way->name.empty())
-		query+=", name";
-	query+=") values(";
-	
-	query+=boost::lexical_cast<std::string>(way->id) + 
-		", (SELECT id FROM classes WHERE name ='" + boost::lexical_cast<std::string>(way->clss) + "' and type_id = (select id from types where name='"+ boost::lexical_cast<std::string>(way->type) + "'))," 
-		+ boost::lexical_cast<std::string>(way->length) + "," 
-		 + boost::lexical_cast<std::string>(way->m_NodeRefs.front()->lon) + ","+ boost::lexical_cast<std::string>(way->m_NodeRefs.front()->lat) + ","
-		 + boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lon)  + ","+ boost::lexical_cast<std::string>(way->m_NodeRefs.back()->lat) + ","
-		+ boost::lexical_cast<std::string>(way->osm_id) + ",";
-		 
-	query+="GeometryFromText('" + way->geom +"', 4326)";
-
-	if(way->oneway)
+	it_way = ways.begin();
+	res = PQexec(mycon, "COPY ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, name) from STDIN");
+	while( it_way!=last_way )
 	{
-	    query+=", "+ boost::lexical_cast<std::string>(way->length*1000000);
+		Way* way = *it_way++;
+		std::string row_data = TO_STR(way->id);
+		row_data += "\t";
+		row_data += TO_STR(config->FindClass(way->type, way->clss)->id);
+		row_data += "\t";
+		row_data += TO_STR(way->length);
+		row_data += "\t";
+		row_data += TO_STR(way->m_NodeRefs.front()->lon);
+		row_data += "\t";
+		row_data += TO_STR(way->m_NodeRefs.front()->lat);
+		row_data += "\t";
+		row_data += TO_STR(way->m_NodeRefs.back()->lon);
+		row_data += "\t";
+		row_data += TO_STR(way->m_NodeRefs.back()->lat);
+		row_data += "\t";
+		row_data += TO_STR(way->osm_id);
+		row_data += "\t";
+		row_data += "srid=4326;" + way->geom;
+		row_data += "\t";
+		if(way->oneway)
+	    	row_data += TO_STR(way->length*1000000);
+		else
+			row_data += TO_STR(way->length);
+		row_data += "\t";
+	  	if(!way->name.empty())
+	  	{
+	  	  std::string escaped_name = way->name;
+  			boost::replace_all(escaped_name, "\t", "\\\t");
+				row_data += escaped_name;
+	  	}
+	  	row_data += "\n";
+		PQputline(mycon, row_data.c_str());
 	}
-	else
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
+}
+void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
+{
+	std::map<std::string, Type*>::iterator tIt(types.begin());
+	std::map<std::string, Type*>::iterator tLast(types.end());
+	PGresult* res = PQexec(mycon, "COPY types(id, name) from STDIN");
+	PQclear(res);
+	while(tIt!=tLast)
 	{
-	    query+=", "+ boost::lexical_cast<std::string>(way->length);
-	}	
+		Type* type = (*tIt++).second;
+		std::string row_data = TO_STR(type->id);
+		row_data += "\t";
+		row_data += type->name;
+		row_data += "\n";
+		PQputline(mycon, row_data.c_str());
+	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 
-	if(!way->name.empty())
-		query+=",$$"+ way->name +"$$";
-	query+=");";
-		//std::cout << query <<std::endl;
-	PGresult *result = PQexec(mycon, query.c_str());
-	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create Ways failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-	        std::cerr << "SQL:" << std::endl << query << std::endl;
-                PQclear(result);
-        }
-}
+	tIt = types.begin();
+	res = PQexec(mycon, "COPY classes(id, type_id, name) from STDIN");
+	PQclear(res);
+	while(tIt!=tLast)
+	{
+		Type* type = (*tIt++).second;
+		std::map<std::string, Class*>& classes= type->m_Classes;
+		std::map<std::string, Class*>::iterator cIt(classes.begin());
+		std::map<std::string, Class*>::iterator cLast(classes.end());
 
-void Export2DB::exportType(Type* type)
-{
-	std::string query = "INSERT into types(id, name) values(";
-	
-	query+=boost::lexical_cast<std::string>(type->id) + ", '" + type->name +"');";
-	PGresult *result = PQexec(mycon, query.c_str());
-}
-
-void Export2DB::exportClass(Type* type, Class* clss)
-{
-	std::string query = "INSERT into classes(id, type_id, name) values(";
-	
-	query+=boost::lexical_cast<std::string>(clss->id) + ", " + boost::lexical_cast<std::string>(type->id) + ", '" + clss->name +"');";
-	PGresult *result = PQexec(mycon, query.c_str());
+		while(cIt!=cLast)
+		{
+			Class* clss = (*cIt++).second;
+			std::string row_data = TO_STR(clss->id);
+			row_data += "\t";
+			row_data += TO_STR(type->id);
+			row_data += "\t";
+			row_data += clss->name;
+			row_data += "\n";
+			PQputline(mycon, row_data.c_str());
+		}
+	}
+	PQputline(mycon, "\\.\n");
+	PQendcopy(mycon);
 }
 
 void Export2DB::createTopology()

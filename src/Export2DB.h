@@ -29,6 +29,7 @@
 #include "Relation.h"
 #include "Type.h"
 #include "Class.h"
+#include "Configuration.h"
 
 using namespace osm;
 
@@ -60,14 +61,12 @@ public:
  	//! creates needed tables
  	void createTables();
  	//! exports nodes to the database
- 	void exportNode(Node* node);
+ 	void exportNodes(std::map<long long, Node*>& nodes);
  	//! exports ways to the database
- 	void exportWay(Way* way);
- 	void exportRelation(Relation* relation);
+ 	void exportWays(std::vector<Way*>& ways, Configuration* config);
+ 	void exportRelations(std::vector<Relation*>& relations, Configuration* config);
 	
- 	void exportType(Type* type);
- 	void exportClass(Type* type, Class* clss);
-
+ 	void exportTypesWithClasses(std::map<std::string, Type*>& types);
 
  	/** 
  	 * creates the topology

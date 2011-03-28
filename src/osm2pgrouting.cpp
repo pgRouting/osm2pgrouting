@@ -173,71 +173,25 @@ int main(int argc, char* argv[])
 
 			test.dropTables();
 		}
-        cout << "Creating tables..." << endl;
+
+		cout << "Creating tables..." << endl;
 		test.createTables();
-		
-		std::map<std::string, Type*>& types= config->m_Types;
-		std::map<std::string, Type*>::iterator tIt(types.begin());
-		std::map<std::string, Type*>::iterator tLast(types.end());
 
-        cout << "Adding tag types and classes to database..." << endl;
+		cout << "Adding tag types and classes to database..." << endl;
+		test.exportTypesWithClasses(config->m_Types);
 
-		while(tIt!=tLast)
-		{
-			Type* type = (*tIt++).second;
-			test.exportType(type);
-
-			std::map<std::string, Class*>& classes= type->m_Classes;
-			std::map<std::string, Class*>::iterator cIt(classes.begin());
-			std::map<std::string, Class*>::iterator cLast(classes.end());
-
-			while(cIt!=cLast)
-			{
-				Class* clss = (*cIt++).second;
-				test.exportClass(type, clss);
-			}
-		}
-		
-		
 		cout << "Adding relations to database..." << endl;
-
-		// START RELATIONS CODE
-		std::vector<Relation*>& relations= document->m_Relations;
-		std::vector<Relation*>::iterator it_relation( relations.begin() );
-		std::vector<Relation*>::iterator last_relation( relations.end() );	
-		while( it_relation!=last_relation )
-		{
-			Relation* pRelation = *it_relation++;
-
-			test.exportRelation(pRelation);
-		}
-		// END RELATIONS CODE
+		test.exportRelations(document->m_Relations, config);
 		
 		// Optional user argument skipnodes will not add nodes to the database (saving a lot of time if not necessary)
 		if ( !skipnodes) {
 			cout << "Adding nodes to database..." << endl;
+			test.exportNodes(document->m_Nodes);
+		}
 
-			std::map<long long, Node*>& nodes= document->m_Nodes;
-			std::map<long long, Node*>::iterator it(nodes.begin());
-			std::map<long long, Node*>::iterator last(nodes.end());
+		cout << "Adding ways to database..." << endl;
+		test.exportWays(document->m_SplittedWays, config);
 		
-
-			while(it!=last)
-			{
-				Node* node = (*it++).second;
-				test.exportNode(node);
-			}
-		}
-
-        cout << "Adding ways to database..." << endl;
-		std::vector<Way*>& ways= document->m_SplittedWays;
-		std::vector<Way*>::iterator it_way( ways.begin() );
-		std::vector<Way*>::iterator last_way( ways.end() );	
-		while( it_way!=last_way )
-		{
-			Way* pWay = *it_way++;
-			test.exportWay(pWay);
-		}
 		cout << "Creating topology..." << endl;
 		test.createTopology();
 	}	
