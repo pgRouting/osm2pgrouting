@@ -1,20 +1,27 @@
 CC = g++
 
-SRC = src/Export2DB.cpp src/math_functions.cpp src/Node.cpp src/Tag.cpp src/OSMDocumentParserCallback.cpp src/Way.cpp src/OSMDocument.cpp src/Type.cpp src/Class.cpp src/Configuration.cpp src/ConfigurationParserCallback.cpp src/Relation.cpp
+CFLAGS = -ggdb3
 
-DEPS = src/XMLParser.cpp
+OBJ = bin/Export2DB.o bin/math_functions.o bin/Node.o bin/Tag.o bin/OSMDocumentParserCallback.o bin/Way.o bin/OSMDocument.o bin/Type.o bin/Class.o bin/Configuration.o bin/ConfigurationParserCallback.o bin/Relation.o bin/XMLParser.o
 
-INC = -I./ -Isrc -I/usr/include/pgsql -I/usr/include/postgresql -I/usr/local/pgsql/include
+INC_DIRS = -I./ -Isrc -I/usr/include/pgsql -I/usr/include/postgresql -I/usr/local/pgsql/include
 
 LIB_DIRS = -L/usr/local/pgsql/lib -L/usr/local/lib/pgsql
 
+LIBS = -lexpat -lpq
+
 MAIN = src/osm2pgrouting.cpp
 
-all:
-	$(CC) -c $(SRC) $(INC) -ggdb3
-	$(CC) -c $(DEPS) $(INC) -ggdb3
-	$(CC) -o osm2pgrouting $(MAIN) *.o $(INC) -lexpat -ggdb3 $(LIB_DIRS) -lpq
-	rm *.o
-clean:
-	rm -f *.o osm2pgrouting
+osm2pgrouting : bin $(OBJ) $(MAIN)
+	$(CC) $(CFLAGS) $(MAIN) $(OBJ) $(INC_DIRS) $(LIB_DIRS) $(LIBS) -o bin/$@
+	ln -sf bin/$@ $@
 
+bin:
+	mkdir -p bin
+  
+bin/%.o : src/%.cpp
+	$(CC) -o $@ $(INC_DIRS) -ggdb3 -c $<
+
+clean:
+	rm -rf bin
+	rm -f osm2pgrouting
