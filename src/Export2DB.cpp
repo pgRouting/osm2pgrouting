@@ -267,6 +267,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 			row_data += "\t";
 			row_data += TO_STR(way->id);
 			row_data += "\n";
+
 			PQputline(mycon, row_data.c_str());
 		}
 	}
@@ -305,6 +306,9 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 	  	{
 	  	  std::string escaped_name = way->name;
   			boost::replace_all(escaped_name, "\t", "\\\t");
+            boost::replace_all(escaped_name, "\n", "");
+            boost::replace_all(escaped_name, "\r", "");
+
 				row_data += escaped_name;
 	  	}
 	  	row_data += "\n";
