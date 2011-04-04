@@ -1,8 +1,7 @@
 Project contributors:
 
-Daniel Wendt
+Daniel Wendt (primary author) 
 Anton Patrushev
 Daniel Kastl
-
-The project is graciously supported by Orkney, Inc.
-<http://www.orkney.co.jp/>
+Jordan Anderson
+J Kishore Kumar
