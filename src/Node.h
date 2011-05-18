@@ -44,7 +44,7 @@ public:
 	/**
 	 *	counts the rate, how much this node is used in different ways
 	 */
-	ushort numsOfUse;
+	unsigned short numsOfUse;
 public:
 	/**
 	 *	Construktor
