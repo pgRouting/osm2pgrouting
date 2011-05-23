@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	std::string passwd;
 	bool skipnodes = false;
 	bool clean = false;
-	if(argc >=7 && argc <=13)
+	if(argc >=7 && argc <=16)
 	{
 		int i=1;
 		while( i<argc)
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
             }
 			else
 			{
-				cout << "unknown paramer: " << argv[i] << endl;
+				cout << "unknown option: " << argv[i] << endl;
 				_error();
 				return 1;
 			}
