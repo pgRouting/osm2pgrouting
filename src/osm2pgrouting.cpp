@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	std::string passwd;
 	bool skipnodes = false;
 	bool clean = false;
-	if(argc >=7 && argc <=13)
+	if(argc >=7 && argc <=17)
 	{
 		int i=1;
 		while( i<argc)
