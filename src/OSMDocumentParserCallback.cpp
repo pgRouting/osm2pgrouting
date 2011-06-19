@@ -266,7 +266,9 @@ void OSMDocumentParserCallback::EndElement( const char* name )
 		if( m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss) )
 		{
 		//#endif
-		std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
+		
+		// Comment out the following to get more log output
+		//std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
 		
 			m_rDocument.AddWay( m_pActWay );
 			// std::cout << "First tag: " << m_pActWay->m_Tags.back()->key << ":" << m_pActWay->m_Tags.back()->value << std::endl;
