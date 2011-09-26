@@ -18,7 +18,7 @@
     <class name="services" id="115" />
     <class name="bus_guideway" id="116" />
     <class name="path" id="117" />
-    <class name="cicleway" id="118" />
+    <class name="cycleway" id="118" />
     <class name="footway" id="119" />
     <class name="bridleway" id="120" />
     <class name="byway" id="121" />
