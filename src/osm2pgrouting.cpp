@@ -149,7 +149,10 @@ int main(int argc, char* argv[])
 	cout << "Trying to parse config" << endl;
 
 	int ret = parser.Parse( cCallback, cFile.c_str() );
-	if( ret!=0 ) return 1;
+	if( ret!=0 ) {
+		cerr << "Failed to parse config file " << cFile.c_str() << endl;
+		return 1;
+	}
 
 	cout << "Trying to load data" << endl;
 
@@ -159,7 +162,12 @@ int main(int argc, char* argv[])
 	cout << "Trying to parse data" << endl;
 
 	ret = parser.Parse( callback, file.c_str() );
-	if( ret!=0 ) return 1;
+	if( ret!=0 ) {
+		if( ret == 1 )
+			cerr << "Failed to open data file" << endl;
+		cerr << "Failed to parse data file " << file.c_str() << endl;
+		return 1;
+	}
 	
 	cout << "Split ways" << endl;
 
