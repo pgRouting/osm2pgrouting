@@ -304,11 +304,12 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 		row_data += "\t";
 	  	if(!way->name.empty())
 	  	{
-	  	  std::string escaped_name = way->name;
-  			boost::replace_all(escaped_name, "\t", "\\\t");
-            boost::replace_all(escaped_name, "\n", "");
-            boost::replace_all(escaped_name, "\r", "");
-			row_data += escaped_name.substr(0,199);
+        std::string escaped_name = way->name;
+        boost::replace_all(escaped_name, "\t", "\\\t");
+        boost::replace_all(escaped_name, "\n", "");
+        boost::replace_all(escaped_name, "\r", "");
+        boost::replace_all(escaped_name, "\\", "");
+        row_data += escaped_name.substr(0,199);
 	  	}
 	  	row_data += "\n";
 		PQputline(mycon, row_data.c_str());
