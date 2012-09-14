@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -ggdb3
+CFLAGS = -ggdb3 -D_FILE_OFFSET_BITS=64
 
 OBJ = bin/Export2DB.o bin/math_functions.o bin/Node.o bin/Tag.o bin/OSMDocumentParserCallback.o bin/Way.o bin/OSMDocument.o bin/Type.o bin/Class.o bin/Configuration.o bin/ConfigurationParserCallback.o bin/Relation.o bin/XMLParser.o
 
@@ -20,7 +20,7 @@ bin:
 	mkdir -p bin
   
 bin/%.o : src/%.cpp
-	$(CC) -o $@ $(INC_DIRS) -ggdb3 -c $<
+	$(CC) -o $@ $(INC_DIRS) $(CFLAGS) -c $<
 
 clean:
 	rm -rf bin

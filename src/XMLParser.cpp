@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include <cstdio> 
+#include <errno.h>
+#include <string.h>
 #include "stdafx.h"
 #include "XMLParser.h"
 
@@ -79,6 +81,8 @@ int XMLParser::Parse( XMLParserCallback& rCallback, const char* chFileName )
     XML_ParserFree(parser);
     fclose(fp);
     ret = 0;
+  }else{
+    fprintf(stderr, "Error opening %s: %s\n", chFileName, strerror(errno));
   }
   return ret; // return = 0 indicating success
 }
