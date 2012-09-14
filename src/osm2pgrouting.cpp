@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
             }
 			else
 			{
-				cout << "unknown paramer: " << argv[i] << endl;
+				cout << "unknown parameter: " << argv[i] << endl;
 				_error();
 				return 1;
 			}

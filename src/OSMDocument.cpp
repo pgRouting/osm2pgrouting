@@ -115,9 +115,9 @@ void OSMDocument::SplitWays()
 			
 			
 
-	//GeometryFromText('MULTILINESTRING(('||x1||' '||y1||','||x2||' '||y2||'))',4326);
+	//GeometryFromText('LINESTRING('||x1||' '||y1||','||x2||' '||y2||')',4326);
 			
-			splitted_way->geom="MULTILINESTRING(("+ boost::lexical_cast<std::string>(node->lon) + " " + boost::lexical_cast<std::string>(node->lat) +",";
+			splitted_way->geom="LINESTRING("+ boost::lexical_cast<std::string>(node->lon) + " " + boost::lexical_cast<std::string>(node->lat) +",";
 			
 			splitted_way->AddNodeRef(node);
 			
@@ -137,7 +137,7 @@ void OSMDocument::SplitWays()
 						if(length<0)
 							length*=-1;
 						splitted_way->length+=length;
-						splitted_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + "))";
+						splitted_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
 						
 					}
 					else if(backNode==(*it_node))
@@ -148,7 +148,7 @@ void OSMDocument::SplitWays()
 						if(length<0)
 							length*=-1;
 						splitted_way->length+=length;
-						splitted_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + "))";
+						splitted_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
 					}
 					else
 					{
