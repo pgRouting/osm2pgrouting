@@ -152,7 +152,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 	// END OF THE RELATIONS CODE
 	else if( strcmp(name,"tag") == 0 )
 	{
-		// <tag k="name" v="Pfänderweg"/>
+		// <tag k="name" v="Pfï¿½nderweg"/>
 		if (atts != NULL)
 		{
 			std::string k;
@@ -181,6 +181,12 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					m_pActWay->name = v;
 				}
+                                else if( m_pActWay && k.compare("oneway")==0 )
+                                {
+                                        m_pActWay->oneway = v;
+//                                        std::cout<<"Edge "<<m_pActWay->id<<" has a oneway value = " << v <<std::endl;
+                                }
+
 				// else if( m_pActWay && k.compare("oneway")==0 )
 				// {
 				//	m_pActWay->oneway = true;					
