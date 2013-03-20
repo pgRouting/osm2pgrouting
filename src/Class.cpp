@@ -24,10 +24,12 @@
 namespace osm
 {
 
-Class::Class(long long id, std::string name)
+Class::Class(long long id, std::string name, double priority, int default_maxspeed)
 :
   id(id),
-  name(name)
+  name(name),
+  priority(priority),
+  default_maxspeed(default_maxspeed)
 {
 }
 

@@ -23,7 +23,6 @@
 namespace osm
 {
 	class Way;
-	class Tag;
 
 /**
 \code
@@ -39,7 +38,7 @@ namespace osm
     <nd ref="213795552"/>
     <nd ref="213795561"/>
     <nd ref="213795571"/>
-    <tag k="name" v="Pfänderweg"/>
+    <tag k="name" v="Pfï¿½nderweg"/>
     <tag k="created_by" v="JOSM"/>
     <tag k="highway" v="residential"/>
   </way>
@@ -51,7 +50,7 @@ public:
 	long long id;
     std::string name;
 	std::vector<long long> m_WayRefs;
-	std::vector<Tag*> m_Tags;
+	std::map<std::string, std::string> m_Tags;
 
 public:
 	/** 
@@ -66,7 +65,7 @@ public:
 	 *	@param pNode node
 	 */
 	void AddWayRef( long long pID );
-	void AddTag( Tag* t );
+	void AddTag(std::string key, std::string value);
 
 };
 

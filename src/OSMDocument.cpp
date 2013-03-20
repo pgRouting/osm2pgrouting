@@ -21,7 +21,6 @@
 #include "stdafx.h"
 #include "OSMDocument.h"
 #include "Configuration.h"
-#include "Tag.h"
 #include "Node.h"
 #include "Relation.h"
 #include "Way.h"
@@ -90,14 +89,14 @@ void OSMDocument::SplitWays()
 			Node* secondNode=0;
 			Node* lastNode=0;
 			
-			Way* splitted_way = new Way( ++id, currentWay->visible, currentWay->osm_id );
+			Way* splitted_way = new Way( ++id, currentWay->visible, currentWay->osm_id, currentWay->maxspeed_forward, currentWay->maxspeed_backward );
 			splitted_way->name=currentWay->name;
 			splitted_way->type=currentWay->type;
 			splitted_way->clss=currentWay->clss;
-			splitted_way->oneway=currentWay->oneway;
+			splitted_way->oneWayType=currentWay->oneWayType;
 			
-			std::vector<Tag*>::iterator it_tag( currentWay->m_Tags.begin() );
-			std::vector<Tag*>::iterator last_tag( currentWay->m_Tags.end() );
+			std::map<std::string, std::string>::iterator it_tag( currentWay->m_Tags.begin() );
+			std::map<std::string, std::string>::iterator last_tag( currentWay->m_Tags.end() );
 //			std::cout << "Number of tags: " << currentWay->m_Tags.size() << std::endl;
 //			std::cout << "First tag: " << currentWay->m_Tags.front()->key << ":" << currentWay->m_Tags.front()->value << std::endl;
 		
@@ -105,13 +104,11 @@ void OSMDocument::SplitWays()
 		
 			while(it_tag!=last_tag)
 			{
-				Tag* tag = *it_tag++;
+				std::pair<std::string, std::string> pair = *it_tag++;
 
-				splitted_way->AddTag(tag);
+				splitted_way->AddTag(pair.first, pair.second);
 				
 			}
-			
-			
 			
 			
 

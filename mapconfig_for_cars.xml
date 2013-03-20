@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <type name="highway" id="1">
+    <class name="motorway" id="101" priority="1.0" maxspeed="130" />
+    <class name="motorway_link" id="102" priority="1.0" maxspeed="130" />
+    <class name="motorway_junction" id="103" priority="1.0" maxspeed="130" />
+    <class name="trunk" id="104"  priority="1.05" maxspeed="110" />
+    <class name="trunk_link" id="105"  priority="1.05" maxspeed="110" />    
+    <class name="primary" id="106"  priority="1.15" maxspeed="90" />
+    <class name="primary_link" id="107"  priority="1.15" maxspeed="90" />    
+    <class name="secondary" id="108"  priority="1.5" maxspeed="90" />
+    <class name="secondary_link" id="109"  priority="1.5" maxspeed="90"/>  
+    <class name="tertiary" id="110"  priority="1.75" maxspeed="90" />
+    <class name="tertiary_link" id="111"  priority="1.75" maxspeed="90" />  
+    <class name="residential" id="112"  priority="2.5" maxspeed="50" />
+    <class name="living_street" id="113"  priority="3" maxspeed="20" />
+    <class name="service" id="114"  priority="2.5" maxspeed="50" />
+        
+    <class name="unclassified" id="117" priority="3" maxspeed="90"/>
+    <class name="road" id="100" priority="5" maxspeed="50" />
+  </type> 
+</configuration>
