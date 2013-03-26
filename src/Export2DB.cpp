@@ -398,6 +398,6 @@ void Export2DB::createTopology()
 	result = PQexec(mycon,"CREATE INDEX target_idx ON ways(target);");
     result = PQexec(mycon,"CREATE INDEX geom_idx ON ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
 	result = PQexec(mycon,"CREATE UNIQUE INDEX ways_gid_idx ON ways(gid);");
-	result = PQexec(mycon,("SELECT assign_vertex_id('ways', 0.00001, 'the_geom', 'gid');"));
+	result = PQexec(mycon,("SELECT assign_vertex_id('public','ways', 0.00001, 'the_geom', 'gid');"));
 
 }
