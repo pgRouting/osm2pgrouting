@@ -81,7 +81,7 @@ void Export2DB::createTables()
         }
 
 	std::cout << "Nodes table created" << std::endl;
-	result = PQexec(mycon, "CREATE TABLE ways (gid bigint, class_id integer not null, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, reverse_cost double precision,rule text, to_cost double precision,maxspeed_forward integer, maxspeed_backward integer, osm_id bigint); SELECT AddGeometryColumn('ways','the_geom',4326,'LINESTRING',2);");
+	result = PQexec(mycon, "CREATE TABLE ways (gid bigint, class_id integer not null, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, reverse_cost double precision,rule text, to_cost double precision,maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1); SELECT AddGeometryColumn('ways','the_geom',4326,'LINESTRING',2);");
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
         {
 				 std::cerr << PQresultStatus(result);
@@ -92,7 +92,7 @@ void Export2DB::createTables()
         } else {
 		std::cout << "Ways table created" << std::endl;
 	}
-	result = PQexec(mycon, "CREATE TABLE types (id integer, name char(200));");
+	result = PQexec(mycon, "CREATE TABLE types (id integer PRIMARY KEY, name char(200));");
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
         {
                 std::cerr << "create types failed: "
@@ -136,7 +136,7 @@ void Export2DB::createTables()
         	std::cout << "Relation_ways table created" << std::endl;
     	}
 
-	result = PQexec(mycon, "CREATE TABLE classes (id integer, type_id integer, name char(200), cost double precision, priority double precision, default_maxspeed integer);");
+	result = PQexec(mycon, "CREATE TABLE classes (id integer PRIMARY KEY, type_id integer, name char(200), cost double precision, priority double precision, default_maxspeed integer);");
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
         {
                 std::cerr << "create classes failed: "
@@ -277,7 +277,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 	PQendcopy(mycon);
 
 	it_way = ways.begin();
-	res = PQexec(mycon, "COPY ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, maxspeed_forward, maxspeed_backward, name) from STDIN");
+	res = PQexec(mycon, "COPY ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, maxspeed_forward, maxspeed_backward, priority, name) from STDIN");
 	//res = PQexec(mycon, "COPY ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, name) from STDIN");
 	while( it_way!=last_way )
 	{
@@ -318,6 +318,10 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 		row_data += TO_STR(way->maxspeed_forward);
 		row_data += "\t";
 		row_data += TO_STR(way->maxspeed_backward);
+		row_data += "\t";
+
+		//priority
+		row_data += TO_STR(config->FindClass(way->type,way->clss)->priority);
 		row_data += "\t";
 
 		//name
