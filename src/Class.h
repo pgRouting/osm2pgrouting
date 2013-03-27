@@ -29,13 +29,15 @@ class Class
 public:
 	long long id;
 	std::string name;
+	double priority;
+	int default_maxspeed;
 public:
 	/** 
 	 *	Constructor
 	 *	@param id ID of the class
 	 *	@param name name of the class
 	 */
-	Class( long long id, std::string name );
+	Class( long long id, std::string name, double priority,int default_maxspeed);
 	//! Destructor
 	~Class();
 };

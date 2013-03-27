@@ -23,7 +23,6 @@
 
 //#include "postgresql/libpq-fe.h"
 #include "libpq-fe.h"
-#include "Tag.h"
 #include "Node.h"
 #include "Way.h"
 #include "Relation.h"
@@ -40,7 +39,6 @@ using namespace osm;
 
 class Export2DB
 {
-
 public:
 	/**
 	 * Construktor
@@ -83,8 +81,8 @@ public:
  	void dropTables();
  	
 private:
-PGconn *mycon;
-std::string conninf;
+	PGconn *mycon;
+	std::string conninf;
 };
 
 
