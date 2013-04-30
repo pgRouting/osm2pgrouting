@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h" 
+#include "stdafx.h"
 #include "Export2DB.h"
 #include "boost/algorithm/string/replace.hpp"
 
@@ -26,14 +26,13 @@
 
 using namespace std;
 
-Export2DB::Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string passwd)
+Export2DB::Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string passwd, std::string tables_prefix)
 :mycon(0)
 {
-	
-this->conninf="host="+host+" user="+user+" dbname="+ dbname +" port="+port;
-if(!passwd.empty())
-	this->conninf+=" password="+passwd;
-	
+    this->conninf="host="+host+" user="+user+" dbname="+ dbname +" port="+port;
+    this->tables_prefix = tables_prefix;
+    if(!passwd.empty())
+        this->conninf+=" password="+passwd;
 }
 
 Export2DB::~Export2DB()
@@ -46,7 +45,7 @@ int Export2DB::connect()
 	cout << conninf<< endl;
 	//mycon =PQconnectdb("user=postgres dbname=template1 hostaddr=127.0.0.1 port=5432");
 	mycon =PQconnectdb(conninf.c_str());
-	
+
 	ConnStatusType type =PQstatus(mycon);
 		if(type==CONNECTION_BAD)
 		{
@@ -71,93 +70,111 @@ int Export2DB::connect()
 
 void Export2DB::createTables()
 {
-	PGresult *result = PQexec(mycon, "CREATE TABLE nodes (ID integer PRIMARY KEY,  lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
+    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (ID integer PRIMARY KEY,  lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
+	PGresult *result = PQexec(mycon, create_nodes.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create Nodes failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-                PQclear(result);
-        }
+    {
+        std::cerr << "create Nodes failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Nodes table created" << std::endl;
+    }
 
-	std::cout << "Nodes table created" << std::endl;
-	result = PQexec(mycon, "CREATE TABLE ways (gid integer, class_id integer not null, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, reverse_cost double precision,rule text, to_cost double precision, osm_id integer); SELECT AddGeometryColumn('ways','the_geom',4326,'LINESTRING',2);");
+    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid integer, class_id integer not null, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision,y2 double precision, reverse_cost double precision,rule text, to_cost double precision, osm_id integer);"
+            + " SELECT AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
+	result = PQexec(mycon, create_ways.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-				 std::cerr << PQresultStatus(result);
-                std::cerr << "create ways failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-                PQclear(result);
-        } else {
-		std::cout << "Ways table created" << std::endl;
-	}
-	result = PQexec(mycon, "CREATE TABLE types (id integer, name char(200));");
-	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create types failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-                PQclear(result);
-        } else {
-		std::cout << "Types table created" << std::endl;
-	}
-	
-	result = PQexec(mycon, "CREATE TABLE way_tag (type_id integer, class_id integer, way_id integer);");
-	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create way_tag failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-                PQclear(result);
-        } else {
-		std::cout << "Way_tag table created" << std::endl;	
-	}
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "create ways failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Ways table created" << std::endl;
+    }
 
-	result = PQexec(mycon, "CREATE TABLE relations (relation_id integer, type_id integer, class_id integer, name character varying(200));");
-    if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create relations failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-                PQclear(result);
-        } else {
-        	std::cout << "Relations table created" << std::endl;
-    	}
-    	
-    result = PQexec(mycon, "CREATE TABLE relation_ways (relation_id integer, way_id integer, type character varying(200));");
-    if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create relation_ways failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-                PQclear(result);
-        } else {
-        	std::cout << "Relation_ways table created" << std::endl;
-    	}
-	
-	result = PQexec(mycon, "CREATE TABLE classes (id integer, type_id integer, name char(200), cost double precision);");
+    std::string create_types("CREATE TABLE " + tables_prefix + "types (id integer, name char(200));");
+	result = PQexec(mycon, create_types.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
-        {
-                std::cerr << "create classes failed: " 
-			<< PQerrorMessage(mycon) 
-			<< std::endl;
-                PQclear(result);
-        } else {
-		std::cout << "Classes table created" << std::endl;	
+    {
+        std::cerr << "create types failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+	} else {
+        std::cout << "Types table created" << std::endl;
+    }
+
+    std::string create_way_tag("CREATE TABLE " + tables_prefix + "way_tag (type_id integer, class_id integer, way_id integer);");
+	result = PQexec(mycon, create_way_tag.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "create way_tag failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+	} else {
+        std::cout << "Way_tag table created" << std::endl;
+    }
+
+    std::string create_relations("CREATE TABLE " + tables_prefix + "relations (relation_id integer, type_id integer, class_id integer, name character varying(200));");
+	result = PQexec(mycon, create_relations.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "create relations failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Relations table created" << std::endl;
+    }
+
+    std::string create_relations_ways("CREATE TABLE " + tables_prefix + "relation_ways (relation_id integer, way_id integer, type character varying(200));");
+    result = PQexec(mycon, create_relations_ways.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "create relation_ways failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Relation_ways table created" << std::endl;
+    }
+
+    std::string create_classes("CREATE TABLE " + tables_prefix + "classes (id integer, type_id integer, name char(200), cost double precision);");
+	result = PQexec(mycon, create_classes.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "create classes failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+		std::cout << "Classes table created" << std::endl;
 	}
 }
 
 void Export2DB::dropTables()
 {
-	PGresult *result = PQexec(mycon, "DROP TABLE ways; DROP TABLE nodes; DROP TABLE types; DROP TABLE classes; DROP TABLE way_tag; DROP TABLE relations; DROP TABLE relation_ways;");
+    std::string drop_tables( "DROP TABLE " + tables_prefix + "ways;"
+                            + " DROP TABLE " + tables_prefix + "nodes;"
+                            + " DROP TABLE " + tables_prefix + "types;"
+                            + " DROP TABLE " + tables_prefix + "classes;"
+                            + " DROP TABLE " + tables_prefix + "way_tag;"
+                            + " DROP TABLE " + tables_prefix + "relations;"
+                            + " DROP TABLE " + tables_prefix + "relation_ways;");
+	PGresult *result = PQexec(mycon, drop_tables.c_str());
 }
 
 void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
-{	
+{
 	std::map<long long, Node*>::iterator it(nodes.begin());
 	std::map<long long, Node*>::iterator last(nodes.end());
-	PGresult* res = PQexec(mycon, "COPY nodes(id, lon, lat) from STDIN");
+    std::string copy_nodes( "COPY " + tables_prefix + "nodes(id, lon, lat) from STDIN");
+	PGresult* res = PQexec(mycon, tables_prefix.c_str());
 	PQclear(res);
 	while(it!=last)
 	{
@@ -177,8 +194,9 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
 void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration* config)
 {
 	std::vector<Relation*>::iterator it_relation( relations.begin() );
-	std::vector<Relation*>::iterator last_relation( relations.end() );	
-	PGresult* res = PQexec(mycon, "COPY relations(relation_id, type_id, class_id, name) from STDIN");
+	std::vector<Relation*>::iterator last_relation( relations.end() );
+    std::string copy_relations( "COPY " + tables_prefix + "relations(relation_id, type_id, class_id, name) from STDIN");
+	PGresult* res = PQexec(mycon, copy_relations.c_str());
 	PQclear(res);
 	while( it_relation!=last_relation )
 	{
@@ -206,10 +224,11 @@ void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration
 	}
 	PQputline(mycon, "\\.\n");
 	PQendcopy(mycon);
-	
+
 	// Second round of iteration is needed to copy relation_ways
 	it_relation = relations.begin();
-	res = PQexec(mycon, "COPY relation_ways(relation_id, way_id) from STDIN");
+    std::string copy_relation_ways( "COPY " + tables_prefix + "relation_ways(relation_id, way_id) from STDIN");
+	res = PQexec(mycon, copy_relation_ways.c_str());
 	PQclear(res);
 	while( it_relation!=last_relation )
 	{
@@ -251,7 +270,8 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 {
 	std::vector<Way*>::iterator it_way( ways.begin() );
 	std::vector<Way*>::iterator last_way( ways.end() );
-	PGresult* res = PQexec(mycon, "COPY way_tag(type_id, class_id, way_id) from STDIN");
+    std::string copy_way_tag( "COPY " + tables_prefix + "way_tag(type_id, class_id, way_id) from STDIN");
+	PGresult* res = PQexec(mycon, copy_way_tag.c_str());
 	PQclear(res);
 	while( it_way!=last_way )
 	{
@@ -273,9 +293,10 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 	}
 	PQputline(mycon, "\\.\n");
 	PQendcopy(mycon);
-	
+
 	it_way = ways.begin();
-	res = PQexec(mycon, "COPY ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, name) from STDIN");
+    std::string copy_ways( "COPY " + tables_prefix + "ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, name) from STDIN");
+	res = PQexec(mycon, copy_ways.c_str());
 	while( it_way!=last_way )
 	{
 		Way* way = *it_way++;
@@ -321,7 +342,8 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 {
 	std::map<std::string, Type*>::iterator tIt(types.begin());
 	std::map<std::string, Type*>::iterator tLast(types.end());
-	PGresult* res = PQexec(mycon, "COPY types(id, name) from STDIN");
+    std::string copy_types( "COPY " + tables_prefix + "types(id, name) from STDIN");
+	PGresult* res = PQexec(mycon, copy_types.c_str());
 	PQclear(res);
 	while(tIt!=tLast)
 	{
@@ -336,7 +358,8 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 	PQendcopy(mycon);
 
 	tIt = types.begin();
-	res = PQexec(mycon, "COPY classes(id, type_id, name) from STDIN");
+    std::string copy_classes( "COPY " + tables_prefix + "classes(id, type_id, name) from STDIN");
+	res = PQexec(mycon, copy_classes.c_str());
 	PQclear(res);
 	while(tIt!=tLast)
 	{
@@ -363,12 +386,72 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 
 void Export2DB::createTopology()
 {
-	PGresult *result = PQexec(mycon,"ALTER TABLE ways ADD COLUMN source integer;");
-	result = PQexec(mycon,"ALTER TABLE ways ADD COLUMN target integer;");
-	result = PQexec(mycon,"CREATE INDEX source_idx ON ways(source);");
-	result = PQexec(mycon,"CREATE INDEX target_idx ON ways(target);");
-    result = PQexec(mycon,"CREATE INDEX geom_idx ON ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
-	result = PQexec(mycon,"CREATE UNIQUE INDEX ways_gid_idx ON ways(gid);");
-	result = PQexec(mycon,"SELECT assign_vertex_id('ways', 0.00001, 'the_geom', 'gid');");
-	
+    bool everything_fine = true;
+
+    std::string alter_ways_source( "ALTER TABLE " + tables_prefix + "ways ADD COLUMN source integer;");
+	PGresult *result = PQexec(mycon, alter_ways_source.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Alter table add source failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string alter_ways_target( "ALTER TABLE " + tables_prefix + "ways ADD COLUMN target integer;");
+	result = PQexec(mycon, alter_ways_target.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Alter table add target failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string source_idx("CREATE INDEX " + tables_prefix + "source_idx ON " + tables_prefix + "ways(source);");
+	result = PQexec(mycon, source_idx.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Create index add on source failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string target_idx("CREATE INDEX " + tables_prefix + "target_idx ON " + tables_prefix + "ways(target);");
+	result = PQexec(mycon, target_idx.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Create index add on target failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string geom_idx("CREATE INDEX " + tables_prefix + "geom_idx ON " + tables_prefix + "ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
+    result = PQexec(mycon, geom_idx.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Create geom index on ways failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string ways_gid_idx("CREATE UNIQUE INDEX "+ tables_prefix + "ways_gid_idx ON "+ tables_prefix + "ways(gid);");
+	result = PQexec(mycon, ways_gid_idx.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Create unique index on ways failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    std::string assign_vertex("SELECT assign_vertex_id('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
+	result = PQexec(mycon, assign_vertex.c_str());
+	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << "Assign_vertex failed: " << PQerrorMessage(mycon) << std::endl;
+        PQclear(result);
+        everything_fine = false;
+	}
+
+    if (everything_fine) {
+        std::cout << "CreateTopology success" << std::endl;
+    }
 }
