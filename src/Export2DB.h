@@ -35,7 +35,7 @@ using namespace osm;
 
 /**
  * This class connects to a postgresql database. For using this class,
- * you also need to install postgis and pgrouting 
+ * you also need to install postgis and pgrouting
  */
 
 class Export2DB
@@ -47,15 +47,15 @@ public:
 	 * @param host Host address of the database
 	 * @param user a user, who has write access to the database
 	 * @param dbname name of the database
-	 * 
-	 */ 
- 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password);
+	 *
+	 */
+ 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix);
  	/**
  	 * Destructor
  	 * closes the connection to the database
- 	 */  
+ 	 */
  	~Export2DB();
- 	
+
  	//! connects to database
  	int connect();
  	//! creates needed tables
@@ -65,26 +65,27 @@ public:
  	//! exports ways to the database
  	void exportWays(std::vector<Way*>& ways, Configuration* config);
  	void exportRelations(std::vector<Relation*>& relations, Configuration* config);
-	
+
  	void exportTypesWithClasses(std::map<std::string, Type*>& types);
 
- 	/** 
+ 	/**
  	 * creates the topology
  	 * Be careful, it takes some time.
- 	 * 
+ 	 *
  	 * for example:
  	 * complete germany: OSM file with a size of 1,1 GiB.
  	 * Export and create topology:
  	 * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
  	 * But only for the streettypes "motorway", "primary" and "secondary"
- 	 */ 
+ 	 */
  	void createTopology();
  	//! Be careful! It deletes the created tables!
  	void dropTables();
- 	
+
 private:
 PGconn *mycon;
 std::string conninf;
+std::string tables_prefix;
 };
 
 
