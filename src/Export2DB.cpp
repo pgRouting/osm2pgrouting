@@ -318,15 +318,15 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 		row_data += "\t";
 		row_data += "srid=4326;" + way->geom;
 		row_data += "\t";
-                if(way->oneway == "True" || way->oneway == "true" || way->oneway == "1" || way->oneway == "Yes" || way->oneway == "yes)"
-                        row_data += TO_STR(way->length*1000000);
-                else
-                        if (way->oneway == "0" || way->oneway == "false" || way->oneway == "False" || way->oneway == "no" || way->oneway == "No")
-                                row_data += TO_STR(way->length);
-                        else{
-                                row_data += TO_STR(way->length*100000);
-                                cout<< way->id <<"Unidentified oneway value : " << way->oneway << " considered as NOT A ONWAY!"<<endl;
-                        }
+        if(way->oneway == "True" || way->oneway == "true" || way->oneway == "1" || way->oneway == "Yes" || way->oneway == "yes")
+            row_data += TO_STR(way->length*1000000);
+        else
+            if (way->oneway == "0" || way->oneway == "false" || way->oneway == "False" || way->oneway == "no" || way->oneway == "No")
+                row_data += TO_STR(way->length);
+            else{
+                row_data += TO_STR(way->length*100000);
+                cout<< way->id <<"Unidentified oneway value : " << way->oneway << " considered as NOT A ONWAY!"<<endl;
+            }
 
 		row_data += "\t";
 	  	if(!way->name.empty())
