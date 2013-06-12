@@ -40,7 +40,7 @@ required:
 optional:
 -host <host>  			-- host of your postgresql database (default: 127.0.0.1)
 -port <port> 			-- port of your database (default: 5432)
--prefixtables <prefix> 	--  add at the beginning of table names
+-prefixtables <prefix> 	-- add at the beginning of table names
 -passwd <passwd> 		-- password for database access
 -clean 					-- drop previously created tables
 -skipnodes				-- do not load nodes into the node table (reduces runtime) 

@@ -22,8 +22,9 @@
 
 namespace osm
 {
-	class Tag;
 	class Node;
+
+	enum OneWayType{ YES, NO, REVERSED};
 
 /**
 \code
@@ -50,7 +51,7 @@ class Way
 public:
 	//! Do not delete nodes in this container!
 	std::vector<Node*> m_NodeRefs;
-	std::vector<Tag*> m_Tags;
+	std::map<std::string, std::string> m_Tags;
 	//! ID of the way
 	long long id;
 	bool visible;
@@ -69,7 +70,11 @@ public:
 	std::string geom;
 	//! length of the street
 	double length;
-	std::string oneway;
+
+	int maxspeed_forward;
+	int maxspeed_backward;
+
+	OneWayType oneWayType;
 	
 	long long osm_id;
 
@@ -79,7 +84,7 @@ public:
 	 *	Constructor
 	 *	@param id ID of the way
 	 */
-	Way( long long id, bool visible, long long osm_id );
+	Way( long long id, bool visible, long long osm_id,  int maxspeed_forward, int maxspeed_backward);
 	//! Destructor
 	~Way();
 	/**
@@ -87,8 +92,8 @@ public:
 	 *	@param pNode node
 	 */
 	void AddNodeRef( Node* pNode );
-	void AddTag( Tag* t );
-
+	void AddTag( std::string key, std::string value);
+	bool HasTag(std::string key);
 };
 
 

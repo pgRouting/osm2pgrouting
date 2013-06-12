@@ -21,7 +21,6 @@
 #include "stdafx.h"
 #include "Relation.h"
 #include "Way.h"
-#include "Tag.h"
 
 
 namespace osm
@@ -42,9 +41,9 @@ void Relation::AddWayRef( long long pID )
 	if( pID ) m_WayRefs.push_back(pID);
 }
 
-void Relation::AddTag( Tag* t )
+void Relation::AddTag( std::string key, std::string value)
 {
-	m_Tags.push_back( t );
+	m_Tags[key] = value;
 }
 
 } // end namespace osm

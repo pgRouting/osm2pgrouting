@@ -24,7 +24,7 @@
 namespace osm
 {
 
-Type::Type( long long id, std::string name )
+Type::Type( long long id, std::string name)
 :
   id(id),
   name(name)

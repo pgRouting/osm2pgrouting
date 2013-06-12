@@ -25,7 +25,6 @@
 #include "OSMDocumentParserCallback.h"
 #include "Way.h"
 #include "Node.h"
-#include "Tag.h"
 #include "Relation.h"
 #include "Export2DB.h"
 
@@ -205,6 +204,8 @@ int main(int argc, char* argv[])
 
 		cout << "Adding ways to database..." << endl;
 		test.exportWays(document->m_SplittedWays, config);
+		
+		//TODO: make some free memory, document will be not used anymore, so there will be more memory available to future DB operations.
 
 		cout << "Creating topology..." << endl;
 		test.createTopology();

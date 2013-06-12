@@ -21,11 +21,10 @@
 #include "stdafx.h"
 #include "OSMDocumentParserCallback.h"
 #include "OSMDocument.h"
-#include "Tag.h"
 #include "Relation.h"
 #include "Way.h"
 #include "Node.h"
-
+#include "utils.cpp"
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
@@ -181,19 +180,61 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					m_pActWay->name = v;
 				}
-                                else if( m_pActWay && k.compare("oneway")==0 )
-                                {
-                                        m_pActWay->oneway = v;
-//                                        std::cout<<"Edge "<<m_pActWay->id<<" has a oneway value = " << v <<std::endl;
-                                }
+				//checks ONEWAY tag
+				else if( m_pActWay && k.compare("oneway")==0 ){
+					if ((v.compare("yes")==0) || (v.compare("true")==0) || (v.compare("1")==0)){
+						m_pActWay->oneWayType = YES;
+					}else
+					//check false conditions: 0, no, false
+					if ((v.compare("no")==0) || (v.compare("false")==0) || (v.compare("0")==0)){
+						m_pActWay->oneWayType = NO;
+					}else
+					//check revers conditions: -1
+					if ((v.compare("-1")==0)){
+						m_pActWay->oneWayType = REVERSED;
+					}
+				//in case roundabout, if there is not additional oneway tag, set default oneway to YES
+				}else if(m_pActWay && k.compare("junction")==0 && v.compare("roundabout")==0){
+					if (m_pActWay->oneWayType == NO) m_pActWay->oneWayType= YES;
+				}
+				//handle maxspeed:forward tag
+				else if(m_pActWay && k.compare("maxspeed:forward")==0){
+					int mspeed_fwd = 50;
 
-				// else if( m_pActWay && k.compare("oneway")==0 )
-				// {
-				//	m_pActWay->oneway = true;					
-				//	std::cout<<"Edge "<<m_pActWay->id<<" is oneway"<<std::endl;
+					if(my_utils::is_number(v)){
+						mspeed_fwd = atoi(v.c_str());
+					}else{
+						//TODO: handle non-numeric values, ex.: RO:urban
+						std::cout<<"unknown maxspeed value: "<<v<<std::endl;
+					}
+					m_pActWay->maxspeed_forward = mspeed_fwd;
+				}
+				//handler maxspeed:backward
+				else if(m_pActWay && k.compare("maxspeed:backward")==0){
+					int mspeed_backwd = 50;
 
-				// }
-				
+					if(my_utils::is_number(v)){
+						mspeed_backwd = atoi(v.c_str());
+					}else{
+						//TODO: handle non-numeric values, ex.: RO:urban
+						std::cout<<"unknown maxspeed value: "<<v<<std::endl;
+					}
+					m_pActWay->maxspeed_backward= mspeed_backwd;
+				}
+				else if(m_pActWay && k.compare("maxspeed")==0){
+					int mspeed_fwd = 50;
+					int mspeed_backwd = 50;
+
+					if(my_utils::is_number(v)){
+						mspeed_fwd = atoi(v.c_str());
+						mspeed_backwd = atoi(v.c_str());
+					}else{
+						//TODO: handle non-numeric values, ex.: RO:urban
+						std::cout<<"unknown maxspeed value: "<<v<<std::endl;
+					}
+					m_pActWay->maxspeed_backward= mspeed_backwd;
+					m_pActWay->maxspeed_forward=mspeed_fwd;
+				}
 				//else if( m_pActWay && k.compare("highway")==0 )
 				else if( m_pActWay && m_rDocument.m_rConfig.m_Types.count(k) )				
 				{
@@ -203,8 +244,20 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 					
 					if( m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss) ) {
 						
-						m_pActWay->AddTag( new Tag( k, v ) );
+						m_pActWay->AddTag( k, v );
+
 						// std::cout<<"Added tag: "<<k<<" "<<v<<std::endl;
+
+						//set default maxspeed values from classes, if not set previously (default: -1)
+						if(m_pActWay->maxspeed_forward<=0){
+							int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->default_maxspeed;
+							m_pActWay->maxspeed_forward = newValue;
+						}
+						if(m_pActWay->maxspeed_backward<=0){
+							int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->default_maxspeed;
+							m_pActWay->maxspeed_backward = newValue;
+						}
+
 					}
 				}
 				// START TAG FOR RELATION
@@ -212,7 +265,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					if( m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v) ) {
 						
-						m_pActRelation->AddTag( new Tag( k, v ) );
+						m_pActRelation->AddTag( k, v );
 						// std::cout<<"Added Relation tag: "<<k<<" "<<v<<std::endl;
 					}	
 					// std::cout<<"Relations tag: "<<k<<" "<<v<<std::endl;
@@ -247,10 +300,11 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				{
 					visibility = strcmp(value,"true")==0;
 				}
+
 			}
 			if( id>0 )
 			{
-				m_pActWay = new Way( id, visibility, id );
+				m_pActWay = new Way( id, visibility, id ,-1, -1);
 				
 			}
 		}
