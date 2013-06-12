@@ -452,7 +452,7 @@ void Export2DB::createTopology()
         everything_fine = false;
 	}
 
-    std::string geom_idx("CREATE INDEX " + tables_prefix + "geom_idx ON " + tables_prefix + "ways USING GIST(the_geom GIST_GEOMETRY_OPS);");
+    std::string geom_idx("CREATE INDEX " + tables_prefix + "geom_idx ON " + tables_prefix + "ways USING GIST (the_geom);");
     result = PQexec(mycon, geom_idx.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -470,16 +470,16 @@ void Export2DB::createTopology()
         everything_fine = false;
 	}
 
-    std::string assign_vertex("SELECT pgr_createTopology('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
-	result = PQexec(mycon, assign_vertex.c_str());
+    std::string create_topology("SELECT pgr_createTopology('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
+	result = PQexec(mycon, create_topology.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
-        std::cerr << "Assign_vertex failed: " << PQerrorMessage(mycon) << std::endl;
+        std::cerr << "Create Topology failed: " << PQerrorMessage(mycon) << std::endl;
         PQclear(result);
         everything_fine = false;
 	}
 
     if (everything_fine) {
-        std::cout << "CreateTopology success" << std::endl;
+        std::cout << "Create Topology success" << std::endl;
     }
 }
