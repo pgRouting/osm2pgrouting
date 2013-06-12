@@ -39,7 +39,7 @@ namespace osm
     <nd ref="213795552"/>
     <nd ref="213795561"/>
     <nd ref="213795571"/>
-    <tag k="name" v="Pfänderweg"/>
+    <tag k="name" v="Pfï¿½nderweg"/>
     <tag k="created_by" v="JOSM"/>
     <tag k="highway" v="residential"/>
   </way>
@@ -69,7 +69,7 @@ public:
 	std::string geom;
 	//! length of the street
 	double length;
-	bool oneway;
+	std::string oneway;
 	
 	long long osm_id;
 
