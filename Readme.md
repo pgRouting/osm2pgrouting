@@ -1,5 +1,8 @@
-Before you can use this tool for importing Openstreetmap data,
-you need to install
+# osm2pgrouting
+
+## Requirements
+
+Before you can use this tool for importing Openstreetmap data you need to install:
 
 1. postgresl
 2. postgis
@@ -9,19 +12,25 @@ you need to install
 
 and to prepare a database.
 
-See in the documentation of the pgrouting website for more informations:
-http://pgrouting.postlbs.org/
+## Documentation
+
+See in the documentation of the pgrouting website for more informations: http://pgrouting.org
+
 
 For compiling this tool, you will need boost, libpq and expat:
 Then just type: make
 
+## How to use
 
 Start the program like this:
 
+```
 ./osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
+```
 
-all available parameters are:
+A complete list of arguments are:
 
+```
 required: 
 -file <file>  		-- name of your osm xml file
 -dbname <dbname> 	-- name of your database
@@ -34,3 +43,4 @@ optional:
 -passwd <passwd> 	-- password for database access
 -clean 				-- drop previously created tables
 -skipnodes			-- do not load nodes into the node table (reduces runtime) 
+```
