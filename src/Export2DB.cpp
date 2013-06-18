@@ -171,7 +171,7 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
 {
 	std::map<long long, Node*>::iterator it(nodes.begin());
 	std::map<long long, Node*>::iterator last(nodes.end());
-    std::string copy_nodes( "COPY " + tables_prefix + "nodes(id, lon, lat, numofuse) from STDIN");
+    std::string copy_nodes( "COPY " + tables_prefix + "nodes(id, lon, lat, numofuse) FROM STDIN");
 	//PGresult* res = PQexec(mycon, tables_prefix.c_str());
 	PGresult* res = PQexec(mycon, copy_nodes.c_str());
 	PQclear(res);
@@ -196,7 +196,7 @@ void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration
 {
 	std::vector<Relation*>::iterator it_relation( relations.begin() );
 	std::vector<Relation*>::iterator last_relation( relations.end() );
-    std::string copy_relations( "COPY " + tables_prefix + "relations(relation_id, type_id, class_id, name) from STDIN");
+    std::string copy_relations( "COPY " + tables_prefix + "relations(relation_id, type_id, class_id, name) FROM STDIN");
 	PGresult* res = PQexec(mycon, copy_relations.c_str());
 	PQclear(res);
 	while( it_relation!=last_relation )
@@ -228,7 +228,7 @@ void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration
 
 	// Second round of iteration is needed to copy relation_ways
 	it_relation = relations.begin();
-    std::string copy_relation_ways( "COPY " + tables_prefix + "relation_ways(relation_id, way_id) from STDIN");
+    std::string copy_relation_ways( "COPY " + tables_prefix + "relation_ways(relation_id, way_id) FROM STDIN");
 	res = PQexec(mycon, copy_relation_ways.c_str());
 	PQclear(res);
 	while( it_relation!=last_relation )
@@ -271,7 +271,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 {
 	std::vector<Way*>::iterator it_way( ways.begin() );
 	std::vector<Way*>::iterator last_way( ways.end() );
-    std::string copy_way_tag( "COPY " + tables_prefix + "way_tag(type_id, class_id, way_id) from STDIN");
+    std::string copy_way_tag( "COPY " + tables_prefix + "way_tag(type_id, class_id, way_id) FROM STDIN");
 	PGresult* res = PQexec(mycon, copy_way_tag.c_str());
 	PQclear(res);
 	while( it_way!=last_way )
@@ -296,7 +296,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 	PQendcopy(mycon);
 
 	it_way = ways.begin();
-    std::string copy_ways( "COPY " + tables_prefix + "ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, maxspeed_forward, maxspeed_backward, priority, name) from STDIN");
+    std::string copy_ways( "COPY " + tables_prefix + "ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, maxspeed_forward, maxspeed_backward, priority, name) FROM STDIN");
 	res = PQexec(mycon, copy_ways.c_str());
 	while( it_way!=last_way )
 	{
@@ -366,7 +366,7 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 {
 	std::map<std::string, Type*>::iterator tIt(types.begin());
 	std::map<std::string, Type*>::iterator tLast(types.end());
-    std::string copy_types( "COPY " + tables_prefix + "types(id, name) from STDIN");
+    std::string copy_types( "COPY " + tables_prefix + "types(id, name) FROM STDIN");
 	PGresult* res = PQexec(mycon, copy_types.c_str());
 	PQclear(res);
 	while(tIt!=tLast)
@@ -382,7 +382,7 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 	PQendcopy(mycon);
 
 	tIt = types.begin();
-    std::string copy_classes( "COPY " + tables_prefix + "classes(id, type_id, name, priority, default_maxspeed) from STDIN");
+    std::string copy_classes( "COPY " + tables_prefix + "classes(id, type_id, name, priority, default_maxspeed) FROM STDIN");
 	res = PQexec(mycon, copy_classes.c_str());
 	PQclear(res);
 	while(tIt!=tLast)
@@ -472,7 +472,7 @@ void Export2DB::createTopology()
 
     std::string create_topology("SELECT pgr_createTopology('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
 	result = PQexec(mycon, create_topology.c_str());
-	if (PQresultStatus(result) != PGRES_COMMAND_OK)
+	if (PQresultStatus(result) != PGRES_TUPLES_OK)
     {
         std::cerr << "Create Topology failed: " << PQerrorMessage(mycon) << std::endl;
         PQclear(result);
