@@ -1,7 +1,8 @@
 bin/*
+Sample/*
+.vagrant
 osm2pgrouting
 *.o
 *~
 .project
 .cproject
-Sample/*
