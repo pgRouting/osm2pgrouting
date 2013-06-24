@@ -80,7 +80,7 @@ void Export2DB::createTables()
         std::cout << "Nodes table created" << std::endl;
     }
 
-    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid bigint, class_id integer not null, length double precision, name char(200), x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
+    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid bigint, class_id integer not null, length double precision, name text, x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
             + " SELECT AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
 	result = PQexec(mycon, create_ways.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
@@ -94,7 +94,7 @@ void Export2DB::createTables()
         std::cout << "Ways table created" << std::endl;
     }
 
-    std::string create_types("CREATE TABLE " + tables_prefix + "types (id integer PRIMARY KEY, name char(200));");
+    std::string create_types("CREATE TABLE " + tables_prefix + "types (id integer PRIMARY KEY, name text);");
 	result = PQexec(mycon, create_types.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -118,7 +118,7 @@ void Export2DB::createTables()
         std::cout << "Way_tag table created" << std::endl;
     }
 
-    std::string create_relations("CREATE TABLE " + tables_prefix + "relations (relation_id bigint, type_id integer, class_id integer, name character varying(200));");
+    std::string create_relations("CREATE TABLE " + tables_prefix + "relations (relation_id bigint, type_id integer, class_id integer, name text);");
 	result = PQexec(mycon, create_relations.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -142,7 +142,7 @@ void Export2DB::createTables()
         std::cout << "Relation_ways table created" << std::endl;
     }
 
-    std::string create_classes("CREATE TABLE " + tables_prefix + "classes (id integer PRIMARY KEY, type_id integer, name char(200), cost double precision, priority double precision, default_maxspeed integer);");
+    std::string create_classes("CREATE TABLE " + tables_prefix + "classes (id integer PRIMARY KEY, type_id integer, name text, cost double precision, priority double precision, default_maxspeed integer);");
 	result = PQexec(mycon, create_classes.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {

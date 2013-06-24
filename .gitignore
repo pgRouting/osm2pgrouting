@@ -2,6 +2,7 @@ bin/*
 Sample/*
 .vagrant
 osm2pgrouting
+tools/vagrant/packaging.sh
 *.o
 *~
 .project
