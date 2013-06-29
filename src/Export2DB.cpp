@@ -68,7 +68,7 @@ int Export2DB::connect()
 
 void Export2DB::createTables()
 {
-    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (ID bigint PRIMARY KEY, lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
+    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (id bigint PRIMARY KEY, lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
 	PGresult *result = PQexec(mycon, create_nodes.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -80,7 +80,8 @@ void Export2DB::createTables()
         std::cout << "Nodes table created" << std::endl;
     }
 
-    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid bigint, class_id integer not null, length double precision, name text, x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
+	// gid cannot be "bigint" right now because pgRouting doesn't support "bigint"
+    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid integer, class_id integer not null, length double precision, name text, x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
             + " SELECT AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
 	result = PQexec(mycon, create_ways.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
