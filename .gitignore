@@ -1,4 +1,4 @@
-bin/*
+build/*
 Sample/*
 .vagrant
 osm2pgrouting
@@ -7,3 +7,9 @@ tools/vagrant/packaging.sh
 *~
 .project
 .cproject
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+.DS_Store

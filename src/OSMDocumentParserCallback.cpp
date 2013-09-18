@@ -24,7 +24,7 @@
 #include "Relation.h"
 #include "Way.h"
 #include "Node.h"
-#include "utils.cpp"
+#include "utils.h"
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
@@ -71,7 +71,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				const char* value = *attribut++;
 				if( strcmp( name, "ref" ) == 0 )
 				{
-					long long wayRefId = atol( value );
+					long long wayRefId = atoll( value );
                 	m_pActRelation->AddWayRef( wayRefId );
 				}
 			}
@@ -88,7 +88,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 			const char* value = *atts++;
 			if( strcmp(name,"ref")==0 )
 			{
-				long long nodeRefId = atol( value );
+				long long nodeRefId = atoll( value );
                                 m_pActWay->AddNodeRef( m_rDocument.FindNode( nodeRefId ) );
                                   Node * node = m_rDocument.FindNode( nodeRefId );
                                   if(node != 0 ){
@@ -113,7 +113,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				const char* value = *attribut++;
 				if( strcmp( name, "id" ) == 0 )
 				{
-					id = atol( value);
+					id = atoll( value);
 				}
 				else if( strcmp( name, "lat" ) == 0 )
 				{
@@ -140,7 +140,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				const char* value = *attribut++;
 				if( strcmp( name, "id" ) == 0 )
 				{
-					id = atol( value);
+					id = atoll( value);
 				}
 			}
 			if( id>0 ) m_pActRelation = new Relation( id );
@@ -294,7 +294,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				const char* value = *attribut++;
 				if( strcmp( name, "id" ) == 0 )
 				{
-					id = atol( value);
+					id = atoll( value);
 				}
 				else if( strcmp( name, "visible" ) == 0 )
 				{
