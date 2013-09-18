@@ -24,7 +24,7 @@
 #include "Relation.h"
 #include "Way.h"
 #include "Node.h"
-#include "utils.cpp"
+#include "utils.h"
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
