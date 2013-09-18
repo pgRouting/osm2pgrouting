@@ -27,6 +27,7 @@ mkdir build
 cd build
 cmake ..
 make
+make install
 ```
 
 ## How to use
@@ -34,7 +35,7 @@ make
 Start the program like this:
 
 ```
-./bin/osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
+osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
 ```
 
 A complete list of arguments are:
