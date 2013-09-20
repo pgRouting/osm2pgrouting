@@ -23,9 +23,8 @@ For compiling this tool, you will need boost, libpq, expat and cmake:
 Then just type the following in the root directory:
 
 ```
-mkdir build
-cd build
-cmake ..
+cmake -H. -Bbuild
+cd build/
 make
 make install
 ```
