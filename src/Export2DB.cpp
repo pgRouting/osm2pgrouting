@@ -68,7 +68,7 @@ int Export2DB::connect()
 
 void Export2DB::createTables()
 {
-    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (id bigint PRIMARY KEY, lon decimal(11,8), lat decimal(11,8), numOfUse smallint);");
+    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (id bigint PRIMARY KEY, lon decimal(11,8), lat decimal(11,8), numOfUse int);");
 	PGresult *result = PQexec(mycon, create_nodes.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
