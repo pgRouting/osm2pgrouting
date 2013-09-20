@@ -4,11 +4,12 @@
 
 Before you can use this tool for importing Openstreetmap data you need to install:
 
-1. postgresl
+1. postgresql
 2. postgis
 3. pgrouting
 4. boost
 5. expat
+6. cmake
 
 and to prepare a database.
 
@@ -16,16 +17,25 @@ and to prepare a database.
 
 See in the documentation of the pgrouting website for more informations: http://pgrouting.org
 
+## Installation
 
-For compiling this tool, you will need boost, libpq and expat:
-Then just type: make
+For compiling this tool, you will need boost, libpq, expat and cmake:
+Then just type the following in the root directory:
+
+```
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
 
 ## How to use
 
 Start the program like this:
 
 ```
-./osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
+osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
 ```
 
 A complete list of arguments are:
