@@ -50,7 +50,7 @@ void ConfigurationParserCallback::StartElement( const char *name, const char** a
 				const char* value = *attribut++;
 				if( strcmp( key, "id" ) == 0 )
 				{
-					id = atol( value );
+					id = atoll( value );
 					//std::cout << "class id = " << id << std::endl;
 
 				}
@@ -84,7 +84,7 @@ void ConfigurationParserCallback::StartElement( const char *name, const char** a
 				const char* value = *attribut++;
 				if( strcmp( key, "id" ) == 0 )
 				{
-					id = atol( value );
+					id = atoll( value );
 
 				}
 				else if( strcmp( key, "name" ) == 0 )
