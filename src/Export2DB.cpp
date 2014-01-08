@@ -200,9 +200,7 @@ void Export2DB::createTables()
     }
 
 	std::string fk_ways(
-		"ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_classes FOREIGN KEY (class_id) REFERENCES " + tables_prefix + "classes(id);" /*+
-		"ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_nodes_source FOREIGN KEY (source) REFERENCES " + tables_prefix + "nodes(id);" +
-		"ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_nodes_target FOREIGN KEY (target) REFERENCES " + tables_prefix + "nodes(id);"*/);
+		"ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_classes FOREIGN KEY (class_id) REFERENCES " + tables_prefix + "classes(id);");
 	result = PQexec(mycon, fk_ways.c_str()); 
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -565,6 +563,7 @@ void Export2DB::createTopology()
         std::cout << "Foreign keys for Way_tag table created (Ways)" << std::endl;
     }
 
+	/* Not clear what the way_id column is referencing */
 	/*std::string fk_relations_ways(
 		"ALTER TABLE " + tables_prefix + "relation_ways ADD CONSTRAINT fk_relations_ways_ways FOREIGN KEY (way_id) REFERENCES " + tables_prefix + "ways(gid);");
 	result = PQexec(mycon, fk_relations_ways.c_str()); 
