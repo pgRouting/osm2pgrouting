@@ -80,6 +80,8 @@ public:
  	void createTopology();
  	//! Be careful! It deletes the created tables!
  	void dropTables();
+	// Use only once the topology is created.
+	void createFKeys();
 
 private:
 	PGconn *mycon;

@@ -209,6 +209,9 @@ int main(int argc, char* argv[])
 
 		cout << "Creating topology..." << endl;
 		test.createTopology();
+		
+		cout << "Creating foreign keys..." << endl;
+		test.createFKeys();
 	}
 
 	//#############
