@@ -199,6 +199,14 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 				}
 				//handle 3 cases if the key contains maxspeed
 				else if(m_pActWay && k.find("maxspeed") != std::string::npos){
+					// If the value contains mph, strip unit, convert to kph.
+					if (v.find("mph") != std::string::npos){
+						// Assume format is /[0-9]{1,3} ?mph/
+						v = my_utils::read_number_substring(v);
+						std::ostringstream ostr;
+						ostr << floor( atoi( v.c_str() ) * 1.60934 );
+						v = ostr.str();
+					}
 					//handle maxspeed:forward tag
 					if(k.compare("maxspeed:forward")==0){
 						int mspeed_fwd = 50;
