@@ -1,0 +1,5 @@
+/usr/share/bin/osm2pgrouting
+/usr/share/osm2pgrouting/COPYING
+/usr/share/osm2pgrouting/Readme.md
+/usr/share/osm2pgrouting/mapconfig.xml
+/usr/share/osm2pgrouting/mapconfig_for_cars.xml
