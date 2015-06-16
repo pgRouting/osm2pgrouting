@@ -1,7 +1,7 @@
-/*PGR
+/*osm2pgRouting
 
-Copyright (c) 2015 Celia Virginia Vergara Castillo
-vicky_vergara@hotmail.com
+Copyright (c) 2015 Sarthak Agarwal
+sarthak0415@gmail.com
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 
+#include <boost/config.hpp>
+#include <string>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
