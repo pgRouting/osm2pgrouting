@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     bool skipnodes,clean;
 
 	po::options_description od_desc("Allowed options");
-	get_option_description(od_desc,file,cFile,host,user,db_port,dbname,passwd,prefixtables,skipnodes,clean);
+	get_option_description(od_desc);
 	
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(od_desc).run(), vm);
@@ -167,6 +167,18 @@ int main(int argc, char* argv[])
     auto ret_val = process_command_line(vm, od_desc);
     if (ret_val != 2) 
     	return ret_val;  //there is an error
+
+
+    file =  vm["file"].as<string>();
+    cFile = vm["cFile"].as<string>();
+    host = vm["host"].as<std::string>();
+    user = vm["user"].as<std::string>();
+    db_port = vm["db_port"].as<std::string>();
+    dbname = vm["dbname"].as<std::string>();
+    passwd = vm["passwd"].as<std::string>();
+    prefixtables = vm["prefixtables"].as<std::string>();
+    skipnodes = vm["skipnodes"].as<bool>();
+    clean = vm["clean"].as<bool>() ;
 
 	//!!prog_options code end!!
 
