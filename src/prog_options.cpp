@@ -82,17 +82,10 @@ void get_option_description(po::options_description &od_desc,
     return ;
 }
 #endif
-void get_option_description(po::options_description &od_desc,
- string &file,
- string &cFile,
- string &host,
- string &user,
- string &db_port,
- string &dbname,
- string &passwd,
- string &prefixtables,
- bool &skipnodes,
- bool &clean){
+void get_option_description(po::options_description &od_desc){
+
+    string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
+    bool skipnodes,clean;
 
     
     od_desc.add_options()
@@ -118,11 +111,6 @@ void get_option_description(po::options_description &od_desc,
 int process_command_line(
   po::variables_map &vm, 
   po::options_description &od_desc) {
-
-    if (vm.count("help")) {
-        cout << od_desc << "\n";
-        return 0;
-    }
 
     if (vm.count("file"))
         cout << "Filename is: " << vm["file"].as<string>() << "\n";

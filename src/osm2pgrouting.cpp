@@ -29,7 +29,7 @@
 #include "Relation.h"
 #include "Export2DB.h"
 
-#include "./prog_options.cpp"
+#include "prog_options.h"
 
 using namespace osm;
 using namespace xml;

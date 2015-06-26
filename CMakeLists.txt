@@ -10,7 +10,7 @@ FIND_PACKAGE(Boost REQUIRED)
 
 FILE(GLOB SRC "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/src/*.h")
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -lboost_program_options  -D_FILE_OFFSET_BITS=64")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64 -std=c++11 ")
 
 INCLUDE_DIRECTORIES(src ${PostgreSQL_INCLUDE_DIRS} ${EXPAT_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 link_directories(${PostgreSQL_LIBRARY_DIRS})
@@ -28,3 +28,8 @@ INSTALL(FILES
     "${CMAKE_SOURCE_DIR}/mapconfig.xml"
     "${CMAKE_SOURCE_DIR}/mapconfig_for_cars.xml"
     DESTINATION "${SHARE_DIR}")
+
+
+FIND_PACKAGE( Boost 1.40 COMPONENTS program_options REQUIRED )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+TARGET_LINK_LIBRARIES( osm2pgrouting ${Boost_LIBRARIES} )
