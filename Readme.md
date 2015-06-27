@@ -1,5 +1,7 @@
 # osm2pgrouting
 
+[![Join the chat at https://gitter.im/pgRouting/osm2pgrouting](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pgRouting/osm2pgrouting?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Requirements
 
 Before you can use this tool for importing Openstreetmap data you need to install:
