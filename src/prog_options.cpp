@@ -107,10 +107,10 @@ void get_option_description(po::options_description &od_desc){
         ("host,h",po::value<string>()->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
         ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432)")
         ("passwd",po::value<string>()->default_value(""),"password for database access (default: \"\")")
-        ("prefixtables,t",po::value<string>()->default_value("")," add at the beginning of table names")
+        ("prefixtables,t",po::value<string>()->default_value(""),"add at the beginning of table names (default: \"\")")
         //bool
-        ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables")
-        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the node table")
+        ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables (default: false)")
+        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the node table (default: false)")
         ;
 
     od_desc.add(help_od_desc).add(required_od_desc).add(optional_od_desc);
