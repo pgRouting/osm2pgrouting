@@ -28,6 +28,7 @@
 #include "Node.h"
 #include "Relation.h"
 #include "Export2DB.h"
+#include <unistd.h>
 
 #include "prog_options.h"
 
@@ -35,7 +36,7 @@ using namespace osm;
 using namespace xml;
 using namespace std;
 
-#if 0 
+#if 0
 void _error()
 {
 				cout << "following params are required: " << endl;
@@ -53,7 +54,7 @@ void _error()
 
 
 }
-#endif 
+#endif
 
 int main(int argc, char* argv[])
 {
