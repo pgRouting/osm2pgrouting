@@ -96,18 +96,18 @@ void get_option_description(po::options_description &od_desc){
 
     required_od_desc.add_options()
         //required
-        ("file,f",po::value<string>(&file)->required(),"name of your osm xml file")
-        ("cFile,c",po::value<string>(&cFile)->required(),"name of your configuration xml file")
-        ("dbname,d",po::value<string>(&dbname)->required(),"name of your database")
-        ("user,u",po::value<string>(&user)->required()->default_value(getlogin()),"name of the user, which have write access to the database, (default : username)")
+        ("file,f",po::value<string>()->required(),"name of your osm xml file")
+        ("cFile,c",po::value<string>()->required(),"name of your configuration xml file")
+        ("dbname,d",po::value<string>()->required(),"name of your database")
         ;
     
     optional_od_desc.add_options()
         //optional
-        ("host,h",po::value<string>(&host)->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
-        ("db_port,p",po::value<string>(&db_port)->default_value("5432"),"db_port of your database (default: 5432)")
-        ("passwd",po::value<string>(&passwd)->default_value(""),"password for database access (default: \"\")")
-        ("prefixtables,t",po::value<string>(&prefixtables)->default_value("")," add at the beginning of table names")
+        ("user,u",po::value<string>()->default_value(getlogin()),"name of the user, which have write access to the database, (default : username)")
+        ("host,h",po::value<string>()->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
+        ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432)")
+        ("passwd",po::value<string>()->default_value(""),"password for database access (default: \"\")")
+        ("prefixtables,t",po::value<string>()->default_value("")," add at the beginning of table names")
         //bool
         ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables")
         ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the node table")
@@ -183,11 +183,10 @@ int process_command_line(
     
     #endif
 
-    if (vm.count("dbname") & vm.count("username") & vm.count("host") & vm.count("password") ) {
+    if (vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
         return 2;
     } else {
         std::cout << "Missing Database connectivity parameter.\n";
-        std::cout << od_desc << "\n";
         return 1;
     }
 
