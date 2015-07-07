@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION pgr_brokenGraph(
+CREATE OR REPLACE FUNCTION brokenGraph(
                 IN tbl character varying,
                 IN clmn character varying
         )
@@ -72,4 +72,4 @@ $BODY$
 LANGUAGE 'plpgsql' VOLATILE STRICT;
 
 ------------ USAGE ------------
--- SELECT pgr_brokengraph('ways', 'graph_id')
+-- SELECT brokenGraph('ways', 'graph_id')
