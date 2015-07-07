@@ -15,22 +15,26 @@ DECLARE
         gids int [];        
 BEGIN   
         EXECUTE 'SELECT COUNT(*) AS count FROM information_schema.columns WHERE table_name= ''' || quote_ident(tbl) || ''' AND column_name= ''' || quote_ident(clmn) || '''' INTO rec_count;
+
         If (rec_count.count > 0) THEN
                 RAISE NOTICE 'Column % in the table % already exists!', quote_ident(clmn), quote_ident(tbl);
         ELSE
+                --------- Add necessary columns ----------
                 EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN ' || quote_ident(clmn) || ' INTEGER DEFAULT -1';
                 EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' ADD COLUMN garbage INTEGER DEFAULT 0';
                 graph_id := 1;
+                
                 While true
                         Loop
-                                -------- Assign the very first -1 row graph_id
+                                ---------- Assign the very first -1 row graph_id ----------
                                 EXECUTE 'SELECT * FROM ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = -1 LIMIT 1' INTO rec_single;
                                 EXECUTE 'UPDATE ' || quote_ident(tbl) || ' SET ' || quote_ident(clmn) || ' = ' || graph_id || ' WHERE gid = ' || rec_single.gid || '';
 
-                                --------- search other rows with that particular graph_id
+                                --------- Search other rows with that particular graph_id -----------
                                 while true
                                         loop
                                                 execute 'SELECT COUNT(*) FROm ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0' into rec_count;
+                                                ----------- The following if else will check those rows which already have entertained ------------
                                                 if (rec_count.count > 0) then
                                                         sql1 := 'SELECT * FROm ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0';
                                                         for rec1 in execute sql1
@@ -55,11 +59,17 @@ BEGIN
                                         graph_id := graph_id + 1;
                                 END IF;
                         end loop;
+                        
+                ----------- Drop garbage column ------------
                 EXECUTE 'ALTER TABLE ' || quote_ident(tbl) || ' DROP COLUMN garbage';
         END IF;
+        
         EXCEPTION
                 WHEN internal_error THEN
                         RAISE NOTICE 'Something went wrong!';
 END;
 $body$
 LANGUAGE 'plpgsql' VOLATILE STRICT;
+
+------------ Usage ------------
+-- SELECT pgr_brokengraph('ways', 'graph_id')
