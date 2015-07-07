@@ -33,10 +33,10 @@ BEGIN
                                 --------- Search other rows with that particular graph_id -----------
                                 WHILE TRUE
                                         LOOP
-                                                EXECUTE 'SELECT COUNT(*) FROm ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0' into rec_count;
+                                                EXECUTE 'SELECT COUNT(*) FROM ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0' into rec_count;
                                                 ----------- The following if else will check those rows which already have entertained ------------
                                                 IF (rec_count.count > 0) THEN
-                                                        sql1 := 'SELECT * FROm ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0';
+                                                        sql1 := 'SELECT * FROM ' || quote_ident(tbl) || ' WHERE ' || quote_ident(clmn) || ' = ' || graph_id || ' AND garbage = 0';
                                                         FOR rec1 IN EXECUTE sql1
                                                                 LOOP
                                                                         sql2 := 'SELECT * FROM ' || quote_ident(tbl) || ' WHERE source = '|| rec1.source ||' OR target = '|| rec1.source ||' OR source = '|| rec1.target ||' OR target = '|| rec1.target ||'';
