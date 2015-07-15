@@ -26,6 +26,8 @@
 #include "Way.h"
 #include "math_functions.h"
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
 
 namespace osm
 {

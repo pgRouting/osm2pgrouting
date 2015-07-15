@@ -27,27 +27,27 @@
 namespace osm
 {
 
-Configuration::Configuration()
-{
-}
+	Configuration::Configuration()
+	{
+	}
 
-Configuration::~Configuration()
-{
-	ez_mapdelete( m_Types );
-}
-void Configuration::AddType( Type* t )
-{
-	m_Types[t->name] = t;
-}
+	Configuration::~Configuration()
+	{
+		ez_mapdelete( m_Types );
+	}
+	void Configuration::AddType( Type* t )
+	{
+		m_Types[t->name] = t;
+	}
 
-Type* Configuration::FindType( std::string name ) 
-{
-	return m_Types[name];
-}
+	Type* Configuration::FindType( std::string name ) 
+	{
+		return m_Types[name];
+	}
 
-Class* Configuration::FindClass( std::string typeName, std::string className ) 
-{
-	return m_Types[typeName]->m_Classes[className];
-}
+	Class* Configuration::FindClass( std::string typeName, std::string className ) 
+	{
+		return m_Types[typeName]->m_Classes[className];
+	}
 
 } // end namespace osm
