@@ -82,6 +82,7 @@ void get_option_description(po::options_description &od_desc,
     return ;
 }
 #endif
+
 void get_option_description(po::options_description &od_desc){
 
     string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
