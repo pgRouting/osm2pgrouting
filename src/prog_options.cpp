@@ -91,7 +91,7 @@ void get_option_description(po::options_description &od_desc){
 
     help_od_desc.add_options()
         //help
-        ("help", "produce help message")
+        ("help", "produce help message for this version")
         ;
 
     required_od_desc.add_options()

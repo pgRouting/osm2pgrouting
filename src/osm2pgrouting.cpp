@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
 		//..prog_options code begin..
 		
-		string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
+		std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
 	    bool skipnodes,clean;
 	
 		po::options_description od_desc("Allowed options");
@@ -300,6 +300,7 @@ int main(int argc, char* argv[])
 		//string n;
 		//getline( cin, n );
 	}
+
 
     catch(exception& e)
     {
