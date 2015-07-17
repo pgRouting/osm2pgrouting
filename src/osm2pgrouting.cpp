@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+
 #include "stdafx.h"
 #include "Configuration.h"
 #include "ConfigurationParserCallback.h"
@@ -28,10 +29,13 @@
 #include "Relation.h"
 #include "Export2DB.h"
 
+#include "prog_options.h"
+
 using namespace osm;
 using namespace xml;
 using namespace std;
 
+#if 0 
 void _error()
 {
 				cout << "following params are required: " << endl;
@@ -49,9 +53,11 @@ void _error()
 
 
 }
+#endif 
 
 int main(int argc, char* argv[])
 {
+	#if 0
 	std::string file;
 	std::string cFile;
 	std::string host="127.0.0.1";
@@ -139,8 +145,44 @@ int main(int argc, char* argv[])
 		_error();
 		return 1;
 	}
+	#endif
 
-	Export2DB test(host, user, dbname, port, passwd, prefixtables);
+	//..prog_options code begin..
+	string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
+    bool skipnodes,clean;
+
+	po::options_description od_desc("Allowed options");
+	get_option_description(od_desc);
+	
+	po::variables_map vm;
+	po::store(po::command_line_parser(argc, argv).options(od_desc).run(), vm);
+    
+    if (vm.count("help")) {
+        cout << od_desc << "\n";
+        return 0;
+    }
+
+    notify(vm);
+
+    auto ret_val = process_command_line(vm, od_desc);
+    if (ret_val != 2) 
+    	return ret_val;  //there is an error
+
+
+    file =  vm["file"].as<string>();
+    cFile = vm["cFile"].as<string>();
+    host = vm["host"].as<std::string>();
+    user = vm["user"].as<std::string>();
+    db_port = vm["db_port"].as<std::string>();
+    dbname = vm["dbname"].as<std::string>();
+    passwd = vm["passwd"].as<std::string>();
+    prefixtables = vm["prefixtables"].as<std::string>();
+    skipnodes = vm["skipnodes"].as<bool>();
+    clean = vm["clean"].as<bool>() ;
+
+	//!!prog_options code end!!
+
+	Export2DB test(host, user, dbname, db_port, passwd, prefixtables);
 	if(test.connect()==1)
 		return 1;
 
@@ -255,4 +297,5 @@ int main(int argc, char* argv[])
 	//string n;
 	//getline( cin, n );
 	return 0;
+
 }
