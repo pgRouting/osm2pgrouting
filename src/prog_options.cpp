@@ -87,25 +87,35 @@ void get_option_description(po::options_description &od_desc){
 
     string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
     bool skipnodes,clean;
-
+    po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
     
-    od_desc.add_options()
+
+    help_od_desc.add_options()
         //help
-        ("help", "produce help message")
-        //required
-        ("file,f",po::value<string>(&file)->required(),"name of your osm xml file")
-        ("cFile,c",po::value<string>(&cFile)->required(),"name of your configuration xml file")
-        ("dbname,d",po::value<string>(&dbname)->required(),"name of your database")
-        ("user,u",po::value<string>(&user)->required(),"name of the user, which have write access to the database")
-        //optional
-        ("host,h",po::value<string>(&host)->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
-        ("db_port,p",po::value<string>(&db_port)->default_value("5432"),"db_port of your database (default: 5432)")
-        ("passwd",po::value<string>(&passwd),"password for database access")
-        ("prefixtables,t",po::value<string>(&prefixtables)->default_value("")," add at the beginning of table names")
-        //bool
-        ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables")
-        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the nodes table")
+        ("help", "produce help message for this version")
         ;
+
+    required_od_desc.add_options()
+        //required
+        ("file,f",po::value<string>()->required(),"name of your osm xml file")
+        ("cFile,c",po::value<string>()->required(),"name of your configuration xml file")
+        ("dbname,d",po::value<string>()->required(),"name of your database")
+        ;
+    
+    optional_od_desc.add_options()
+        //optional
+        ("user,u",po::value<string>()->default_value(getlogin()),"name of the user, which have write access to the database, (default : username)")
+        ("host,h",po::value<string>()->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
+        ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432)")
+        ("passwd",po::value<string>()->default_value(""),"password for database access (default: \"\")")
+        ("prefixtables,t",po::value<string>()->default_value(""),"add at the beginning of table names (default: \"\")")
+        //bool
+        ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables (default: false)")
+        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the node table (default: false)")
+        ;
+
+    od_desc.add(help_od_desc).add(required_od_desc).add(optional_od_desc);
+        
     return ;
 }
 
@@ -128,6 +138,15 @@ int process_command_line(
     else
         std::cout << "Parameter: dbname missing\n";
 
+    std::cout << "user = " << vm["user"].as<std::string>() << "\n";
+    std::cout << "host = " << vm["host"].as<std::string>() << "\n";
+    std::cout << "db_port = " << vm["db_port"].as<std::string>() << "\n";
+    std::cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
+    std::cout << "prefixtables is: " << vm["prefixtables"].as<string>() << "\n";
+    std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
+    std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
+
+    #if 0
     if (vm.count("user")) 
         std::cout << "user = " << vm["user"].as<std::string>() << "\n";
     else
@@ -144,37 +163,31 @@ int process_command_line(
         std::cout << "Parameter: db_port missing\n";
 
     if (vm.count("passwd"))
-        cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
+        std::cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
     else
         std::cout << "Parameter: passwd missing\n";  
 
     if (vm.count("prefixtables"))
-        cout << "prefixtables is: " << vm["prefixtables"].as<string>() << "\n";
+        std::cout << "prefixtables is: " << vm["prefixtables"].as<string>() << "\n";
     else
         std::cout << "Parameter: prefixtables missing\n";
 
     if (vm.count("clean"))
-        cout << "clean is: " << vm["clean"].as<bool>() << "\n";
+        std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
     else
         std::cout << "Parameter: clean missing\n";
 
     if (vm.count("skipnodes"))
-        cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
+        std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
     else
         std::cout << "Parameter: skipnodes missing\n";         
     
+    #endif
 
-    if (vm.count("dbname") & vm.count("username") & vm.count("host") & vm.count("password") ) {
-        std::cout << "Parameters: \n"
-             << vm["dbname"].as<std::string>() << "\n"
-             << vm["username"].as<std::string>() << "\n"
-             << vm["host"].as<std::string>() << "\n"
-             << vm["password"].as<std::string>() << ".\n";
-
+    if (vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
         return 2;
     } else {
-        std::cout << "Missing parameter.\n";
-        std::cout << od_desc << "\n";
+        std::cout << "Missing Database connectivity parameter.\n";
         return 1;
     }
 
