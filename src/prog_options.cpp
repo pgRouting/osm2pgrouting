@@ -38,8 +38,6 @@ using namespace std;
 
 void get_option_description(po::options_description &od_desc){
 
-    string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
-    bool skipnodes,clean;
     po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
     
 
@@ -61,10 +59,14 @@ void get_option_description(po::options_description &od_desc){
         ("host,h",po::value<string>()->default_value("127.0.0.1"),"Host of your postgresql database (default: 127.0.0.1).")
         ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432).")
         ("passwd",po::value<string>()->default_value(""),"Password for database access (default: \"\").")
-        ("prefixtables,t",po::value<string>()->default_value(""),"Add at the beginning of table names (default: \"\").")
+        ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names (default: pgr_).")
+        ("suffixtables",po::value<string>()->default_value("_car"),"Add at the end of table names (default: _car).")
         //bool
         ("clean",po::value<bool>(&clean)->default_value(false),"Drop previously created tables (default: false).")
         ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"Don't import the node table (default: false).")
+        ("threads,t",po::value<bool>()->default_value(false),"threads (default: false).")
+        ("multimodal,m",po::value<bool>()->default_value(false),"multimodal (default: false).")
+        ("multilevel,l",po::value<bool>()->default_value(false),"multilevel (default: false).")
         ;
 
     od_desc.add(help_od_desc).add(required_od_desc).add(optional_od_desc);
