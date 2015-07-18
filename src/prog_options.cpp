@@ -49,14 +49,14 @@ void get_option_description(po::options_description &od_desc){
     required_od_desc.add_options()
         //required
         ("file,f",po::value<string>()->required(),"Name of your osm xml file")
-        ("cFile,c",po::value<string>()->required(),"Name of your configuration xml file")
+        ("cFile,c",po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"),"Name of your configuration xml file (default: /usr/share/osm2pgrouting/mapconfig.xml) (Required).")
         ("dbname,d",po::value<string>()->required(),"Name of your database")
         ;
     
     optional_od_desc.add_options()
         //optional
-        ("user,u",po::value<string>()->default_value(getlogin()),"Name of the user, which have write access to the database, (default : username).")
-        ("host,h",po::value<string>()->default_value("127.0.0.1"),"Host of your postgresql database (default: 127.0.0.1).")
+        ("user,u",po::value<string>()->default_value(getlogin()),"Name of the user, which have write access to the database, (default: username).")
+        ("host,h",po::value<string>()->default_value("localhost"),"Host of your postgresql database (default: localhost).")
         ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432).")
         ("passwd",po::value<string>()->default_value(""),"Password for database access (default: \"\").")
         ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names (default: pgr_).")
