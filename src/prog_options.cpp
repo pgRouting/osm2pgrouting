@@ -36,52 +36,6 @@ namespace po = boost::program_options;
 #include <iterator>
 using namespace std;
 
-#if 0
-void get_option_description(po::options_description &od_desc,
-    po::options_description &cmdline_options,
-    po::options_description &config_file_options,
-    string &config_file){
-
-    string filename ;
-    po::options_description generic("Generic options");
-    generic.add_options()
-        ("file,f",po::value<string>(&filename),"filename")
-        ("conf,c",po::value<string>(&config_file)->default_value("prog_options.cfg"),"configuration file path/name (ask vicky)")
-        ("help", "produce help message")
-        ;
-
-    // Declare a group of options that will be 
-    // allowed both on command line and in
-    // config file
-    string dbname,username,host,port,password;
-    po::options_description config("Configuration");
-    config.add_options()
-        ("dbname,d",po::value<string>(&dbname),"database name to be imported")
-        ("username,u",po::value<string>(&username),"name of the username of the database")
-        ("host,h",po::value<string>(&host),"host name, eg: localhost(127.0.0.1)")
-        ("port,p",po::value<string>(&port),"port name, eg: 8080")
-        ("password,passwd",po::value<string>(&password),"password")
-        ;
-
-    //Dont need it as of now
-    /* 
-    // Hidden options, will be allowed both on command line and
-    // in config file, but will not be shown to the user.
-    po::options_description hidden("Hidden options");
-    hidden.add_options()
-        ("input-file", po::value< vector<string> >(), "input file")
-        ;
-    */
-    
-    cmdline_options.add(generic).add(config);
-
-    config_file_options.add(config);
-
-    od_desc.add(generic).add(config);
-
-    return ;
-}
-#endif
 void get_option_description(po::options_description &od_desc){
 
     string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
@@ -96,21 +50,21 @@ void get_option_description(po::options_description &od_desc){
 
     required_od_desc.add_options()
         //required
-        ("file,f",po::value<string>()->required(),"name of your osm xml file")
-        ("cFile,c",po::value<string>()->required(),"name of your configuration xml file")
-        ("dbname,d",po::value<string>()->required(),"name of your database")
+        ("file,f",po::value<string>()->required(),"Name of your osm xml file")
+        ("cFile,c",po::value<string>()->required(),"Name of your configuration xml file")
+        ("dbname,d",po::value<string>()->required(),"Name of your database")
         ;
     
     optional_od_desc.add_options()
         //optional
-        ("user,u",po::value<string>()->default_value(getlogin()),"name of the user, which have write access to the database, (default : username)")
-        ("host,h",po::value<string>()->default_value("127.0.0.1"),"host of your postgresql database (default: 127.0.0.1)")
-        ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432)")
-        ("passwd",po::value<string>()->default_value(""),"password for database access (default: \"\")")
-        ("prefixtables,t",po::value<string>()->default_value(""),"add at the beginning of table names (default: \"\")")
+        ("user,u",po::value<string>()->default_value(getlogin()),"Name of the user, which have write access to the database, (default : username).")
+        ("host,h",po::value<string>()->default_value("127.0.0.1"),"Host of your postgresql database (default: 127.0.0.1).")
+        ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432).")
+        ("passwd",po::value<string>()->default_value(""),"Password for database access (default: \"\").")
+        ("prefixtables,t",po::value<string>()->default_value(""),"Add at the beginning of table names (default: \"\").")
         //bool
-        ("clean",po::value<bool>(&clean)->default_value(false),"drop previously created tables (default: false)")
-        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"don't import the node table (default: false)")
+        ("clean",po::value<bool>(&clean)->default_value(false),"Drop previously created tables (default: false).")
+        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"Don't import the node table (default: false).")
         ;
 
     od_desc.add(help_od_desc).add(required_od_desc).add(optional_od_desc);
@@ -145,44 +99,6 @@ int process_command_line(
     std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
     std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
 
-    #if 0
-    if (vm.count("user")) 
-        std::cout << "user = " << vm["user"].as<std::string>() << "\n";
-    else
-        std::cout << "Parameter: user missing\n";
-
-    if (vm.count("host")) 
-        std::cout << "host = " << vm["host"].as<std::string>() << "\n";
-    else
-        std::cout << "Parameter: host missing\n";
-
-    if (vm.count("db_port")) 
-        std::cout << "db_port = " << vm["db_port"].as<std::string>() << "\n";
-    else
-        std::cout << "Parameter: db_port missing\n";
-
-    if (vm.count("passwd"))
-        std::cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
-    else
-        std::cout << "Parameter: passwd missing\n";  
-
-    if (vm.count("prefixtables"))
-        std::cout << "prefixtables is: " << vm["prefixtables"].as<string>() << "\n";
-    else
-        std::cout << "Parameter: prefixtables missing\n";
-
-    if (vm.count("clean"))
-        std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
-    else
-        std::cout << "Parameter: clean missing\n";
-
-    if (vm.count("skipnodes"))
-        std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
-    else
-        std::cout << "Parameter: skipnodes missing\n";         
-    
-    #endif
-
     if (vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
         return 2;
     } else {
@@ -191,76 +107,3 @@ int process_command_line(
     }
 
 }
-
-#if 0
-int main(int ac, char* av[])
-{
-    try {
-        
-    //-->Code for program option begin
-
-        //Declare a group of options that will be 
-        // allowed only on command line
-
-        //cmdline_options have options that can be given on command line
-        //config_file_options have options that can be given through config file only
-        //od_desc has all the commands
-
-        po::options_description od_desc("Allowed options");
-        
-        #if 0
-        po::options_description cmdline_options;
-        po::options_description config_file_options;
-        string config_file; 
-        get_option_description(od_desc,cmdline_options,config_file_options,config_file);
-        #endif
-        get_option_description(od_desc);
-        
-        
-        
-        //Do we need a positional option for filename/dbname??
-        /*
-        po::positional_options_description p;
-        p.add("input-file", -1);
-        */
-
-        po::variables_map vm;
-
-        #if 0
-        store(po::command_line_parser(ac, av).options(cmdline_options).run(), vm);
-        #endif
-        store(po::command_line_parser(ac, av).options(od_desc).run(), vm);
-        notify(vm);
-        
-        #if 0
-        ifstream ifs(config_file.c_str());
-        if (!ifs)
-        {
-            cout << "can not open config file: " << config_file << "\n";
-            return 0;
-        }
-        else
-        {
-            cout << "can open config file: " << config_file << "\n";
-            store(parse_config_file(ifs, config_file_options), vm);
-            //notify(vm);
-        }
-        
-        process_comand_line(vm,od_desc,cmdline_options,config_file_options);
-        #endif
-        process_command_line(vm,od_desc);
-
-    //Code for program option end <--
-
-
-
-        
-    }
-    catch(exception& e)
-    {
-        cout << e.what() << "\n";
-        return 1;
-    }
-    return 0;
-}
-#endif
