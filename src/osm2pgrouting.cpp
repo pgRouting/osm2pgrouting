@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	    	return ret_val;  //there is an error
 
 	    file =  vm["file"].as<string>();
-	    cFile = vm["cFile"].as<string>();
+	    cFile = vm["conf"].as<string>();
 	    host = vm["host"].as<std::string>();
 	    user = vm["user"].as<std::string>();
 	    db_port = vm["db_port"].as<std::string>();

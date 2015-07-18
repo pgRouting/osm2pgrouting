@@ -49,7 +49,7 @@ void get_option_description(po::options_description &od_desc){
     general_od_desc.add_options()
         //general
         ("file,f",po::value<string>()->required(),"Name of your osm xml file (Required).")
-        ("cFile,c",po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"),"Name of your configuration xml file (default: /usr/share/osm2pgrouting/mapconfig.xml) (Required).")
+        ("conf,c",po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"),"Name of your configuration xml file (default: /usr/share/osm2pgrouting/mapconfig.xml) (Required).")
         ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names (default: pgr_).")
         ("skipnodes,s",po::value<bool>()->default_value(false),"Don't import the node table (default: false).")
         ;
@@ -85,8 +85,8 @@ int process_command_line(
     else
         std::cout << "Parameter: file missing\n";
 
-    if (vm.count("cFile"))
-        cout << "Configuration XML Filename is: " << vm["cFile"].as<string>() << "\n";
+    if (vm.count("conf"))
+        cout << "Configuration XML Filename is: " << vm["conf"].as<string>() << "\n";
     else
         std::cout << "Parameter: config file name missing\n";
     
