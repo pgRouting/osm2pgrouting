@@ -18,7 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #include "stdafx.h"
 #include "Configuration.h"
 #include "ConfigurationParserCallback.h"
@@ -36,124 +35,14 @@ using namespace osm;
 using namespace xml;
 using namespace std;
 
-#if 0
-void _error()
-{
-				cout << "following params are required: " << endl;
-				cout << "-file <file>  -- name of your osm xml file" << endl;
-				cout << "-conf <conf>  -- name of your configuration xml file" << endl;
-				cout << "-dbname <dbname> -- name of your database" << endl;
-				cout << "-user <user> -- name of the user, which have write access to the database" << endl;
-				cout << "optional:" << endl;
-				cout << "-host <host>  -- host of your postgresql database (default: 127.0.0.1)" << endl;
-				cout << "-port <port> -- port of your database (default: 5432)" << endl;
-				cout << "-passwd <passwd> --  password for database access" << endl;
-				cout << "-prefixtables <prefix> --  add at the beginning of table names" << endl;
-				cout << "-clean -- drop previously created tables" << endl;
-                cout << "-skipnodes -- don't import the nodes table" << endl;
-
-
-}
-#endif
 
 int main(int argc, char* argv[])
 {
-	#if 0
-	std::string file;
-	std::string cFile;
-	std::string host="127.0.0.1";
-	std::string user;
-	std::string port="5432";
-	std::string dbname;
-	std::string passwd;
-	std::string prefixtables="";
-	bool skipnodes = false;
-	bool clean = false;
-	if(argc >=7 && argc <=19)
-	{
-		int i=1;
-		while( i<argc)
-		{
-			if(strcmp(argv[i],"-file")==0)
-			{
-				i++;
-				file = argv[i];
-			}
-
-			else if(strcmp(argv[i],"-conf")==0)
-			{
-				i++;
-				cFile = argv[i];
-			}
-
-			else if(strcmp(argv[i],"-host")==0)
-			{
-				i++;
-				host = argv[i];
-			}
-			else if(strcmp(argv[i],"-dbname")==0)
-			{
-				i++;
-				dbname = argv[i];
-			}
-			else if(strcmp(argv[i],"-user")==0)
-			{
-				i++;
-				user = argv[i];
-			}
-			else if(strcmp(argv[i],"-port")==0)
-			{
-				i++;
-				port = argv[i];
-			}
-			else if(strcmp(argv[i],"-passwd")==0)
-			{
-				i++;
-				passwd = argv[i];
-			}
-			else if(strcmp(argv[i],"-prefixtables")==0)
-			{
-				i++;
-				prefixtables = argv[i];
-			}
-			else if(strcmp(argv[i],"-clean")==0)
-			{
-				clean = true;
-			}
-			else if(strcmp(argv[i],"-skipnodes")==0)
-            {
-                skipnodes = true;
-            }
-			else
-			{
-				cout << "unknown parameter: " << argv[i] << endl;
-				_error();
-				return 1;
-			}
-
-			i++;
-		}
-
-	}
-	else
-	{
-		_error();
-		return 1;
-	}
-
-	if(file.empty() || cFile.empty() || dbname.empty() || user.empty())
-	{
-		_error();
-		return 1;
-	}
-	#endif
-
-	try {
-
+	try{
 		//..prog_options code begin..
-		
-		std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables;
-	    bool skipnodes,clean;
+			
+		std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables,suffixtables;
+		bool skipnodes,clean,threads,multimodal,multilevel;
 	
 		po::options_description od_desc("Allowed options");
 		get_option_description(od_desc);
@@ -162,55 +51,68 @@ int main(int argc, char* argv[])
 		po::store(po::command_line_parser(argc, argv).options(od_desc).run(), vm);
 	    
 	    if (vm.count("help")) {
-	        cout << od_desc << "\n";
+	        cout << od_desc << "\n"; 
 	        return 0;
 	    }
 	
-	    notify(vm);
-	
+	    try{
+	    	notify(vm);
+	    }	
+		
+		catch(exception &ex){
+			cout << ex.what() << "\n";
+			cout << od_desc << "\n"; 
+	        return 0;	
+		}
+		
 	    auto ret_val = process_command_line(vm, od_desc);
 	    if (ret_val != 2) 
 	    	return ret_val;  //there is an error
-
+	
 	    file =  vm["file"].as<string>();
-	    cFile = vm["cFile"].as<string>();
+	    cFile = vm["conf"].as<string>();
 	    host = vm["host"].as<std::string>();
 	    user = vm["user"].as<std::string>();
 	    db_port = vm["db_port"].as<std::string>();
 	    dbname = vm["dbname"].as<std::string>();
 	    passwd = vm["passwd"].as<std::string>();
 	    prefixtables = vm["prefixtables"].as<std::string>();
+	    suffixtables = vm["suffixtables"].as<std::string>();
 	    skipnodes = vm["skipnodes"].as<bool>();
 	    clean = vm["clean"].as<bool>() ;
-
+	    threads = vm["threads"].as<bool>() ;
+	    multimodal = vm["multimodal"].as<bool>() ;
+	    multilevel = vm["multilevel"].as<bool>() ;
+	    
+	
 		//!!prog_options code end!!
 	
-	    Export2DB test(host, user, dbname, db_port, passwd, prefixtables);
+		Export2DB test(host, user, dbname, db_port, passwd, prefixtables);
 		if(test.connect()==1)
 			return 1;
-
+	
 		XMLParser parser;
-
+	
 		cout << "Trying to load config file " << cFile.c_str() << endl;
-
+	
 		Configuration* config = new Configuration();
 	    ConfigurationParserCallback cCallback( *config );
-
+	
 		cout << "Trying to parse config" << endl;
-
+	
 		int ret = parser.Parse(cCallback, cFile.c_str());
 		if (ret!=0) {
 			cerr << "Failed to parse config file " << cFile.c_str() << endl;
 			return 1;
 		}
-
+	
 		cout << "Trying to load data" << endl;
-
+	
 		OSMDocument* document = new OSMDocument(*config);
 	    OSMDocumentParserCallback callback(*document);
-
+	
 		cout << "Trying to parse data" << endl;
-
+	
 		ret = parser.Parse( callback, file.c_str() );
 		if( ret!=0 ) {
 			if( ret == 1 )
@@ -218,46 +120,46 @@ int main(int argc, char* argv[])
 			cerr << "Failed to parse data file " << file.c_str() << endl;
 			return 1;
 		}
-
+	
 		cout << "Split ways" << endl;
-
+	
 		document->SplitWays();
 		//############# Export2DB
 		{
-
+	
 			if( clean )
 	    {
 	        cout << "Dropping tables..." << endl;
-
+	
 	        test.dropTables();
 	    }
-
+	
 	    cout << "Creating tables..." << endl;
 	    test.createTables();
-
+	
 	    cout << "Adding tag types and classes to database..." << endl;
 	    test.exportTypesWithClasses(config->m_Types);
-
+	
 			cout << "Adding relations to database..." << endl;
 			test.exportRelations(document->m_Relations, config);
-
+	
 			// Optional user argument skipnodes will not add nodes to the database (saving a lot of time if not necessary)
 			if ( !skipnodes) {
 				cout << "Adding nodes to database..." << endl;
 				test.exportNodes(document->m_Nodes);
 			}
-
+	
 			cout << "Adding ways to database..." << endl;
 			test.exportWays(document->m_SplittedWays, config);
 			
 			//TODO: make some free memory, document will be not used anymore, so there will be more memory available to future DB operations.
-
+	
 			cout << "Creating topology..." << endl;
 			test.createTopology();
 		}
-
+	
 		//#############
-
+	
 		/*
 		std::vector<Way*>& ways= document.m_Ways;
 		std::vector<Way*>::iterator it( ways.begin() );
@@ -265,7 +167,7 @@ int main(int argc, char* argv[])
 		while( it!=last )
 		{
 			Way* pWay = *it;
-
+	
 			if( !pWay->name.empty() )
 			{
 				if( pWay->m_NodeRefs.empty() )
@@ -289,25 +191,20 @@ int main(int argc, char* argv[])
 			++it;
 		}
 		*/
-
+	
 		cout << "#########################" << endl;
-
+	
 		cout << "size of streets: " << document->m_Ways.size() <<	endl;
 		cout << "size of splitted ways : " << document->m_SplittedWays.size() <<	endl;
-
+	
 		cout << "finished" << endl;
-
+	
 		//string n;
 		//getline( cin, n );
+		return 0;
 	}
-
-
-    catch(exception& e)
-    {
-        cout << e.what() << "\n";
-        return 1;
-    }   
-    
-	return 0;
-
+	catch(exception &e){
+		cout<< e.what()<<endl;
+		return 1;
+	}
 }
