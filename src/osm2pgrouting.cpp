@@ -57,7 +57,13 @@ int main(int argc, char* argv[])
 	        return 0;
 	    }
 	
-	    notify(vm);
+	    try{
+	    	notify(vm);
+	    }
+	    catch(exception &ex){
+	    	cout << od_desc << "\n";
+	        return 0;
+	    }
 	
 	    auto ret_val = process_command_line(vm, od_desc);
 	    if (ret_val != 2) 
