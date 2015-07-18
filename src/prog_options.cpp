@@ -38,38 +38,40 @@ using namespace std;
 
 void get_option_description(po::options_description &od_desc){
 
-    po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
-    
+    //po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
+    po::options_description help_od_desc("Help"),general_od_desc("General"),db_options_od_desc("Database options"),not_used_od_desc("Not used currently");
 
     help_od_desc.add_options()
         //help
-        ("help", "produce help message for this version")
+        ("help", "Produce help message for this version.")
         ;
 
-    required_od_desc.add_options()
-        //required
-        ("file,f",po::value<string>()->required(),"Name of your osm xml file")
+    general_od_desc.add_options()
+        //general
+        ("file,f",po::value<string>()->required(),"Name of your osm xml file (Required).")
         ("cFile,c",po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"),"Name of your configuration xml file (default: /usr/share/osm2pgrouting/mapconfig.xml) (Required).")
-        ("dbname,d",po::value<string>()->required(),"Name of your database")
+        ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names (default: pgr_).")
+        ("skipnodes,s",po::value<bool>()->default_value(false),"Don't import the node table (default: false).")
         ;
     
-    optional_od_desc.add_options()
-        //optional
+    db_options_od_desc.add_options()
+        //database options
+        ("dbname,d",po::value<string>()->required(),"Name of your database (Required).")
         ("user,u",po::value<string>()->default_value(getlogin()),"Name of the user, which have write access to the database, (default: username).")
         ("host,h",po::value<string>()->default_value("localhost"),"Host of your postgresql database (default: localhost).")
         ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database (default: 5432).")
         ("passwd",po::value<string>()->default_value(""),"Password for database access (default: \"\").")
-        ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names (default: pgr_).")
+        ("clean",po::value<bool>()->default_value(false),"Drop previously created tables (default: false).")
+        ;
+
+    not_used_od_desc.add_options()
         ("suffixtables",po::value<string>()->default_value("_car"),"Add at the end of table names (default: _car).")
-        //bool
-        ("clean",po::value<bool>(&clean)->default_value(false),"Drop previously created tables (default: false).")
-        ("skipnodes,s",po::value<bool>(&skipnodes)->default_value(false),"Don't import the node table (default: false).")
         ("threads,t",po::value<bool>()->default_value(false),"threads (default: false).")
         ("multimodal,m",po::value<bool>()->default_value(false),"multimodal (default: false).")
         ("multilevel,l",po::value<bool>()->default_value(false),"multilevel (default: false).")
         ;
 
-    od_desc.add(help_od_desc).add(required_od_desc).add(optional_od_desc);
+    od_desc.add(help_od_desc).add(general_od_desc).add(db_options_od_desc).add(not_used_od_desc);
         
     return ;
 }
