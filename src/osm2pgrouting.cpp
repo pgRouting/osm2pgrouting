@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
 	try{
 		//..prog_options code begin..
 			
-		std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables,suffixtables;
-		bool skipnodes,clean,threads,multimodal,multilevel;
+		//std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables,suffixtables;
+		//bool skipnodes,clean,threads,multimodal,multilevel;
 	
 		po::options_description od_desc("Allowed options");
 		get_option_description(od_desc);
@@ -69,20 +69,23 @@ int main(int argc, char* argv[])
 	    if (ret_val != 2) 
 	    	return ret_val;  //there is an error
 	
-	    file =  vm["file"].as<string>();
-	    cFile = vm["conf"].as<string>();
-	    host = vm["host"].as<std::string>();
-	    user = vm["user"].as<std::string>();
-	    db_port = vm["db_port"].as<std::string>();
-	    dbname = vm["dbname"].as<std::string>();
-	    passwd = vm["passwd"].as<std::string>();
-	    prefixtables = vm["prefixtables"].as<std::string>();
-	    suffixtables = vm["suffixtables"].as<std::string>();
-	    skipnodes = vm["skipnodes"].as<bool>();
-	    clean = vm["clean"].as<bool>() ;
-	    threads = vm["threads"].as<bool>() ;
-	    multimodal = vm["multimodal"].as<bool>() ;
-	    multilevel = vm["multilevel"].as<bool>() ;
+	    auto file ( vm["file"].as<string>() );
+	    auto cFile ( vm["conf"].as<string>() );
+	    auto host ( vm["host"].as<std::string>() );
+	    auto user ( vm["user"].as<std::string>() );
+	    auto db_port ( vm["db_port"].as<std::string>() );
+	    auto dbname ( vm["dbname"].as<std::string>() );
+	    auto passwd ( vm["passwd"].as<std::string>() );
+	    auto prefixtables ( vm["prefixtables"].as<std::string>() );
+	    auto suffixtables ( vm["suffixtables"].as<std::string>() );
+	    auto skipnodes ( vm["skipnodes"].as<bool>() );
+	    auto clean ( vm["clean"].as<bool>()  );
+	    
+	    /* variable to be used later 
+	    auto threads ( vm["threads"].as<bool>()  );
+	    auto multimodal ( vm["multimodal"].as<bool>()  );
+	    auto multilevel ( vm["multilevel"].as<bool>()  );
+	    */
 	    
 	
 		//!!prog_options code end!!
