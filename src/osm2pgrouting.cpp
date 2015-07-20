@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 	
 		//!!prog_options code end!!
 	
-		Export2DB test(host, user, dbname, db_port, passwd, prefixtables);
+		Export2DB test(vm);
 		if(test.connect()==1)
 			return 1;
 	

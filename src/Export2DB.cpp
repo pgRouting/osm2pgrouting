@@ -21,18 +21,32 @@
 #include "stdafx.h"
 #include "Export2DB.h"
 #include "boost/algorithm/string/replace.hpp"
+#include "prog_options.h"
 
 #define TO_STR(x)	boost::lexical_cast<std::string>(x)
 
 using namespace std;
 
-Export2DB::Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string passwd, std::string tables_prefix)
+Export2DB::Export2DB(const  po::variables_map &vm)
 :mycon(0)
 {
+    /*
     this->conninf="host="+host+" user="+user+" dbname="+ dbname +" port="+port;
     this->tables_prefix = tables_prefix;
-    if(!passwd.empty())
+	if(!passwd.empty())
         this->conninf+=" password="+passwd;
+    */
+
+	this->conninf = "host=" + vm["host"].as<std::string>()
+        + " user=" +  vm["user"].as<std::string>()
+        + " dbname=" + vm["dbname"].as<std::string>()
+        + " port=" + vm["db_port"].as<std::string>();  
+    
+    this->tables_prefix = vm["prefixtables"].as<std::string>();
+
+    if(!vm["passwd"].as<std::string>().empty())
+        this->conninf+=" password=" + vm["passwd"].as<std::string>();
+
 }
 
 Export2DB::~Export2DB()
