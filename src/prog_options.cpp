@@ -37,50 +37,48 @@ namespace po = boost::program_options;
 using namespace std;
 
 
-void get_option_description(po::options_description &od_desc){
-
-    //po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
-    po::options_description help_od_desc("Help"),general_od_desc("General"),db_options_od_desc("Database options"),not_used_od_desc("Not used currently");
+void get_option_description(po::options_description &od_desc) {
+    // po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
+    po::options_description help_od_desc("Help"), general_od_desc("General"), db_options_od_desc("Database options"), not_used_od_desc("Not used currently");
 
     help_od_desc.add_options()
-        //help
+        // help
         ("help", "Produce help message for this version.")
         ;
 
     general_od_desc.add_options()
-        //general
-        ("file,f",po::value<string>()->required(),"Name of your osm xml file (Required).")
-        ("prefixtables",po::value<string>()->default_value("pgr_"),"Add at the beginning of table names.")
-        ("skipnodes,s",po::value<bool>()->default_value(false),"Don't import the node table.")
-        ("conf,c",po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"),"Name of your configuration xml file.")
+        // general
+        ("file,f", po::value<string>()->required(), "Name of your osm xml file (Required).")
+        ("prefixtables", po::value<string>()->default_value("pgr_"), "Add at the beginning of table names.")
+        ("skipnodes,s", po::value<bool>()->default_value(false), "Don't import the node table.")
+        ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
         ;
-    
+
     db_options_od_desc.add_options()
-        //database options
-        ("dbname,d",po::value<string>()->required(),"Name of your database (Required).")
-        ("user,u",po::value<string>()->default_value(getlogin()),"Name of the user, which have write access to the database.")
-        ("host,h",po::value<string>()->default_value("localhost"),"Host of your postgresql database.")
-        ("db_port,p",po::value<string>()->default_value("5432"),"db_port of your database.")
-        ("passwd",po::value<string>()->default_value(""),"Password for database access.")
-        ("clean",po::value<bool>()->default_value(false),"Drop previously created tables.")
+        // database options
+        ("dbname,d", po::value<string>()->required(), "Name of your database (Required).")
+        ("user,u", po::value<string>()->default_value(getlogin()), "Name of the user, which have write access to the database.")
+        ("host,h", po::value<string>()->default_value("localhost"), "Host of your postgresql database.")
+        ("db_port,p", po::value<string>()->default_value("5432"), "db_port of your database.")
+        ("passwd", po::value<string>()->default_value(""), "Password for database access.")
+        ("clean", po::value<bool>()->default_value(false), "Drop previously created tables.")
         ;
 
     not_used_od_desc.add_options()
-        ("suffixtables",po::value<string>()->default_value("_car"),"Add at the end of table names.")
-        ("threads,t",po::value<bool>()->default_value(false),"threads.")
-        ("multimodal,m",po::value<bool>()->default_value(false),"multimodal.")
-        ("multilevel,l",po::value<bool>()->default_value(false),"multilevel.")
+        ("suffixtables", po::value<string>()->default_value("_car"), "Add at the end of table names.")
+        ("threads,t", po::value<bool>()->default_value(false), "threads.")
+        ("multimodal,m", po::value<bool>()->default_value(false), "multimodal.")
+        ("multilevel,l", po::value<bool>()->default_value(false), "multilevel.")
         ;
 
     od_desc.add(help_od_desc).add(general_od_desc).add(db_options_od_desc).add(not_used_od_desc);
-        
-    return ;
+
+    return;
 }
 
 int process_command_line(
-  po::variables_map &vm, 
+  po::variables_map &vm,
   po::options_description &od_desc) {
-
     if (vm.count("file"))
         cout << "Filename is: " << vm["file"].as<string>() << "\n";
     else
@@ -90,8 +88,8 @@ int process_command_line(
         cout << "Configuration XML Filename is: " << vm["conf"].as<string>() << "\n";
     else
         std::cout << "Parameter: config file name missing\n";
-    
-    if (vm.count("dbname")) 
+
+    if (vm.count("dbname"))
         std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
     else
         std::cout << "Parameter: dbname missing\n";
@@ -104,7 +102,7 @@ int process_command_line(
     std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
     std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
 
-    if (vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
+    if ( vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
         return 2;
     } else {
         std::cout << "Missing Database connectivity parameter.\n";
