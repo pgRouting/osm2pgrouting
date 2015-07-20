@@ -31,9 +31,9 @@
 
 #include "prog_options.h"
 
-using namespace osm;
-using namespace xml;
-using namespace std;
+//using namespace osm;
+//using namespace xml;
+//using namespace std;
 
 
 int main(int argc, char* argv[])
@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
 	try{
 		//..prog_options code begin..
 			
-		std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables,suffixtables;
-		bool skipnodes,clean,threads,multimodal,multilevel;
+		//std::string file,cFile,host,user,db_port,dbname,passwd,prefixtables,suffixtables;
+		//bool skipnodes,clean,threads,multimodal,multilevel;
 	
 		po::options_description od_desc("Allowed options");
 		get_option_description(od_desc);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 		po::store(po::command_line_parser(argc, argv).options(od_desc).run(), vm);
 	    
 	    if (vm.count("help")) {
-	        cout << od_desc << "\n"; 
+	        std::cout << od_desc << "\n"; 
 	        return 0;
 	    }
 	
@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
 	    }	
 		
 		catch(exception &ex){
-			cout << ex.what() << "\n";
-			cout << od_desc << "\n"; 
+			std::cout << ex.what() << "\n";
+			std::cout << od_desc << "\n"; 
 	        return 0;	
 		}
 		
@@ -69,36 +69,39 @@ int main(int argc, char* argv[])
 	    if (ret_val != 2) 
 	    	return ret_val;  //there is an error
 	
-	    file =  vm["file"].as<string>();
-	    cFile = vm["conf"].as<string>();
-	    host = vm["host"].as<std::string>();
-	    user = vm["user"].as<std::string>();
-	    db_port = vm["db_port"].as<std::string>();
-	    dbname = vm["dbname"].as<std::string>();
-	    passwd = vm["passwd"].as<std::string>();
-	    prefixtables = vm["prefixtables"].as<std::string>();
-	    suffixtables = vm["suffixtables"].as<std::string>();
-	    skipnodes = vm["skipnodes"].as<bool>();
-	    clean = vm["clean"].as<bool>() ;
-	    threads = vm["threads"].as<bool>() ;
-	    multimodal = vm["multimodal"].as<bool>() ;
-	    multilevel = vm["multilevel"].as<bool>() ;
+	    auto file ( vm["file"].as<string>() );
+	    auto cFile ( vm["conf"].as<string>() );
+	    auto host ( vm["host"].as<std::string>() );
+	    auto user ( vm["user"].as<std::string>() );
+	    auto db_port ( vm["db_port"].as<std::string>() );
+	    auto dbname ( vm["dbname"].as<std::string>() );
+	    auto passwd ( vm["passwd"].as<std::string>() );
+	    auto prefixtables ( vm["prefixtables"].as<std::string>() );
+	    auto suffixtables ( vm["suffixtables"].as<std::string>() );
+	    auto skipnodes ( vm["skipnodes"].as<bool>() );
+	    auto clean ( vm["clean"].as<bool>()  );
+	    
+	    /* variable to be used later 
+	    auto threads ( vm["threads"].as<bool>()  );
+	    auto multimodal ( vm["multimodal"].as<bool>()  );
+	    auto multilevel ( vm["multilevel"].as<bool>()  );
+	    */
 	    
 	
 		//!!prog_options code end!!
 	
-		Export2DB test(host, user, dbname, db_port, passwd, prefixtables);
+		Export2DB test(vm);
 		if(test.connect()==1)
 			return 1;
 	
-		XMLParser parser;
+		xml::XMLParser parser;
 	
-		cout << "Trying to load config file " << cFile.c_str() << endl;
+		std::cout << "Trying to load config file " << cFile.c_str() << endl;
 	
 		Configuration* config = new Configuration();
 	    ConfigurationParserCallback cCallback( *config );
 	
-		cout << "Trying to parse config" << endl;
+		std::cout << "Trying to parse config" << endl;
 	
 		int ret = parser.Parse(cCallback, cFile.c_str());
 		if (ret!=0) {
@@ -106,12 +109,12 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 	
-		cout << "Trying to load data" << endl;
+		std::cout << "Trying to load data" << endl;
 	
 		OSMDocument* document = new OSMDocument(*config);
 	    OSMDocumentParserCallback callback(*document);
 	
-		cout << "Trying to parse data" << endl;
+		std::cout << "Trying to parse data" << endl;
 	
 		ret = parser.Parse( callback, file.c_str() );
 		if( ret!=0 ) {
@@ -121,7 +124,7 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 	
-		cout << "Split ways" << endl;
+		std::cout << "Split ways" << endl;
 	
 		document->SplitWays();
 		//############# Export2DB
@@ -129,32 +132,32 @@ int main(int argc, char* argv[])
 	
 			if( clean )
 	    {
-	        cout << "Dropping tables..." << endl;
+	        std::cout << "Dropping tables..." << endl;
 	
 	        test.dropTables();
 	    }
 	
-	    cout << "Creating tables..." << endl;
+	    std::cout << "Creating tables..." << endl;
 	    test.createTables();
 	
-	    cout << "Adding tag types and classes to database..." << endl;
+	    std::cout << "Adding tag types and classes to database..." << endl;
 	    test.exportTypesWithClasses(config->m_Types);
 	
-			cout << "Adding relations to database..." << endl;
+			std::cout << "Adding relations to database..." << endl;
 			test.exportRelations(document->m_Relations, config);
 	
 			// Optional user argument skipnodes will not add nodes to the database (saving a lot of time if not necessary)
 			if ( !skipnodes) {
-				cout << "Adding nodes to database..." << endl;
+				std::cout << "Adding nodes to database..." << endl;
 				test.exportNodes(document->m_Nodes);
 			}
 	
-			cout << "Adding ways to database..." << endl;
+			std::cout << "Adding ways to database..." << endl;
 			test.exportWays(document->m_SplittedWays, config);
 			
 			//TODO: make some free memory, document will be not used anymore, so there will be more memory available to future DB operations.
 	
-			cout << "Creating topology..." << endl;
+			std::cout << "Creating topology..." << endl;
 			test.createTopology();
 		}
 	
@@ -172,39 +175,39 @@ int main(int argc, char* argv[])
 			{
 				if( pWay->m_NodeRefs.empty() )
 				{
-					std::cout << pWay->name.c_str() << endl;
+					std::std::cout << pWay->name.c_str() << endl;
 				}
 				else
 				{
 					Node* n0 = pWay->m_NodeRefs.front();
 					Node* n1 = pWay->m_NodeRefs.back();
 					//if(n1->numsOfUse==1)
-					//cout << "way-id: " << pWay->id << " name: " << pWay->name <<endl;
-					//std::cout << n0->lon << " "  << n0->lat << " " << n1->lon << " " << n1->lat << " " << pWay->name.c_str() << " highway: " << pWay->highway.c_str() << " Start numberOfUse: " << n0->numsOfUse << " End numberOfUse: " << n1->numsOfUse  << " ID: " << n1->id <<  endl;
+					//std::cout << "way-id: " << pWay->id << " name: " << pWay->name <<endl;
+					//std::std::cout << n0->lon << " "  << n0->lat << " " << n1->lon << " " << n1->lat << " " << pWay->name.c_str() << " highway: " << pWay->highway.c_str() << " Start numberOfUse: " << n0->numsOfUse << " End numberOfUse: " << n1->numsOfUse  << " ID: " << n1->id <<  endl;
 				}
 			}
 			if( pWay->id == 20215432 ) // Pfaenderweg
 			{
-				cout << pWay->name << endl;
+				std::cout << pWay->name << endl;
 				int a=4;
 			}
 			++it;
 		}
 		*/
 	
-		cout << "#########################" << endl;
+		std::cout << "#########################" << endl;
 	
-		cout << "size of streets: " << document->m_Ways.size() <<	endl;
-		cout << "size of splitted ways : " << document->m_SplittedWays.size() <<	endl;
+		std::cout << "size of streets: " << document->m_Ways.size() <<	endl;
+		std::cout << "size of splitted ways : " << document->m_SplittedWays.size() <<	endl;
 	
-		cout << "finished" << endl;
+		std::cout << "finished" << endl;
 	
 		//string n;
 		//getline( cin, n );
 		return 0;
 	}
 	catch(exception &e){
-		cout<< e.what()<<endl;
+		std::cout<< e.what()<<endl;
 		return 1;
 	}
 }

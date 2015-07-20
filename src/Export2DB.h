@@ -29,7 +29,8 @@
 #include "Type.h"
 #include "Class.h"
 #include "Configuration.h"
-
+#include "prog_options.h"
+ 
 using namespace osm;
 
 /**
@@ -47,7 +48,7 @@ public:
 	 * @param dbname name of the database
 	 *
 	 */
- 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix);
+ 	Export2DB(const  po::variables_map &vm);
  	
  	/**
  	 * Destructor
