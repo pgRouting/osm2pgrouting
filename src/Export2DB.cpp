@@ -25,49 +25,35 @@
 
 #define TO_STR(x)	boost::lexical_cast<std::string>(x)
 
-using namespace std;
 
 Export2DB::Export2DB(const  po::variables_map &vm)
-:mycon(0)
-{
-    /*
-    this->conninf="host="+host+" user="+user+" dbname="+ dbname +" port="+port;
-    this->tables_prefix = tables_prefix;
-	if(!passwd.empty())
-        this->conninf+=" password="+passwd;
-    */
-
-	this->conninf = "host=" + vm["host"].as<std::string>()
+: mycon(0),
+  conninf ( "host=" + vm["host"].as<std::string>()
         + " user=" +  vm["user"].as<std::string>()
         + " dbname=" + vm["dbname"].as<std::string>()
-        + " port=" + vm["db_port"].as<std::string>();  
-    
-    this->tables_prefix = vm["prefixtables"].as<std::string>();
+        + " port=" + vm["db_port"].as<std::string>() ),
+  tables_prefix( vm["prefix"].as<std::string>() ),
+  tables_suffix( vm["suffix"].as<std::string>() ) {
 
     if(!vm["passwd"].as<std::string>().empty())
         this->conninf+=" password=" + vm["passwd"].as<std::string>();
-
 }
 
-Export2DB::~Export2DB()
-{
+Export2DB::~Export2DB() {
 	PQfinish(mycon);
 }
 
-int Export2DB::connect()
-{
+int Export2DB::connect() {
+
 	cout << conninf<< endl;
 	//mycon =PQconnectdb("user=postgres dbname=template1 hostaddr=127.0.0.1 port=5432");
 	mycon =PQconnectdb(conninf.c_str());
 
 	ConnStatusType type =PQstatus(mycon);
-		if(type==CONNECTION_BAD)
-		{
+		if(type==CONNECTION_BAD) {
 			cout << "connection failed: "<< PQerrorMessage(mycon) << endl;
 			return 1;
-		}
-		else
-		{
+		} else {
 			cout << "connection success"<< endl;
 			return 0;
 		}
@@ -80,9 +66,36 @@ int Export2DB::connect()
 ***/
 }
 
+/*
+ CREATE TABLE prefix_table_suffix (
+    table_description
+ );
+*/
+void Export2DB::createTable(const std::string &table_description, const std::string &table) const {
+	std::string sql = 
+		"CREATE TABLE " + tables_prefix + table + tables_suffix +"("
+		+ table_description + ");";
+        PGresult *result = PQexec(mycon, sql.c_str());
+        if (PQresultStatus(result) != PGRES_COMMAND_OK) {
+        	std::cerr << "create " << table << " failed: "
+		        << PQerrorMessage(mycon)
+		        << std::endl;
+	        PQclear(result);
+        } else {
+        	std::cout << "create " << table << " created " << std::endl;
+        }
+}
+
+
+ 
 void Export2DB::createTables()
 {
-    std::string create_nodes("CREATE TABLE " + tables_prefix + "nodes (id bigint PRIMARY KEY, lon decimal(11,8), lat decimal(11,8), numOfUse int);");
+    std::string create_nodes(
+	"CREATE TABLE " + tables_prefix + "nodes" // + tables_suffix 
+           + " (id bigint PRIMARY KEY,"
+           + " lon decimal(11,8),"
+           + " lat decimal(11,8),"
+           + " numOfUse int);");
 	PGresult *result = PQexec(mycon, create_nodes.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -95,7 +108,21 @@ void Export2DB::createTables()
     }
 
 	// gid cannot be "bigint" right now because pgRouting doesn't support "bigint"
-    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid integer, class_id integer not null, length double precision, name text, x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
+    std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid integer,"
+           + " class_id integer not null,"
+           + " length double precision,"
+           + " name text,"
+           + " x1 double precision,"
+           + " y1 double precision,"
+           + " x2 double precision,"
+           + " y2 double precision,"
+           + " cost double precision,"
+           + " reverse_cost double precision,"
+           + " rule text,"
+           + " maxspeed_forward integer,"
+           + " maxspeed_backward integer,"
+           + " osm_id bigint,"
+           + " priority double precision DEFAULT 1);"
             + " SELECT AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
 	result = PQexec(mycon, create_ways.c_str());
 	if (PQresultStatus(result) != PGRES_TUPLES_OK)
@@ -109,7 +136,9 @@ void Export2DB::createTables()
         std::cout << "Ways table created" << std::endl;
     }
 
-    std::string create_types("CREATE TABLE " + tables_prefix + "types (id integer PRIMARY KEY, name text);");
+    std::string create_types("CREATE TABLE " + tables_prefix + "types ("
+           + "id integer PRIMARY KEY,"
+           + " name text);");
 	result = PQexec(mycon, create_types.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -121,7 +150,10 @@ void Export2DB::createTables()
         std::cout << "Types table created" << std::endl;
     }
 
-    std::string create_way_tag("CREATE TABLE " + tables_prefix + "way_tag (type_id integer, class_id integer, way_id bigint);");
+    std::string create_way_tag("CREATE TABLE " + tables_prefix + "way_tag ("
+           + "type_id integer,"
+           + " class_id integer,"
+           + " way_id bigint);");
 	result = PQexec(mycon, create_way_tag.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -133,7 +165,11 @@ void Export2DB::createTables()
         std::cout << "Way_tag table created" << std::endl;
     }
 
-    std::string create_relations("CREATE TABLE " + tables_prefix + "relations (relation_id bigint, type_id integer, class_id integer, name text);");
+    std::string create_relations("CREATE TABLE " + tables_prefix + "relations ("
+           + "relation_id bigint,"
+           + " type_id integer,"
+           + " class_id integer,"
+           + " name text);");
 	result = PQexec(mycon, create_relations.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -145,7 +181,10 @@ void Export2DB::createTables()
         std::cout << "Relations table created" << std::endl;
     }
 
-    std::string create_relations_ways("CREATE TABLE " + tables_prefix + "relation_ways (relation_id bigint, way_id bigint, type character varying(200));");
+    std::string create_relations_ways("CREATE TABLE " + tables_prefix + "relation_ways ("
+           + "relation_id bigint,"
+           + " way_id bigint,"
+           + " type character varying(200));");
     result = PQexec(mycon, create_relations_ways.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -157,7 +196,13 @@ void Export2DB::createTables()
         std::cout << "Relation_ways table created" << std::endl;
     }
 
-    std::string create_classes("CREATE TABLE " + tables_prefix + "classes (id integer PRIMARY KEY, type_id integer, name text, cost double precision, priority double precision, default_maxspeed integer);");
+    std::string create_classes("CREATE TABLE " + tables_prefix + "classes ("
+           + "id integer PRIMARY KEY,"
+           + " type_id integer,"
+           + " name text,"
+           + " cost double precision,"
+           + " priority double precision,"
+           + " default_maxspeed integer);");
 	result = PQexec(mycon, create_classes.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -311,22 +356,31 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 	PQendcopy(mycon);
 
 	it_way = ways.begin();
-    std::string copy_ways( "COPY " + tables_prefix + "ways(gid, class_id, length, x1, y1, x2, y2, osm_id, the_geom, reverse_cost, maxspeed_forward, maxspeed_backward, priority, name) FROM STDIN");
+    std::string copy_ways( "COPY " + tables_prefix + "ways("
+                    + "gid,"
+                    + " class_id,"
+                    + " length,"
+                    + " x1,"
+                    + " y1,"
+                    + " x2,"
+                    + " y2,"
+                    + " osm_id,"
+                    + " the_geom,"
+                    + " cost,"
+                    + " reverse_cost,"
+                    + " maxspeed_forward,"
+                    + " maxspeed_backward,"
+                    + " priority,"
+                    + " name) FROM STDIN");
 	res = PQexec(mycon, copy_ways.c_str());
 	while( it_way!=last_way )
 	{
 		Way* way = *it_way++;
-		std::string row_data = TO_STR(way->id);
+		std::string row_data = TO_STR(way->id); //gid
 		row_data += "\t";
 		row_data += TO_STR(config->FindClass(way->type, way->clss)->id);
 		row_data += "\t";
-		//row_data += TO_STR(way->length);
-		//length based on oneway
-		if(way->oneWayType==REVERSED)
-			row_data += TO_STR(way->length*1000000);
-		else
-			row_data += TO_STR(way->length);
-
+		row_data += TO_STR(way->length);
 		row_data += "\t";
 		row_data += TO_STR(way->m_NodeRefs.front()->lon);
 		row_data += "\t";
@@ -341,11 +395,17 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 		row_data += "srid=4326;" + way->geom;
 		row_data += "\t";
 
-		//reverse_cost
-		if(way->oneWayType==YES)
-	    	row_data += TO_STR(way->length*1000000);
+		//cost based on oneway
+		if(way->oneWayType==REVERSED)
+			row_data += TO_STR(- way->length);
 		else
 			row_data += TO_STR(way->length);
+		//reverse_cost
+		row_data += "\t";
+		if(way->oneWayType==YES)
+		    	row_data += TO_STR(way->length);
+		else
+			row_data += TO_STR(- way->length);
 
 		row_data += "\t";
 

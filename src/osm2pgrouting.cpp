@@ -76,8 +76,8 @@ int main(int argc, char* argv[])
 	    auto db_port ( vm["db_port"].as<std::string>() );
 	    auto dbname ( vm["dbname"].as<std::string>() );
 	    auto passwd ( vm["passwd"].as<std::string>() );
-	    auto prefixtables ( vm["prefixtables"].as<std::string>() );
-	    auto suffixtables ( vm["suffixtables"].as<std::string>() );
+	    auto prefixtables ( vm["prefix"].as<std::string>() );
+	    auto suffixtables ( vm["suffix"].as<std::string>() );
 	    auto skipnodes ( vm["skipnodes"].as<bool>() );
 	    auto clean ( vm["clean"].as<bool>()  );
 	    

@@ -59,6 +59,7 @@ public:
  	//! connects to database
  	int connect();
  	//! creates needed tables
+ 	void createTable(const std::string &sql, const std::string &msg) const;
  	void createTables();
  	//! exports nodes to the database
  	void exportNodes(std::map<long long, Node*>& nodes);
@@ -86,6 +87,7 @@ private:
 	PGconn *mycon;
 	std::string conninf;
 	std::string tables_prefix;
+	std::string tables_suffix;
 };
 
 #endif

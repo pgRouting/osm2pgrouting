@@ -49,7 +49,8 @@ void get_option_description(po::options_description &od_desc) {
     general_od_desc.add_options()
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm xml file (Required).")
-        ("prefixtables", po::value<string>()->default_value("pgr_"), "Add at the beginning of table names.")
+        ("prefix", po::value<string>()->default_value("pgr_"), "Add at the beginning of table names.")
+        ("suffix", po::value<string>()->default_value("_car"), "Add at the end of table names.")
         ("skipnodes,s", po::value<bool>()->default_value(false), "Don't import the node table.")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
         ;
@@ -65,7 +66,6 @@ void get_option_description(po::options_description &od_desc) {
         ;
 
     not_used_od_desc.add_options()
-        ("suffixtables", po::value<string>()->default_value("_car"), "Add at the end of table names.")
         ("threads,t", po::value<bool>()->default_value(false), "threads.")
         ("multimodal,m", po::value<bool>()->default_value(false), "multimodal.")
         ("multilevel,l", po::value<bool>()->default_value(false), "multilevel.")
@@ -98,7 +98,8 @@ int process_command_line(
     std::cout << "host = " << vm["host"].as<std::string>() << "\n";
     std::cout << "db_port = " << vm["db_port"].as<std::string>() << "\n";
     std::cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
-    std::cout << "prefixtables is: " << vm["prefixtables"].as<string>() << "\n";
+    std::cout << "prefix is: " << vm["prefix"].as<string>() << "\n";
+    std::cout << "suffix is: " << vm["suffix"].as<string>() << "\n";
     std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
     std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
 
