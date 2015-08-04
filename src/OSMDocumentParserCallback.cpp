@@ -89,13 +89,14 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 			if( strcmp(name,"ref")==0 )
 			{
 				long long nodeRefId = atoll( value );
-                                m_pActWay->AddNodeRef( m_rDocument.FindNode( nodeRefId ) );
-                                  Node * node = m_rDocument.FindNode( nodeRefId );
-                                  if(node != 0 ){
-                                    node->numsOfUse+=1;
-                                  }else {
-                                    std::cout << "Reference nd=" << nodeRefId << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
-                                  }
+				m_pActWay->AddNodeRef( m_rDocument.FindNode( nodeRefId ) );
+				Node * node = m_rDocument.FindNode( nodeRefId );
+				if(node != 0 ){
+					node->numsOfUse+=1;
+				}
+				else {
+					std::cout << "Reference nd=" << nodeRefId << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+				}
 			}
 		}
 	} 

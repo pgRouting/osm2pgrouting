@@ -21,15 +21,16 @@
 #ifndef EXPORT2DB_H
 #define EXPORT2DB_H
 
-//#include "postgresql/libpq-fe.h"
-#include "libpq-fe.h"
+#include "postgresql/libpq-fe.h"
+//#include "libpq-fe.h"
 #include "Node.h"
 #include "Way.h"
 #include "Relation.h"
 #include "Type.h"
 #include "Class.h"
 #include "Configuration.h"
-
+#include "prog_options.h"
+ 
 using namespace osm;
 
 /**
@@ -47,7 +48,7 @@ public:
 	 * @param dbname name of the database
 	 *
 	 */
- 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix);
+ 	Export2DB(const  po::variables_map &vm);
  	
  	/**
  	 * Destructor

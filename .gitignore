@@ -1,9 +1,11 @@
+build
 tools
 bin/*
 Sample/*
 osm2pgrouting
 tools/vagrant/packaging.sh
 *.o
+*.out
 *~
 .project
 .cproject
