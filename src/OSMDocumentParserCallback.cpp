@@ -195,8 +195,8 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 						m_pActWay->oneWayType = REVERSED;
 					}
 				//in case roundabout, if there is not additional oneway tag, set default oneway to YES
-				}else if(m_pActWay && k.compare("junction")==0 && v.compare("roundabout")==0){
-					if (m_pActWay->oneWayType == NO) m_pActWay->oneWayType= YES;
+				} else if(m_pActWay && k.compare("junction")==0 && v.compare("roundabout")==0){
+					if (m_pActWay->oneWayType == UNKNOWN) m_pActWay->oneWayType= YES;
 				}
 				//handle 3 cases if the key contains maxspeed
 				else if(m_pActWay && k.find("maxspeed") != std::string::npos){
