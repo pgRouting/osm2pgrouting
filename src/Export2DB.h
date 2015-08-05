@@ -91,6 +91,8 @@ public:
         inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }
+	void fill_vertices_table(const std::string &table, const std::string &nodes_table) const;
+	void fill_source_target(const std::string &table) const;
 
 private:
 	PGconn *mycon;
@@ -106,6 +108,7 @@ private:
 	std::string create_relations_ways;
 	std::string create_way_tag;
 	std::string create_types;
+	std::string create_vertices;
 };
 
 #endif
