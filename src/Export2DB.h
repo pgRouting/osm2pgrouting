@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                      *
+ *   gentoo.murray@gmail.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,19 +18,22 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef EXPORT2DB_H
-#define EXPORT2DB_H
+#ifndef SRC_EXPORT2DB_H_
+#define SRC_EXPORT2DB_H_
 
+#include <string>
+#include <map>
+#include <vector>
 #include "postgresql/libpq-fe.h"
-//#include "libpq-fe.h"
-#include "Node.h"
-#include "Way.h"
-#include "Relation.h"
-#include "Type.h"
-#include "Class.h"
-#include "Configuration.h"
-#include "prog_options.h"
- 
+// #include "libpq-fe.h"
+#include "./Node.h"
+#include "./Way.h"
+#include "./Relation.h"
+#include "./Type.h"
+#include "./Class.h"
+#include "./Configuration.h"
+#include "./prog_options.h"
+
 using namespace osm;
 
 /**
@@ -38,74 +41,74 @@ using namespace osm;
  * you also need to install postgis and pgrouting
  */
 
-class Export2DB
-{
-public:
-	/**
-	 * Construktor
-	 * @param host Host address of the database
-	 * @param user a user, who has write access to the database
-	 * @param dbname name of the database
-	 *
-	 */
- 	Export2DB(const  po::variables_map &vm);
- 	
- 	/**
- 	 * Destructor
- 	 * closes the connection to the database
- 	 */
- 	~Export2DB();
+class Export2DB{
+ public:
+    /**
+    * Construktor
+    * @param host Host address of the database
+    * @param user a user, who has write access to the database
+    * @param dbname name of the database
+    *
+    */
+    Export2DB(const  po::variables_map &vm);
 
- 	//! connects to database
- 	int connect();
+    /**
+    * Destructor
+    * closes the connection to the database
+    */
+    ~Export2DB();
 
- 	//! creates needed tables and geometries
- 	void createTables();
- 	//! exports nodes to the database
- 	void exportNodes(std::map<long long, Node*>& nodes);
- 	//! exports ways to the database
- 	void exportWays(std::vector<Way*>& ways, Configuration* config);
- 	void exportRelations(std::vector<Relation*>& relations, Configuration* config);
+    //! connects to database
+    int connect();
 
- 	void exportTypesWithClasses(std::map<std::string, Type*>& types);
+    //! creates needed tables and geometries
+    void createTables();
+    //! exports nodes to the database
+    void exportNodes(std::map<long long, Node*>& nodes);
+    //! exports ways to the database
+    void exportWays(std::vector<Way*>& ways, Configuration* config);
+    void exportRelations(std::vector<Relation*>& relations,
+        Configuration* config);
 
- 	/**
- 	 * creates the topology
- 	 * Be careful, it takes some time.
- 	 *
- 	 * for example:
- 	 * complete germany: OSM file with a size of 1,1 GiB.
- 	 * Export and create topology:
- 	 * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
- 	 * But only for the streettypes "motorway", "primary" and "secondary"
- 	 */
- 	void createTopology();
- 	//! Be careful! It deletes the created tables!
- 	void dropTables();
+    void exportTypesWithClasses(std::map<std::string, Type*>& types);
+
+    /**
+    * creates the topology
+    * Be careful, it takes some time.
+    *
+    * for example:
+    * complete germany: OSM file with a size of 1,1 GiB.
+    * Export and create topology:
+    * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
+    * But only for the streettypes "motorway", "primary" and "secondary"
+    */
+    void createTopology();
+    //! Be careful! It deletes the created tables!
+    void dropTables();
 
  private:
- 	void createTable(const std::string &sql,
-			 const std::string &msg) const;
-	void addGeometry( const std::string &table,
-                         const std::string &geometry_type) const;
+    void createTable(const std::string &sql,
+            const std::string &msg) const;
+    void addGeometry(const std::string &table,
+                    const std::string &geometry_type) const;
         inline std::string full_table_name(const std::string &table) const {
-		return tables_prefix + table + tables_suffix;
-        }
+        return tables_prefix + table + tables_suffix;
+    }
 
-private:
-	PGconn *mycon;
-	std::string conninf;
-	std::string tables_prefix;
-	std::string tables_suffix;
+ private:
+    PGconn *mycon;
+    std::string conninf;
+    std::string tables_prefix;
+    std::string tables_suffix;
 
         // create table query constants
-	std::string create_classes;
-	std::string create_nodes;
-	std::string create_ways;
-	std::string create_relations;
-	std::string create_relations_ways;
-	std::string create_way_tag;
-	std::string create_types;
+    std::string create_classes;
+    std::string create_nodes;
+    std::string create_ways;
+    std::string create_relations;
+    std::string create_relations_ways;
+    std::string create_way_tag;
+    std::string create_types;
 };
 
-#endif
+#endif // SRC_EXPORT2DB_H_
