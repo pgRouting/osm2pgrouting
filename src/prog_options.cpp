@@ -49,8 +49,8 @@ void get_option_description(po::options_description &od_desc) {
     general_od_desc.add_options()
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm xml file (Required).")
-        ("prefix", po::value<string>()->default_value("pgr_"), "Add at the beginning of table names.")
-        ("suffix", po::value<string>()->default_value("_car"), "Add at the end of table names.")
+        ("prefix", po::value<string>()->default_value("pgr_"), "Prefix added at the beginning of table names.")
+        ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
         ("skipnodes,s", po::value<bool>()->default_value(false), "Don't import the node table.")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
         ;

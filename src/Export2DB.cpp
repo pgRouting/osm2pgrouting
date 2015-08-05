@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                      *
+ *   gentoo.murray@gmail.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,59 +24,73 @@
 #include "prog_options.h"
 #include <iostream>
 
-#define TO_STR(x)	boost::lexical_cast<std::string>(x)
+#define TO_STR(x)    boost::lexical_cast<std::string>(x)
 
 
 Export2DB::Export2DB(const  po::variables_map &vm)
-: 	mycon(0),
-  	conninf ( "host=" + vm["host"].as<std::string>()
-        	+ " user=" +  vm["user"].as<std::string>()
-	        + " dbname=" + vm["dbname"].as<std::string>()
-        	+ " port=" + vm["db_port"].as<std::string>() ),
-	tables_prefix( vm["prefix"].as<std::string>() ),
-	tables_suffix( vm["suffix"].as<std::string>() ) {
+:     mycon(0),
+      conninf ( "host=" + vm["host"].as<std::string>()
+            + " user=" +  vm["user"].as<std::string>()
+            + " dbname=" + vm["dbname"].as<std::string>()
+            + " port=" + vm["db_port"].as<std::string>() ),
+    tables_prefix( vm["prefix"].as<std::string>() ),
+    tables_suffix( vm["suffix"].as<std::string>() ) {
 
-    	if(!vm["passwd"].as<std::string>().empty())
-        	this->conninf+=" password=" + vm["passwd"].as<std::string>();
+        if(!vm["passwd"].as<std::string>().empty())
+            this->conninf+=" password=" + vm["passwd"].as<std::string>();
 
-    	create_types = std::string(
-           	"id integer PRIMARY KEY,"
-           	" name text") ;
+        create_types = std::string(
+               "id integer PRIMARY KEY,"
+               " name text") ;
 
         create_way_tag = std::string(
-
            "type_id integer,"
            " class_id integer,"
            " way_id bigint"
-	);
-        create_nodes =std::string(
+    );
 
-		"id bigserial PRIMARY KEY,"
-		" osm_id bigint,"
-           	" lon decimal(11,8),"
-           	" lat decimal(11,8),"
-           	" numOfUse int"
-	);
+        create_nodes =std::string(
+        "id bigserial PRIMARY KEY,"
+        " osm_id bigint,"
+               " lon decimal(11,8),"
+               " lat decimal(11,8),"
+               " numOfUse int,"
+        " CONSTRAINT node_id UNIQUE(osm_id)"
+    );
+
+        create_vertices =std::string(
+        " id bigserial PRIMARY KEY,"
+        " osm_id bigint,"
+        " cnt integer,"
+        " chk integer,"
+                " ein integer,"
+                " eout integer,"
+               " lon decimal(11,8),"
+               " lat decimal(11,8),"
+        " CONSTRAINT vertex_id UNIQUE(osm_id)"
+    );
         create_ways =std::string(
 
-             	"gid bigserial,"
-           	" class_id integer not null,"
-           	" length double precision,"
-	        " name text,"
-	        " source bigint,"
-	        " target bigint,"
-	        " x1 double precision,"
-       	    	" y1 double precision,"
-       	    	" x2 double precision,"
-           	" y2 double precision,"
-           	" cost double precision,"
-           	" reverse_cost double precision,"
-           	" rule text,"
-		" one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversible(1 way but geometry is reversed) 
-           	" maxspeed_forward integer,"
-           	" maxspeed_backward integer,"
-           	" osm_id bigint,"
-           	" priority double precision DEFAULT 1"
+                 "gid bigserial,"
+               " class_id integer not null,"
+               " length double precision,"
+            " name text,"
+            " source bigint,"
+            " target bigint,"
+            " x1 double precision,"
+                   " y1 double precision,"
+                   " x2 double precision,"
+               " y2 double precision,"
+               " cost double precision,"
+               " reverse_cost double precision,"
+               " rule text,"
+        " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversed (1 way but geometry is reversed) 
+               " maxspeed_forward integer,"
+               " maxspeed_backward integer,"
+               " osm_id bigint,"
+        " source_osm bigint,"
+        " target_osm bigint,"
+               " priority double precision DEFAULT 1"
         );
         create_relations =std::string(
 
@@ -103,29 +117,29 @@ Export2DB::Export2DB(const  po::variables_map &vm)
 }  // constructor
 
 Export2DB::~Export2DB() {
-	PQfinish(mycon);
+    PQfinish(mycon);
 }
 
 int Export2DB::connect() {
 
-	cout << conninf<< endl;
-	//mycon =PQconnectdb("user=postgres dbname=template1 hostaddr=127.0.0.1 port=5432");
-	mycon =PQconnectdb(conninf.c_str());
+    cout << conninf<< endl;
+    //mycon =PQconnectdb("user=postgres dbname=template1 hostaddr=127.0.0.1 port=5432");
+    mycon =PQconnectdb(conninf.c_str());
 
-	ConnStatusType type =PQstatus(mycon);
-		if(type==CONNECTION_BAD) {
-			cout << "connection failed: "<< PQerrorMessage(mycon) << endl;
-			return 1;
-		} else {
-			cout << "connection success"<< endl;
-			return 0;
-		}
+    ConnStatusType type =PQstatus(mycon);
+        if(type==CONNECTION_BAD) {
+            cout << "connection failed: "<< PQerrorMessage(mycon) << endl;
+            return 1;
+        } else {
+            cout << "connection success"<< endl;
+            return 0;
+        }
 /***
       CONNECTION_STARTED: Waiting for connection to be made.
       CONNECTION_MADE: Connection OK; waiting to send.
       CONNECTION_AWAITING_RESPONSE: Waiting for a response from the postmaster.
       CONNECTION_AUTH_OK: Received authentication; waiting for backend start-up.
-	  CONNECTION_SETENV: Negotiating environment.
+      CONNECTION_SETENV: Negotiating environment.
 ***/
 }
 
@@ -135,41 +149,41 @@ int Export2DB::connect() {
  );
 */
 void Export2DB::createTable(const std::string &table_description, const std::string &table) const {
-       	std::cout << "Creating table: " << table << "\n";
-	std::string sql = 
-		"CREATE TABLE " + full_table_name(table) + "("    // + schema + "." + prefix etc
-		+ table_description + ");";
+           std::cout << "Creating table: " << table << "\n";
+    std::string sql = 
+        "CREATE TABLE " + table + "("    // + schema + "." + prefix etc
+        + table_description + ");";
         PGresult *result = PQexec(mycon, sql.c_str());
         if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        	std::cout << "   Table " << full_table_name(table) << " already exists... skipping."
-		        << PQerrorMessage(mycon)
-		        << std::endl;
-	        PQclear(result);
+            std::cout << "   Table " << table << " already exists... skipping."
+                << PQerrorMessage(mycon)
+                << std::endl;
+            PQclear(result);
         } else {
-        	std::cout << "   Table " << full_table_name(table) << " created." << std::endl;
-	        PQclear(result);
+            std::cout << "   Table " << table << " created." << std::endl;
+            PQclear(result);
         }
 }
 
 
 void Export2DB::addGeometry(
-			 const std::string &table,
-			 const std::string &geometry_type) const {
-       	std::cout << "Adding Geometry to table: " << table << "\n";
-	std::string sql = 
-           	+ " SELECT AddGeometryColumn('" 
-	 	+ full_table_name(table) + "'," 
-           	+ "'the_geom', 4326, '" + geometry_type + "',2 );";
+             const std::string &table,
+             const std::string &geometry_type) const {
+           std::cout << "Adding Geometry to table: " << table << "\n";
+    std::string sql = 
+               + " SELECT AddGeometryColumn('" 
+         + table + "'," 
+               + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
         PGresult *result = PQexec(mycon, sql.c_str());
-	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-        	std::cout << "   Something went wrong when adding the geomtery column in Table " << full_table_name(table) << ".\n"
-		        << sql //  PQerrorMessage(mycon)
-		        << std::endl;
-	        PQclear(result);
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+            std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
+                << sql //  PQerrorMessage(mycon)
+                << std::endl;
+            PQclear(result);
         } else {
-        	std::cout << "   the_geom column added in table " << table <<  std::endl;
-	        PQclear(result);
+            std::cout << "   the_geom column added in table " << table <<  std::endl;
+            PQclear(result);
         }
 }
 
@@ -177,15 +191,17 @@ void Export2DB::addGeometry(
 ///////////////////////
 void Export2DB::createTables() {
 
-	createTable( create_classes, "clsses" );
-	createTable( create_nodes, "nodes" );
-        addGeometry( "nodes", "POINT" );
-	createTable( create_ways, "ways" );
-        addGeometry( "ways", "LINESTRING" );
-	createTable( create_relations, "relations" );
-	createTable( create_relations_ways, "relations_ways" );
-	createTable( create_way_tag, "way_tag" );
-	createTable( create_types, "way_types" );
+    createTable( create_classes, full_table_name("classes") );
+    createTable( create_nodes, full_table_name("nodes") );
+    addGeometry( full_table_name("nodes"), "POINT" );
+    createTable( create_ways, full_table_name("ways") );
+    addGeometry( full_table_name("ways"), "LINESTRING" );
+    createTable( create_relations, full_table_name("relations") );
+    createTable( create_relations_ways, full_table_name("relations_ways") );
+    createTable( create_way_tag, full_table_name("way_tag") );
+    createTable( create_types, full_table_name("way_types") );
+    createTable( create_vertices, full_table_name("ways") + "_vertices_pgr1" );
+    addGeometry( full_table_name("ways") + "_vertices_pgr1" , "POINT" );
 }
 
 
@@ -199,94 +215,141 @@ void Export2DB::dropTables()
                             + " DROP TABLE IF EXISTS " + tables_prefix + "way_tag;"
                             + " DROP TABLE IF EXISTS " + tables_prefix + "relations;"
                             + " DROP TABLE IF EXISTS " + tables_prefix + "relation_ways;");
-	PGresult *result = PQexec(mycon, drop_tables.c_str());
-	PQclear(result);
+    PGresult *result = PQexec(mycon, drop_tables.c_str());
+    PQclear(result);
 }
 
 void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
 {
-	std::map<long long, Node*>::iterator it(nodes.begin());
-	std::map<long long, Node*>::iterator last(nodes.end());
-    std::string copy_nodes( "COPY " + full_table_name( "nodes" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
-	//PGresult* res = PQexec(mycon, tables_prefix.c_str());
-	PGresult* res = PQexec(mycon, copy_nodes.c_str());
-	PQclear(res);
-	while(it!=last)
-	{
-		Node* node = (*it++).second;
-		std::string row_data = TO_STR(node->id);
-		row_data += "\t";
-		row_data += TO_STR(node->lon);
-		row_data += "\t";
-		row_data += TO_STR(node->lat);
-		row_data += "\t";
-		row_data += TO_STR(node->numsOfUse);
-		row_data += "\t";
-		row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
-		row_data += "\n";
-		PQputline(mycon, row_data.c_str());
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+    std::map<long long, Node*>::iterator it(nodes.begin());
+    std::map<long long, Node*>::iterator last(nodes.end());
+        std::string copy_nodes( "COPY " + full_table_name( "nodes" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
+    //PGresult* res = PQexec(mycon, tables_prefix.c_str());
+    PGresult* res = PQexec(mycon, copy_nodes.c_str());
+    PQclear(res);
+    while(it!=last)
+    {
+        Node* node = (*it++).second;
+        std::string row_data = TO_STR(node->id);
+        row_data += "\t";
+        row_data += TO_STR(node->lon);
+        row_data += "\t";
+        row_data += TO_STR(node->lat);
+        row_data += "\t";
+        row_data += TO_STR(node->numsOfUse);
+        row_data += "\t";
+        row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
+        row_data += "\n";
+        PQputline(mycon, row_data.c_str());
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 }
+
+void Export2DB::fill_vertices_table(const std::string &table, const std::string &node_table) const {
+    std::cout << "Filling table '" << table << "_vertices_pgr1': ";
+    std::string sql(
+        "WITH data AS ("
+             "(select source_osm as osm_id from " + table + " where source is NULL)"
+             " union "
+             "(select target_osm as osm_id from " + table + " where target is NULL)"
+          "), "
+	  " data1 AS (SELECT a.osm_id, lon, lat, the_geom from data a, " + node_table + " b WHERE a.osm_id = b.osm_id order by a.osm_id"
+          ") "
+	  " data2 AS (SELECT a.osm_id, lon, lat, the_geom from data1 a, " + table + "_vertices_pgr1 b WHERE a.osm_id = b.osm_id order by a.osm_id"
+          ") "
+          " INSERT INTO " + table + "_vertices_pgr1 (osm_id, lon, lat, the_geom) (SELECT * FROM data1)");
+    PGresult* q_result = PQexec(mycon, sql.c_str());
+    if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
+         std::cout << " OK" << std::endl;
+    else
+         std::cout  << "   " << PQresultErrorMessage( q_result )  << std::endl;
+    PQclear(q_result);
+}
+
+void Export2DB::fill_source_target(const std::string &table) const {
+    std::cout << "Filling source and target columns of'" << table << "': ";
+    std::string sql1(
+        " UPDATE " + table + " AS w"
+        " SET source = v.id "
+        " FROM " + table + "_vertices_pgr1 AS v"
+        " WHERE source is NULL and w.source_osm = v.osm_id;");
+    std::string sql2(
+        " UPDATE " + table + " AS w"
+        " SET target = v.id "
+        " FROM " + table + "_vertices_pgr1 AS v"
+        " WHERE target is NULL and w.target_osm = v.osm_id;");
+    PGresult* q_result1 = PQexec(mycon, sql1.c_str());
+    PGresult* q_result2 = PQexec(mycon, sql2.c_str());
+    if (PQresultStatus(q_result1) == PGRES_COMMAND_OK
+        && PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
+         std::cout << " OK " << PQntuples(q_result1) << " + " << PQntuples(q_result2) << std::endl;
+    else
+         std::cout  << " " << PQresultErrorMessage( q_result1 )  
+                    << " " << PQresultErrorMessage( q_result2 ) << std::endl;
+    PQclear(q_result1);
+    PQclear(q_result2);
+}
+
+
 
 void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration* config)
 {
-	std::vector<Relation*>::iterator it_relation( relations.begin() );
-	std::vector<Relation*>::iterator last_relation( relations.end() );
+    std::vector<Relation*>::iterator it_relation( relations.begin() );
+    std::vector<Relation*>::iterator last_relation( relations.end() );
     std::string copy_relations( "COPY " + full_table_name("relations")+ "(relation_id, type_id, class_id, name) FROM STDIN");
-	PGresult* res = PQexec(mycon, copy_relations.c_str());
-	PQclear(res);
-	while( it_relation!=last_relation )
-	{
-		Relation* relation = *it_relation++;
-		std::map<std::string, std::string>::iterator it_tag( relation->m_Tags.begin() );
-		std::map<std::string, std::string>::iterator last_tag( relation->m_Tags.end() );
-		while( it_tag!=last_tag )
-		{
-			std::pair<std::string, std::string> pair = *it_tag++;
-			std::string row_data = TO_STR(relation->id);
-			row_data += "\t";
-			row_data += TO_STR(config->FindType(pair.first)->id);
-			row_data += "\t";
-			row_data += TO_STR(config->FindClass(pair.first, pair.second)->id);
-			row_data += "\t";
-			if(!relation->name.empty())
-  		{
-  			std::string escaped_name = relation->name;
-  			boost::replace_all(escaped_name, "\t", "\\\t");
-				row_data += escaped_name;
-			}
-			row_data += "\n";
-			PQputline(mycon, row_data.c_str());
-		}
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+    PGresult* res = PQexec(mycon, copy_relations.c_str());
+    PQclear(res);
+    while( it_relation!=last_relation )
+    {
+        Relation* relation = *it_relation++;
+        std::map<std::string, std::string>::iterator it_tag( relation->m_Tags.begin() );
+        std::map<std::string, std::string>::iterator last_tag( relation->m_Tags.end() );
+        while( it_tag!=last_tag )
+        {
+            std::pair<std::string, std::string> pair = *it_tag++;
+            std::string row_data = TO_STR(relation->id);
+            row_data += "\t";
+            row_data += TO_STR(config->FindType(pair.first)->id);
+            row_data += "\t";
+            row_data += TO_STR(config->FindClass(pair.first, pair.second)->id);
+            row_data += "\t";
+            if(!relation->name.empty())
+          {
+              std::string escaped_name = relation->name;
+              boost::replace_all(escaped_name, "\t", "\\\t");
+                row_data += escaped_name;
+            }
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
+        }
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 
-	// Second round of iteration is needed to copy relation_ways
-	it_relation = relations.begin();
+    // Second round of iteration is needed to copy relation_ways
+    it_relation = relations.begin();
     std::string copy_relation_ways( "COPY " + full_table_name("relation_ways") + "(relation_id, way_id) FROM STDIN");
-	res = PQexec(mycon, copy_relation_ways.c_str());
-	PQclear(res);
-	while( it_relation!=last_relation )
-	{
-		Relation* relation = *it_relation++;
-		std::vector<long long>::iterator it_way( relation->m_WayRefs.begin() );
-		std::vector<long long>::iterator last_way( relation->m_WayRefs.end() );
+    res = PQexec(mycon, copy_relation_ways.c_str());
+    PQclear(res);
+    while( it_relation!=last_relation )
+    {
+        Relation* relation = *it_relation++;
+        std::vector<long long>::iterator it_way( relation->m_WayRefs.begin() );
+        std::vector<long long>::iterator last_way( relation->m_WayRefs.end() );
 
-		while( it_way!=last_way )
-		{
-			long long way_id = *it_way++;
-			std::string row_data = TO_STR(relation->id);
-			row_data += "\t";
-			row_data += TO_STR(way_id);
-			row_data += "\n";
-			PQputline(mycon, row_data.c_str());
-		}
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+        while( it_way!=last_way )
+        {
+            long long way_id = *it_way++;
+            std::string row_data = TO_STR(relation->id);
+            row_data += "\t";
+            row_data += TO_STR(way_id);
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
+        }
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 }
 
 /*
@@ -307,33 +370,33 @@ void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration
  */
 void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
 {
-	std::vector<Way*>::iterator it_way( ways.begin() );
-	std::vector<Way*>::iterator last_way( ways.end() );
+    std::vector<Way*>::iterator it_way( ways.begin() );
+    std::vector<Way*>::iterator last_way( ways.end() );
     std::string copy_way_tag( "COPY " + full_table_name( "way_tag" ) + "(type_id, class_id, way_id) FROM STDIN");
-	PGresult* res = PQexec(mycon, copy_way_tag.c_str());
-	PQclear(res);
-	while( it_way!=last_way )
-	{
-		Way* way = *it_way++;
-		std::map<std::string, std::string>::iterator it_tag( way->m_Tags.begin() );
-		std::map<std::string, std::string>::iterator last_tag( way->m_Tags.end() );
-		while( it_tag!=last_tag )
-		{
-			std::pair<std::string, std::string> pair = *it_tag++;
-			std::string row_data = TO_STR(config->FindType(pair.first)->id);
-			row_data += "\t";
-			row_data += TO_STR(config->FindClass(pair.first, pair.second)->id);
-			row_data += "\t";
-			row_data += TO_STR(way->id);
-			row_data += "\n";
+    PGresult* res = PQexec(mycon, copy_way_tag.c_str());
+    PQclear(res);
+    while( it_way!=last_way )
+    {
+        Way* way = *it_way++;
+        std::map<std::string, std::string>::iterator it_tag( way->m_Tags.begin() );
+        std::map<std::string, std::string>::iterator last_tag( way->m_Tags.end() );
+        while( it_tag!=last_tag )
+        {
+            std::pair<std::string, std::string> pair = *it_tag++;
+            std::string row_data = TO_STR(config->FindType(pair.first)->id);
+            row_data += "\t";
+            row_data += TO_STR(config->FindClass(pair.first, pair.second)->id);
+            row_data += "\t";
+            row_data += TO_STR(way->id);
+            row_data += "\n";
 
-			PQputline(mycon, row_data.c_str());
-		}
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+            PQputline(mycon, row_data.c_str());
+        }
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 
-	it_way = ways.begin();
+    it_way = ways.begin();
     std::string copy_ways( "COPY " + full_table_name( "ways" ) + "("
                     + "gid,"
                     + " class_id,"
@@ -343,6 +406,8 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
                     + " x2,"
                     + " y2,"
                     + " osm_id,"
+                    + " source_osm,"
+                    + " target_osm,"
                     + " the_geom,"
                     + " cost,"
                     + " reverse_cost,"
@@ -351,138 +416,146 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config)
                     + " maxspeed_backward,"
                     + " priority,"
                     + " name) FROM STDIN");
-	res = PQexec(mycon, copy_ways.c_str());
-	while( it_way!=last_way )
-	{
-		Way* way = *it_way++;
-		std::string row_data = TO_STR(way->id); //gid
-		row_data += "\t";
-		row_data += TO_STR(config->FindClass(way->type, way->clss)->id);
-		row_data += "\t";
-		row_data += TO_STR(way->length);
-		row_data += "\t";
-		row_data += TO_STR(way->m_NodeRefs.front()->lon);
-		row_data += "\t";
-		row_data += TO_STR(way->m_NodeRefs.front()->lat);
-		row_data += "\t";
-		row_data += TO_STR(way->m_NodeRefs.back()->lon);
-		row_data += "\t";
-		row_data += TO_STR(way->m_NodeRefs.back()->lat);
-		row_data += "\t";
-		row_data += TO_STR(way->osm_id);
-		row_data += "\t";
-		row_data += "srid=4326;" + way->geom;
-		row_data += "\t";
+    res = PQexec(mycon, copy_ways.c_str());
+    while( it_way!=last_way )
+    {
+        Way* way = *it_way++;
+        std::string row_data = TO_STR(way->id); //gid
+        row_data += "\t";
+        row_data += TO_STR(config->FindClass(way->type, way->clss)->id);
+        row_data += "\t";
+        row_data += TO_STR(way->length);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.front()->lon);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.front()->lat);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.back()->lon);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.back()->lat);
+        row_data += "\t";
+        row_data += TO_STR(way->osm_id);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.front()->id);
+        row_data += "\t";
+        row_data += TO_STR(way->m_NodeRefs.back()->id);
+        row_data += "\t";
+        row_data += "srid=4326;" + way->geom;
+        row_data += "\t";
 
-		//cost based on oneway
-		if(way->oneWayType==REVERSED)
-			row_data += TO_STR(- way->length);
-		else
-			row_data += TO_STR(way->length);
-		//reverse_cost
-		row_data += "\t";
-		if(way->oneWayType==YES)
-		    	row_data += TO_STR(- way->length);
-		else
-			row_data += TO_STR(way->length);
+        //cost based on oneway
+        if(way->oneWayType==REVERSED)
+            row_data += TO_STR(- way->length);
+        else
+            row_data += TO_STR(way->length);
+        //reverse_cost
+        row_data += "\t";
+        if(way->oneWayType==YES)
+                row_data += TO_STR(- way->length);
+        else
+            row_data += TO_STR(way->length);
 
-		row_data += "\t";
-		row_data += TO_STR(way->oneWayType);
-		row_data += "\t";
+        row_data += "\t";
+        row_data += TO_STR(way->oneWayType);
+        row_data += "\t";
 
-		//maxspeed
-		row_data += TO_STR(way->maxspeed_forward);
-		row_data += "\t";
-		row_data += TO_STR(way->maxspeed_backward);
-		row_data += "\t";
+        //maxspeed
+        row_data += TO_STR(way->maxspeed_forward);
+        row_data += "\t";
+        row_data += TO_STR(way->maxspeed_backward);
+        row_data += "\t";
 
-		//priority
-		row_data += TO_STR(config->FindClass(way->type,way->clss)->priority);
-		row_data += "\t";
+        //priority
+        row_data += TO_STR(config->FindClass(way->type,way->clss)->priority);
+        row_data += "\t";
 
-		//name
-	  	if(!way->name.empty())
-	  	{
-	        std::string escaped_name = way->name;
-	        boost::replace_all(escaped_name, "\\", "");
-	        boost::replace_all(escaped_name, "\t", "\\\t");
-	        boost::replace_all(escaped_name, "\n", "");
-	        boost::replace_all(escaped_name, "\r", "");
-	        row_data += escaped_name.substr(0,199);
-	  	}
-		row_data += "\n";
-		//cout<<row_data<<endl;
-		PQputline(mycon, row_data.c_str());
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+        //name
+          if(!way->name.empty())
+          {
+            std::string escaped_name = way->name;
+            boost::replace_all(escaped_name, "\\", "");
+            boost::replace_all(escaped_name, "\t", "\\\t");
+            boost::replace_all(escaped_name, "\n", "");
+            boost::replace_all(escaped_name, "\r", "");
+            row_data += escaped_name.substr(0,199);
+          }
+        row_data += "\n";
+        //cout<<row_data<<endl;
+        PQputline(mycon, row_data.c_str());
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 }
 
 void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 {
-	std::map<std::string, Type*>::iterator tIt(types.begin());
-	std::map<std::string, Type*>::iterator tLast(types.end());
+    std::map<std::string, Type*>::iterator tIt(types.begin());
+    std::map<std::string, Type*>::iterator tLast(types.end());
     std::string copy_types( "COPY " + full_table_name( "types" ) + "(id, name) FROM STDIN");
-	PGresult* res = PQexec(mycon, copy_types.c_str());
-	PQclear(res);
-	while(tIt!=tLast)
-	{
-		Type* type = (*tIt++).second;
-		std::string row_data = TO_STR(type->id);
-		row_data += "\t";
-		row_data += type->name;
-		row_data += "\n";
-		PQputline(mycon, row_data.c_str());
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+    PGresult* res = PQexec(mycon, copy_types.c_str());
+    PQclear(res);
+    while(tIt!=tLast)
+    {
+        Type* type = (*tIt++).second;
+        std::string row_data = TO_STR(type->id);
+        row_data += "\t";
+        row_data += type->name;
+        row_data += "\n";
+        PQputline(mycon, row_data.c_str());
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 
-	tIt = types.begin();
+    tIt = types.begin();
     std::string copy_classes( "COPY " + full_table_name( "classes" ) + "(id, type_id, name, priority, default_maxspeed) FROM STDIN");
-	res = PQexec(mycon, copy_classes.c_str());
-	PQclear(res);
-	while(tIt!=tLast)
-	{
-		Type* type = (*tIt++).second;
-		std::map<std::string, Class*>& classes= type->m_Classes;
-		std::map<std::string, Class*>::iterator cIt(classes.begin());
-		std::map<std::string, Class*>::iterator cLast(classes.end());
+    res = PQexec(mycon, copy_classes.c_str());
+    PQclear(res);
+    while(tIt!=tLast)
+    {
+        Type* type = (*tIt++).second;
+        std::map<std::string, Class*>& classes= type->m_Classes;
+        std::map<std::string, Class*>::iterator cIt(classes.begin());
+        std::map<std::string, Class*>::iterator cLast(classes.end());
 
-		while(cIt!=cLast)
-		{
-			Class* clss = (*cIt++).second;
-			std::string row_data = TO_STR(clss->id);
-			row_data += "\t";
-			row_data += TO_STR(type->id);
-			row_data += "\t";
-			row_data += clss->name;
-			row_data += "\t";
-			row_data += TO_STR(clss->priority);
-			row_data += "\t";
-			row_data += TO_STR(clss->default_maxspeed);
-			row_data += "\n";
-			PQputline(mycon, row_data.c_str());
-		}
-	}
-	PQputline(mycon, "\\.\n");
-	PQendcopy(mycon);
+        while(cIt!=cLast)
+        {
+            Class* clss = (*cIt++).second;
+            std::string row_data = TO_STR(clss->id);
+            row_data += "\t";
+            row_data += TO_STR(type->id);
+            row_data += "\t";
+            row_data += clss->name;
+            row_data += "\t";
+            row_data += TO_STR(clss->priority);
+            row_data += "\t";
+            row_data += TO_STR(clss->default_maxspeed);
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
+        }
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
 }
 
 void Export2DB::createTopology()
 {
-    bool everything_fine = true;
+    fill_source_target( full_table_name( "ways" ) );
+    fill_vertices_table( full_table_name( "ways" ), full_table_name( "nodes" ) );
+    fill_source_target( full_table_name( "ways" ) );
 
-	PGresult *result;
+/*
+    bool everything_fine = true;
+    PGresult *result;
     std::string create_topology("SELECT pgr_createTopology('"+ full_table_name( "ways" ) + "', 0.00001, 'the_geom', 'gid');");
-	result = PQexec(mycon, create_topology.c_str());
-	if (PQresultStatus(result) != PGRES_TUPLES_OK)
-    	{
-        	std::cerr << "Create Topology failed: " << PQerrorMessage(mycon) << std::endl;
-        	PQclear(result);
-        	everything_fine = false;
-	}
+    result = PQexec(mycon, create_topology.c_str());
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+            std::cerr << "Create Topology failed: " << PQerrorMessage(mycon) << std::endl;
+            PQclear(result);
+            everything_fine = false;
+    }
 
     if (everything_fine) {
         std::cout << "Create Topology success" << std::endl;
     }
+*/
 }
