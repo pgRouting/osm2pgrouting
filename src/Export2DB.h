@@ -21,15 +21,16 @@
 #ifndef EXPORT2DB_H
 #define EXPORT2DB_H
 
-//#include "postgresql/libpq-fe.h"
-#include "libpq-fe.h"
+#include "postgresql/libpq-fe.h"
+//#include "libpq-fe.h"
 #include "Node.h"
 #include "Way.h"
 #include "Relation.h"
 #include "Type.h"
 #include "Class.h"
 #include "Configuration.h"
-
+#include "prog_options.h"
+ 
 using namespace osm;
 
 /**
@@ -47,7 +48,7 @@ public:
 	 * @param dbname name of the database
 	 *
 	 */
- 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix);
+ 	Export2DB(const  po::variables_map &vm);
  	
  	/**
  	 * Destructor
@@ -57,7 +58,8 @@ public:
 
  	//! connects to database
  	int connect();
- 	//! creates needed tables
+
+ 	//! creates needed tables and geometries
  	void createTables();
  	//! exports nodes to the database
  	void exportNodes(std::map<long long, Node*>& nodes);
@@ -81,10 +83,29 @@ public:
  	//! Be careful! It deletes the created tables!
  	void dropTables();
 
+ private:
+ 	void createTable(const std::string &sql,
+			 const std::string &msg) const;
+	void addGeometry( const std::string &table,
+                         const std::string &geometry_type) const;
+        inline std::string full_table_name(const std::string &table) const {
+		return tables_prefix + table + tables_suffix;
+        }
+
 private:
 	PGconn *mycon;
 	std::string conninf;
 	std::string tables_prefix;
+	std::string tables_suffix;
+
+        // create table query constants
+	std::string create_classes;
+	std::string create_nodes;
+	std::string create_ways;
+	std::string create_relations;
+	std::string create_relations_ways;
+	std::string create_way_tag;
+	std::string create_types;
 };
 
 #endif
