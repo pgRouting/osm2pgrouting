@@ -1,5 +1,4 @@
 build
-tools
 bin/*
 Sample/*
 osm2pgrouting
