@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
+ *   Copyright (C) 2008 by Daniel Wendt       							   *
  *   gentoo.murray@gmail.com   											   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,13 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef OSMDOCUMENT_H
-#define OSMDOCUMENT_H
+#ifndef SRC_OSMDOCUMENT_H_
+#define SRC_OSMDOCUMENT_H_
 
-#include "Configuration.h"
+#include <map>
+#include <vector>
+#include "./Configuration.h"
 
-namespace osm
-{
+namespace osm {
 
 
 class Node;
@@ -34,40 +35,37 @@ class Relation;
 /**
 	An osm-document.
 */
-class OSMDocument
-{
-public:
-	//! Map, which saves the parsed nodes
-	std::map<long long, Node*> m_Nodes;
-	//! parsed ways
-	std::vector<Way*> m_Ways;
-	//! splitted ways
-	std::vector<Way*> m_SplittedWays;
+class OSMDocument {
+ public:
+    // ! Map, which saves the parsed nodes
+    std::map<long long, Node*> m_Nodes;
+    //! parsed ways
+    std::vector<Way*> m_Ways;
+    //! splitted ways
+    std::vector<Way*> m_SplittedWays;
 
-	std::vector<Relation*> m_Relations;
+    std::vector<Relation*> m_Relations;
 
 
-	Configuration& m_rConfig;
-public:
+    Configuration& m_rConfig;
 
-	//! Constructor
-	OSMDocument( Configuration& config);
-	//! Destructor
-	virtual ~OSMDocument();
-	//! add node to the map
-	void AddNode( Node* n );
-	//! add way to the map
-	void AddWay( Way* w );
-	//! find node by using an ID
-	Node* FindNode( long long nodeRefId ) const;
-	//! split the ways
-	void SplitWays();
-	//Node* getNode( long long nodeRefId );
-
-	void AddRelation( Relation* r );
-
+ public:
+    //! Constructor
+    OSMDocument(Configuration& config);
+    //! Destructor
+    virtual ~OSMDocument();
+    //! add node to the map
+    void AddNode(Node* n);
+    //! add way to the map
+    void AddWay(Way* w);
+    //! find node by using an ID
+    Node* FindNode(long long nodeRefId) const;
+    //! split the ways
+    void SplitWays();
+    //  Node* getNode(long long nodeRefId);
+    void AddRelation(Relation* r);
 };
 
 
-} // end namespace osm
-#endif
+}  // end namespace osm
+#endif  // SRC_OSMDOCUMENT_H_
