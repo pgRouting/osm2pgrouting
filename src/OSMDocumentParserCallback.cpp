@@ -89,13 +89,14 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 			if( strcmp(name,"ref")==0 )
 			{
 				long long nodeRefId = atoll( value );
-                                m_pActWay->AddNodeRef( m_rDocument.FindNode( nodeRefId ) );
-                                  Node * node = m_rDocument.FindNode( nodeRefId );
-                                  if(node != 0 ){
-                                    node->numsOfUse+=1;
-                                  }else {
-                                    std::cout << "Reference nd=" << nodeRefId << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
-                                  }
+				m_pActWay->AddNodeRef( m_rDocument.FindNode( nodeRefId ) );
+				Node * node = m_rDocument.FindNode( nodeRefId );
+				if(node != 0 ){
+					node->numsOfUse+=1;
+				}
+				else {
+					std::cout << "Reference nd=" << nodeRefId << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+				}
 			}
 		}
 	} 
@@ -194,8 +195,8 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 						m_pActWay->oneWayType = REVERSED;
 					}
 				//in case roundabout, if there is not additional oneway tag, set default oneway to YES
-				}else if(m_pActWay && k.compare("junction")==0 && v.compare("roundabout")==0){
-					if (m_pActWay->oneWayType == NO) m_pActWay->oneWayType= YES;
+				} else if(m_pActWay && k.compare("junction")==0 && v.compare("roundabout")==0){
+					if (m_pActWay->oneWayType == UNKNOWN) m_pActWay->oneWayType= YES;
 				}
 				//handle 3 cases if the key contains maxspeed
 				else if(m_pActWay && k.find("maxspeed") != std::string::npos){
