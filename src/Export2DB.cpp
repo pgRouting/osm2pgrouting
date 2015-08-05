@@ -149,7 +149,7 @@ int Export2DB::connect() {
  );
 */
 void Export2DB::createTable(const std::string &table_description, const std::string &table) const {
-           std::cout << "Creating table: " << table << "\n";
+           std::cout << "Creating '" << table <<"': " ;
     std::string sql = 
         "CREATE TABLE " + table + "("    // + schema + "." + prefix etc
         + table_description + ");";
@@ -158,18 +158,17 @@ void Export2DB::createTable(const std::string &table_description, const std::str
             std::cout << "   Table " << table << " already exists... skipping."
                 << PQerrorMessage(mycon)
                 << std::endl;
-            PQclear(result);
         } else {
-            std::cout << "   Table " << table << " created." << std::endl;
-            PQclear(result);
+            std::cout << "   OK" << std::endl;
         }
+        PQclear(result);
 }
 
 
 void Export2DB::addGeometry(
              const std::string &table,
              const std::string &geometry_type) const {
-           std::cout << "Adding Geometry to table: " << table << "\n";
+           std::cout << "Adding Geometry to '" << table << "':";
     std::string sql = 
                + " SELECT AddGeometryColumn('" 
          + table + "'," 
@@ -180,11 +179,10 @@ void Export2DB::addGeometry(
             std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
                 << sql //  PQerrorMessage(mycon)
                 << std::endl;
-            PQclear(result);
         } else {
-            std::cout << "   the_geom column added in table " << table <<  std::endl;
-            PQclear(result);
+            std::cout << "   OK" << std::endl;
         }
+    PQclear(result);
 }
 
 
@@ -193,15 +191,15 @@ void Export2DB::createTables() {
 
     createTable( create_classes, full_table_name("classes") );
     createTable( create_nodes, full_table_name("nodes") );
-    addGeometry( full_table_name("nodes"), "POINT" );
     createTable( create_ways, full_table_name("ways") );
-    addGeometry( full_table_name("ways"), "LINESTRING" );
     createTable( create_relations, full_table_name("relations") );
     createTable( create_relations_ways, full_table_name("relations_ways") );
     createTable( create_way_tag, full_table_name("way_tag") );
     createTable( create_types, full_table_name("way_types") );
-    createTable( create_vertices, full_table_name("ways") + "_vertices_pgr1" );
-    addGeometry( full_table_name("ways") + "_vertices_pgr1" , "POINT" );
+    createTable( create_vertices, full_table_name("ways") + "_vertices_pgr" );
+    addGeometry( full_table_name("nodes"), "POINT" );
+    addGeometry( full_table_name("ways"), "LINESTRING" );
+    addGeometry( full_table_name("ways") + "_vertices_pgr" , "POINT" );
 }
 
 
@@ -225,29 +223,34 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
     std::map<long long, Node*>::iterator last(nodes.end());
         std::string copy_nodes( "COPY " + full_table_name( "nodes" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
     //PGresult* res = PQexec(mycon, tables_prefix.c_str());
-    PGresult* res = PQexec(mycon, copy_nodes.c_str());
-    PQclear(res);
-    while(it!=last)
-    {
-        Node* node = (*it++).second;
-        std::string row_data = TO_STR(node->id);
-        row_data += "\t";
-        row_data += TO_STR(node->lon);
-        row_data += "\t";
-        row_data += TO_STR(node->lat);
-        row_data += "\t";
-        row_data += TO_STR(node->numsOfUse);
-        row_data += "\t";
-        row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
-        row_data += "\n";
-        PQputline(mycon, row_data.c_str());
+    PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
+    if ( PQresultStatus(q_result) == PGRES_COPY_IN) {
+        while(it!=last)
+        {
+            Node* node = (*it++).second;
+            std::string row_data = TO_STR(node->id);
+            row_data += "\t";
+            row_data += TO_STR(node->lon);
+            row_data += "\t";
+            row_data += TO_STR(node->lat);
+            row_data += "\t";
+            row_data += TO_STR(node->numsOfUse);
+            row_data += "\t";
+            row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
+        }
+        PQputline(mycon, "\\.\n");
+        PQendcopy(mycon);
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
+    if ( PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
+         std::cout << " OK " << PQcmdTuples(q_result2) << std::endl;
+    else
+         std::cout  << " " << PQresultErrorMessage( q_result2 ) << std::endl;
 }
 
 void Export2DB::fill_vertices_table(const std::string &table, const std::string &node_table) const {
-    std::cout << "Filling table '" << table << "_vertices_pgr1': ";
+    std::cout << "Filling table '" << table << "_vertices_pgr': ";
     std::string sql(
         "WITH data AS ("
              "(select source_osm as osm_id from " + table + " where source is NULL)"
@@ -255,10 +258,10 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
              "(select target_osm as osm_id from " + table + " where target is NULL)"
           "), "
 	  " data1 AS (SELECT a.osm_id, lon, lat, the_geom from data a, " + node_table + " b WHERE a.osm_id = b.osm_id order by a.osm_id"
+          "), "
+	  " data2 AS (SELECT a.osm_id, a.lon, a.lat, a.the_geom from data1 a, " + table + "_vertices_pgr b WHERE a.osm_id = b.osm_id order by a.osm_id"
           ") "
-	  " data2 AS (SELECT a.osm_id, lon, lat, the_geom from data1 a, " + table + "_vertices_pgr1 b WHERE a.osm_id = b.osm_id order by a.osm_id"
-          ") "
-          " INSERT INTO " + table + "_vertices_pgr1 (osm_id, lon, lat, the_geom) (SELECT * FROM data1)");
+          " INSERT INTO " + table + "_vertices_pgr (osm_id, lon, lat, the_geom) (SELECT * FROM data2)");
     PGresult* q_result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
          std::cout << " OK" << std::endl;
@@ -272,22 +275,25 @@ void Export2DB::fill_source_target(const std::string &table) const {
     std::string sql1(
         " UPDATE " + table + " AS w"
         " SET source = v.id "
-        " FROM " + table + "_vertices_pgr1 AS v"
+        " FROM " + table + "_vertices_pgr AS v"
         " WHERE source is NULL and w.source_osm = v.osm_id;");
     std::string sql2(
         " UPDATE " + table + " AS w"
         " SET target = v.id "
-        " FROM " + table + "_vertices_pgr1 AS v"
+        " FROM " + table + "_vertices_pgr AS v"
         " WHERE target is NULL and w.target_osm = v.osm_id;");
     PGresult* q_result1 = PQexec(mycon, sql1.c_str());
-    PGresult* q_result2 = PQexec(mycon, sql2.c_str());
-    if (PQresultStatus(q_result1) == PGRES_COMMAND_OK
-        && PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
-         std::cout << " OK " << PQntuples(q_result1) << " + " << PQntuples(q_result2) << std::endl;
+    if (PQresultStatus(q_result1) == PGRES_COMMAND_OK)
+         std::cout << " OK " << PQcmdTuples(q_result1) ;
     else
-         std::cout  << " " << PQresultErrorMessage( q_result1 )  
-                    << " " << PQresultErrorMessage( q_result2 ) << std::endl;
+         std::cout  << " " << PQresultErrorMessage( q_result1 ) << std::endl;
     PQclear(q_result1);
+
+    PGresult* q_result2 = PQexec(mycon, sql2.c_str());
+    if ( PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
+         std::cout << " OK " << PQcmdTuples(q_result2) << std::endl;
+    else
+         std::cout  << " " << PQresultErrorMessage( q_result2 ) << std::endl;
     PQclear(q_result2);
 }
 
@@ -539,7 +545,7 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)
 
 void Export2DB::createTopology()
 {
-    fill_source_target( full_table_name( "ways" ) );
+    //fill_source_target( full_table_name( "ways" ) );
     fill_vertices_table( full_table_name( "ways" ), full_table_name( "nodes" ) );
     fill_source_target( full_table_name( "ways" ) );
 
