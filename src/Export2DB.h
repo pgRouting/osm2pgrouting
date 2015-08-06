@@ -84,6 +84,7 @@ public:
  	void dropTables();
 
  private:
+        void dropTable(const std::string &table) const;
  	void createTable(const std::string &sql,
 			 const std::string &msg) const;
 	void addGeometry( const std::string &table,

@@ -52,9 +52,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         create_nodes =std::string(
         "id bigserial PRIMARY KEY,"
         " osm_id bigint,"
-               " lon decimal(11,8),"
-               " lat decimal(11,8),"
-               " numOfUse int,"
+        " lon decimal(11,8),"
+        " lat decimal(11,8),"
+        " numOfUse int,"
         " CONSTRAINT node_id UNIQUE(osm_id)"
     );
 
@@ -63,34 +63,34 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " osm_id bigint,"
         " cnt integer,"
         " chk integer,"
-                " ein integer,"
-                " eout integer,"
-               " lon decimal(11,8),"
-               " lat decimal(11,8),"
+        " ein integer,"
+        " eout integer,"
+        " lon decimal(11,8),"
+        " lat decimal(11,8),"
         " CONSTRAINT vertex_id UNIQUE(osm_id)"
     );
         create_ways =std::string(
 
-                 "gid bigserial,"
-               " class_id integer not null,"
-               " length double precision,"
+            "gid bigserial,"
+            " class_id integer not null,"
+            " length double precision,"
             " name text,"
             " source bigint,"
             " target bigint,"
             " x1 double precision,"
-                   " y1 double precision,"
-                   " x2 double precision,"
-               " y2 double precision,"
-               " cost double precision,"
-               " reverse_cost double precision,"
-               " rule text,"
-        " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversed (1 way but geometry is reversed) 
-               " maxspeed_forward integer,"
-               " maxspeed_backward integer,"
-               " osm_id bigint,"
-        " source_osm bigint,"
-        " target_osm bigint,"
-               " priority double precision DEFAULT 1"
+            " y1 double precision,"
+            " x2 double precision,"
+            " y2 double precision,"
+            " cost double precision,"
+            " reverse_cost double precision,"
+            " rule text,"
+            " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversed (1 way but geometry is reversed) 
+            " maxspeed_forward integer,"
+            " maxspeed_backward integer,"
+            " osm_id bigint,"
+            " source_osm bigint,"
+            " target_osm bigint,"
+            " priority double precision DEFAULT 1"
         );
         create_relations =std::string(
 
@@ -152,7 +152,7 @@ void Export2DB::createTable(const std::string &table_description, const std::str
            std::cout << "Creating '" << table <<"': " ;
     std::string sql = 
         "CREATE TABLE " + table + "("    // + schema + "." + prefix etc
-        + table_description + ");";
+        + table_description + ")";
         PGresult *result = PQexec(mycon, sql.c_str());
         if (PQresultStatus(result) != PGRES_COMMAND_OK) {
             std::cout << "   Table " << table << " already exists... skipping."
@@ -202,27 +202,31 @@ void Export2DB::createTables() {
     addGeometry( full_table_name("ways") + "_vertices_pgr" , "POINT" );
 }
 
+void Export2DB::dropTable(const std::string &table) const {
+    std::string drop_tables( "DROP TABLE " +  table);
+    PGresult *result = PQexec(mycon, drop_tables.c_str());
+    PQclear(result);
+}   
 
 
 void Export2DB::dropTables()
 {
-    std::string drop_tables( "DROP TABLE IF EXISTS " + tables_prefix + "ways;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "nodes;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "types;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "classes;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "way_tag;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "relations;"
-                            + " DROP TABLE IF EXISTS " + tables_prefix + "relation_ways;");
-    PGresult *result = PQexec(mycon, drop_tables.c_str());
-    PQclear(result);
+    dropTable(full_table_name("ways"));
+    dropTable(full_table_name("nodes"));
+    dropTable(full_table_name("classes"));
+    dropTable(full_table_name("relations"));
+    dropTable(full_table_name("relations_ways"));
+    dropTable(full_table_name("way_tag"));
+    dropTable(full_table_name("way_types"));
+    dropTable(full_table_name("ways") + "_vertices_pgr");
 }
 
 void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
 {
+    std::cout << "Filling '" <<  full_table_name( "nodes" ) << "': ";
     std::map<long long, Node*>::iterator it(nodes.begin());
     std::map<long long, Node*>::iterator last(nodes.end());
-        std::string copy_nodes( "COPY " + full_table_name( "nodes" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
-    //PGresult* res = PQexec(mycon, tables_prefix.c_str());
+    std::string copy_nodes( "COPY " + full_table_name( "nodes" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
     if ( PQresultStatus(q_result) == PGRES_COPY_IN) {
         while(it!=last)
@@ -243,28 +247,27 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes)
         PQputline(mycon, "\\.\n");
         PQendcopy(mycon);
     }
-    if ( PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
-         std::cout << " OK " << PQcmdTuples(q_result2) << std::endl;
+    std::cout << PQresStatus(PQresultStatus(q_result)) <<  PQcmdStatus(q_result);
+    if ( PQresultStatus(q_result) == PGRES_COMMAND_OK) 
+         std::cout << " OK " << PQntuples(q_result) << std::endl;
     else
-         std::cout  << " " << PQresultErrorMessage( q_result2 ) << std::endl;
+         std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
 }
 
 void Export2DB::fill_vertices_table(const std::string &table, const std::string &node_table) const {
     std::cout << "Filling table '" << table << "_vertices_pgr': ";
     std::string sql(
-        "WITH data AS ("
+        "WITH osm_vertex AS ("
              "(select source_osm as osm_id from " + table + " where source is NULL)"
              " union "
              "(select target_osm as osm_id from " + table + " where target is NULL)"
           "), "
-	  " data1 AS (SELECT a.osm_id, lon, lat, the_geom from data a, " + node_table + " b WHERE a.osm_id = b.osm_id order by a.osm_id"
-          "), "
-	  " data2 AS (SELECT a.osm_id, a.lon, a.lat, a.the_geom from data1 a, " + table + "_vertices_pgr b WHERE a.osm_id = b.osm_id order by a.osm_id"
+	  " data1 AS (SELECT a.osm_id, b.lon, b.lat, b.the_geom from osm_vertex a, " + node_table + " b WHERE a.osm_id = b.osm_id order by a.osm_id"
           ") "
-          " INSERT INTO " + table + "_vertices_pgr (osm_id, lon, lat, the_geom) (SELECT * FROM data2)");
+          " INSERT INTO " + table + "_vertices_pgr (osm_id, lon, lat, the_geom) (SELECT * FROM data1)");
     PGresult* q_result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
-         std::cout << " OK" << std::endl;
+         std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
     else
          std::cout  << "   " << PQresultErrorMessage( q_result )  << std::endl;
     PQclear(q_result);
@@ -282,19 +285,20 @@ void Export2DB::fill_source_target(const std::string &table) const {
         " SET target = v.id "
         " FROM " + table + "_vertices_pgr AS v"
         " WHERE target is NULL and w.target_osm = v.osm_id;");
-    PGresult* q_result1 = PQexec(mycon, sql1.c_str());
-    if (PQresultStatus(q_result1) == PGRES_COMMAND_OK)
-         std::cout << " OK " << PQcmdTuples(q_result1) ;
-    else
-         std::cout  << " " << PQresultErrorMessage( q_result1 ) << std::endl;
-    PQclear(q_result1);
 
-    PGresult* q_result2 = PQexec(mycon, sql2.c_str());
-    if ( PQresultStatus(q_result2) == PGRES_COMMAND_OK) 
-         std::cout << " OK " << PQcmdTuples(q_result2) << std::endl;
+    PGresult* q_result = PQexec(mycon, sql1.c_str());
+    if (PQresultStatus(q_result) == PGRES_COMMAND_OK)
+         std::cout << " OK " << PQcmdStatus(q_result);
     else
-         std::cout  << " " << PQresultErrorMessage( q_result2 ) << std::endl;
-    PQclear(q_result2);
+         std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
+    PQclear(q_result);
+
+    q_result = PQexec(mycon, sql2.c_str());
+    if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
+         std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
+    else
+         std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
+    PQclear(q_result);
 }
 
 
