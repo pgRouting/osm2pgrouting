@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include <unistd.h>
 #include <string>
+#include <ctime>
 #include "./stdafx.h"
 #include "./Configuration.h"
 #include "./ConfigurationParserCallback.h"
@@ -36,6 +37,8 @@
 
 
 int main(int argc, char* argv[]) {
+    //  Start Timers
+    clock_t begin = clock();
     try {
         // ..prog_options code begin..
 
@@ -64,9 +67,7 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
-        auto ret_val = process_command_line(vm, od_desc);
-        if (ret_val != 2)
-            return ret_val;  // there is an error
+        process_command_line(vm, od_desc);
 
         auto file(vm["file"].as<string>());
         auto cFile(vm["conf"].as<string>());
@@ -88,8 +89,8 @@ int main(int argc, char* argv[]) {
 
         // !!prog_options code end!!
 
-        Export2DB test(vm);
-        if (test.connect() == 1)
+        Export2DB dbConnection(vm);
+        if (dbConnection.connect() == 1)
             return 1;
 
         xml::XMLParser parser;
@@ -130,34 +131,34 @@ int main(int argc, char* argv[]) {
            if (clean) {
             std::cout << "Dropping tables..." << endl;
 
-            test.dropTables();
+            dbConnection.dropTables();
         }
 
         std::cout << "Creating tables..." << endl;
-        test.createTables();
+        dbConnection.createTables();
 
         std::cout << "Adding tag types and classes to database..." << endl;
-        test.exportTypesWithClasses(config->m_Types);
+        dbConnection.exportTypesWithClasses(config->m_Types);
 
             std::cout << "Adding relations to database..." << endl;
-            test.exportRelations(document->m_Relations, config);
+            dbConnection.exportRelations(document->m_Relations, config);
 
             // Optional user argument skipnodes will not
             // add nodes to the database
             // (saving a lot of time if not necessary)
             if (!skipnodes) {
                 std::cout << "Adding nodes to database..." << endl;
-                test.exportNodes(document->m_Nodes);
+                dbConnection.exportNodes(document->m_Nodes);
             }
 
             std::cout << "Adding ways to database..." << endl;
-            test.exportWays(document->m_SplittedWays, config);
+            dbConnection.exportWays(document->m_SplittedWays, config);
 
             // TODO: make some free memory, document will be not used anymore,
             // so there will be more memory available to future DB operations.
 
             std::cout << "Creating topology..." << endl;
-            test.createTopology();
+            dbConnection.createTopology();
         }
 
         //#############
@@ -199,8 +200,11 @@ int main(int argc, char* argv[]) {
         std::cout << "size of streets: " << document->m_Ways.size() <<    endl;
         std::cout << "size of splitted ways : " << document->m_SplittedWays.size() <<    endl;
 
-        std::cout << "finished" << endl;
+        clock_t end = clock();
+        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 
+        std::cout << "Total processing time: -> " << elapsed_secs << " seconds\n";
+        std::cout << "#########################" << endl;
         //  string n;
         //  getline(cin, n);
         return 0;
