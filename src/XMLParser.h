@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,26 +18,23 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef XMLPARSERT_H
-#define XMLPARSERT_H
+#ifndef SRC_XMLPARSER_H_
+#define SRC_XMLPARSER_H_
 
 #include <expat.h>
 
 
-namespace xml
-{
+namespace xml {
 
 /**
     Callback to be used with XMLParser 
  */
-class XMLParserCallback
-{
-public:
-
-  //! Constructor_
-  XMLParserCallback(){}
-  //! Destructor
-  virtual ~XMLParserCallback(){}
+class XMLParserCallback {
+ public:
+  // !  Constructor_
+  XMLParserCallback() {}
+  // ! Destructor
+  virtual ~XMLParserCallback() {}
 
   /**
     Implement to construct an element with the given name,
@@ -46,14 +43,12 @@ public:
     \param name  [IN]  element name
     \param atts  [IN]  the attributes
    */  
-	virtual void StartElement( const char *name, const char** atts )=0;
+    virtual void StartElement(const char *name, const char** atts) = 0;
 
   /**
     Implement to process parser event "end element"
     */
-	virtual void EndElement( const char *elementName )=0;
-
-
+    virtual void EndElement(const char *elementName) = 0;
 };
 
 /**
@@ -66,14 +61,12 @@ public:
   - link with xmlparse.lib
   - uses xmlparse.dll
 */
-class XMLParser
-{
-
-public:
+class XMLParser {
+ public:
   //! Constructor
-	XMLParser(){}
-	//! Destructor
-	virtual ~XMLParser(){}
+    XMLParser() {}
+    //! Destructor
+    virtual ~XMLParser() {}
 
   /**
     Parse a file from the file system-
@@ -83,13 +76,12 @@ public:
     
     \return 0: everything ok, 1: file not found, 2: parsing error
    */  
-	int Parse( XMLParserCallback& rCallback, const char* chFileName );
+    int Parse(XMLParserCallback& rCallback, const char* chFileName);
 
-private:
-	//! the expat parser object / imported from „expat.h“
-	XML_Parser			m_ParserCtxt;
-
+ private:
+    //! the expat parser object / imported from „expat.h“
+    XML_Parser            m_ParserCtxt;
 };
 
-} // end namespace xml
-#endif
+}  // end namespace xml
+#endif  //  SRC_XMLPARSER_H_
