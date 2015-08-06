@@ -143,23 +143,26 @@ int Export2DB::connect() {
 
 /*!
  CREATE TABLE prefix_table_suffix (
-    table_description
+    table_description,
+    constraint
  );
 */
-void Export2DB::createTable(const std::string &table_description, const std::string &table) const {
-    std::cout << "Creating '" << table <<"': " ;
+bool Export2DB::createTable(const std::string &table_description,
+                            const std::string &table,
+                            const std::string &constraint) const {
     std::string sql = 
-        "CREATE TABLE IF NOT EXISTS " + table + "("    // + schema + "." + prefix etc
+	"CREATE TABLE " + table + "("    // + schema + "." + prefix etc
         + table_description + ")";
     PGresult *result = PQexec(mycon, sql.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-            std::cout << "   Table " << table << " already exists... skipping."
-                << PQerrorMessage(mycon)
-                << std::endl;
-    } else {
+    bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
+    std::cout << "Creating '" << table <<"': " ;
+    if ( created ) {
             std::cout << "   OK" << std::endl;
+    } else {
+            std::cout << "   Table " << table << " already exists... skipping." << std::endl;
     }
     PQclear(result);
+    return created;
 }
 
 
@@ -175,8 +178,8 @@ void Export2DB::addGeometry(
         PGresult *result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {
             std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
-                << sql //  PQerrorMessage(mycon)
                 << std::endl;
+	    throw;
         } else {
             std::cout << "   OK" << std::endl;
         }
@@ -186,17 +189,22 @@ void Export2DB::addGeometry(
 
 ///////////////////////
 void Export2DB::createTables() const{
-    createTable( create_classes, full_table_name("classes") );
-    createTable( create_nodes, full_table_name("nodes") );
-    createTable( create_ways, full_table_name("ways") );
-    createTable( create_relations, full_table_name("relations") );
+    // the following are particular of the file tables
+    if (createTable( create_vertices, full_table_name("ways") + "_vertices_pgr" ))
+        addGeometry( full_table_name("ways") + "_vertices_pgr" , "POINT" );
+    if (createTable( create_ways, full_table_name("ways") ))
+        addGeometry( full_table_name("ways"), "LINESTRING" );
     createTable( create_relations_ways, full_table_name("relations_ways") );
+
+    // the following are general tables
+    if ( createTable( create_nodes,
+                     "osm_nodes",
+                     ", CONSTRAINT node_id UNIQUE(osm_id)") )
+        addGeometry( "osm_nodes", "POINT" );
+    createTable( create_relations, full_table_name("relations") );
     createTable( create_way_tag, full_table_name("way_tag") );
     createTable( create_types, full_table_name("way_types") );
-    createTable( create_vertices, full_table_name("ways") + "_vertices_pgr" );
-    addGeometry( full_table_name("nodes"), "POINT" );
-    addGeometry( full_table_name("ways"), "LINESTRING" );
-    addGeometry( full_table_name("ways") + "_vertices_pgr" , "POINT" );
+    createTable( create_classes, full_table_name("classes") );
 }
 
 void Export2DB::createTempTables() const{
@@ -215,11 +223,9 @@ void Export2DB::createTempTables() const{
 }
 
 void Export2DB::dropTempTable(const std::string &table) const {
-#if 1
     std::string drop_tables( "DROP TABLE IF EXISTS " +  table);
     PGresult *result = PQexec(mycon, drop_tables.c_str());
     PQclear(result);
-#endif
 }   
 
 void Export2DB::dropTable(const std::string &table) const {
@@ -241,13 +247,15 @@ void Export2DB::dropTempTables() const {
 
 void Export2DB::dropTables() const {
     dropTable(full_table_name("ways"));
-    dropTable(full_table_name("nodes"));
-    dropTable(full_table_name("classes"));
-    dropTable(full_table_name("relations"));
-    dropTable(full_table_name("relations_ways"));
-    dropTable(full_table_name("way_tag"));
-    dropTable(full_table_name("way_types"));
     dropTable(full_table_name("ways") + "_vertices_pgr");
+    dropTable(full_table_name("relations_ways"));
+
+    // we are not deleting general tables
+    // dropTable(full_table_name("nodes"));
+    // dropTable(full_table_name("classes"));
+    // dropTable(full_table_name("relations"));
+    // dropTable(full_table_name("way_tag"));
+    // dropTable(full_table_name("way_types"));
 }
 
 void Export2DB::exportNodes(std::map<long long, Node*>& nodes) const
@@ -255,11 +263,11 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes) const
     std::cout << "Processing " <<  nodes.size() <<  " nodes"  << "': ";
 
     //dropTempTable(full_table_name("nodes_temp"));
-    createTable( create_nodes, full_table_name("nodes_temp") );
-    addGeometry( full_table_name("nodes_temp"), "POINT" );
+    if (createTable( create_nodes, "__nodes_temp") )
+       addGeometry( "__nodes_temp", "POINT" );
 // std::cout << "\n" <<  "temp created";
 
-    std::string copy_nodes( "COPY " + full_table_name( "nodes_temp" ) + "(osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
+    std::string copy_nodes( "COPY __nodes_temp (osm_id, lon, lat, numofuse, the_geom) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
     if ( PQresultStatus(q_result) == PGRES_COPY_IN) {
         // while(it!=last)
@@ -290,27 +298,27 @@ void Export2DB::exportNodes(std::map<long long, Node*>& nodes) const
     PQclear(q_result);
 
     std::string insert_into_nodes(
-	 " DELETE FROM " + full_table_name( "nodes_temp" ) +
+	 " DELETE FROM __nodes_temp"
 	 " WHERE id IN (SELECT id"
          "     FROM (SELECT id,"
          "                    ROW_NUMBER() OVER (partition BY osm_id ORDER BY id) AS rnum"
-         "            FROM " + full_table_name( "nodes_temp" )  + " ) as b"
+         "            FROM __nodes_temp ) as b"
          "     WHERE b.rnum > 1) ;"
 
-         " DELETE FROM " + full_table_name( "nodes_temp" ) +
+         " DELETE FROM __nodes_temp"
          " WHERE osm_id IN (SELECT osm_id"
          "      FROM " + full_table_name("nodes") + ") ;"  
 
-         " WITH osm_vertex AS (SELECT b.osm_id from "  + full_table_name("nodes") + " a, " + full_table_name( "nodes_temp" ) + " b WHERE a.osm_id = b.osm_id)"
+         " WITH osm_vertex AS (SELECT b.osm_id from "  + full_table_name("nodes") + " a, __nodes_temp b WHERE a.osm_id = b.osm_id)"
          " INSERT INTO "  + full_table_name("nodes") + " (osm_id, lon, lat, numofuse, the_geom) "
-         "     (SELECT osm_id, lon, lat, numofuse, the_geom FROM " + full_table_name( "nodes_temp" ) +
+         "     (SELECT osm_id, lon, lat, numofuse, the_geom FROM __nodes_temp" 
          "     WHERE osm_id NOT IN (SELECT * FROM osm_vertex));");
 
-std::cout << insert_into_nodes;
+//std::cout << insert_into_nodes;
     q_result = PQexec(mycon, insert_into_nodes.c_str());
     PQclear(q_result);
 
-    dropTempTable(full_table_name("nodes_temp"));
+    dropTempTable("__nodes_temp");
 }
 
 void Export2DB::fill_vertices_table(const std::string &table, const std::string &node_table) const {
