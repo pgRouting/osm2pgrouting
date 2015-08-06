@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
+ *   Copyright (C) 2008 by Daniel Wendt       							   *
  *   gentoo.murray@gmail.com   											   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,46 +17,40 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <string>
 
-#include "stdafx.h"
-#include "Way.h"
+#include "./stdafx.h"
+#include "./Way.h"
 
+namespace osm {
 
-namespace osm
-{
-
-Way::Way( long long id, bool visible, long long osm_id, int maxspeed_forward, int maxspeed_backward)
+Way::Way(long long id, bool visible, long long osm_id, int maxspeed_forward, int maxspeed_backward)
 :
-	id(id),
-	visible(visible),
-	length(0),
-	oneWayType(UNKNOWN),
-	osm_id(osm_id),
-	maxspeed_forward(maxspeed_forward),
-	maxspeed_backward(maxspeed_backward)
-{
+    id(id),
+    visible(visible),
+    length(0),
+    oneWayType(UNKNOWN),
+    osm_id(osm_id),
+    maxspeed_forward(maxspeed_forward),
+    maxspeed_backward(maxspeed_backward) {
 }
 
-Way::~Way()
-{
+Way::~Way() {
 }
 
-void Way::AddNodeRef( Node* pNode )
-{
-	if( pNode ) m_NodeRefs.push_back(pNode);
+void Way::AddNodeRef(Node* pNode ) {
+    if (pNode) m_NodeRefs.push_back(pNode);
 }
 
-void Way::AddTag( std::string key , std::string value)
-{
-	m_Tags[key] = value;
+void Way::AddTag(std::string key , std::string value) {
+    m_Tags[key] = value;
 }
 
-bool Way::HasTag(std::string key)
-{
-	return (m_Tags.count(key)>0);
+bool Way::HasTag(std::string key) {
+    return (m_Tags.count(key) > 0);
 }
 
 
 
-} // end namespace osm
+}  // end namespace osm
 

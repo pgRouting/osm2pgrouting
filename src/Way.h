@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,14 +17,17 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef WAY_H
-#define WAY_H
+#ifndef SRC_WAY_H_
+#define SRC_WAY_H_
 
-namespace osm
-{
-	class Node;
+#include <vector>
+#include <map>
+#include <string>
 
-	enum OneWayType{ UNKNOWN = 0, YES, NO, REVERSED = -1};
+namespace osm {
+class Node;
+
+enum OneWayType{ UNKNOWN = 0, YES, NO, REVERSED = -1};
 
 /**
 \code
@@ -46,56 +49,55 @@ namespace osm
   </way>
 \endcode
 */
-class Way
-{
-public:
-	//! Do not delete nodes in this container!
-	std::vector<Node*> m_NodeRefs;
-	std::map<std::string, std::string> m_Tags;
-	//! ID of the way
-	long long id;
-	bool visible;
-	//! name of the street
-	std::string name;
-	//! type of the street, for example "motorway"
-	//std::string highway;
-	
-	std::string type;
-	std::string clss;
+class Way {
+ public:
+    // ! Do not delete nodes in this container!
+    std::vector<Node*> m_NodeRefs;
+    std::map<std::string, std::string> m_Tags;
+    // ! ID of the way
+    long long id;
+    bool visible;
+    //! name of the street
+    std::string name;
+    //! type of the street, for example "motorway"
+    // std::string highway;
 
-	//long long type;
-	//long long clss;
-	
-	//! geometry of the street
-	std::string geom;
-	//! length of the street
-	double length;
+    std::string type;
+    std::string clss;
 
-	int maxspeed_forward;
-	int maxspeed_backward;
+    // long long type;
+    // long long clss;
 
-	OneWayType oneWayType;
-	
-	long long osm_id;
+    //! geometry of the street
+    std::string geom;
+    //! length of the street
+    double length;
+
+    int maxspeed_forward;
+    int maxspeed_backward;
+
+    OneWayType oneWayType;
+
+    long long osm_id;
 
 
-public:
-	/** 
-	 *	Constructor
-	 *	@param id ID of the way
-	 */
-	Way( long long id, bool visible, long long osm_id,  int maxspeed_forward, int maxspeed_backward);
-	//! Destructor
-	~Way();
-	/**
-	 *	saves the nodes of the way  
-	 *	@param pNode node
-	 */
-	void AddNodeRef( Node* pNode );
-	void AddTag( std::string key, std::string value);
-	bool HasTag(std::string key);
+ public:
+    /** 
+     *    Constructor
+     *    @param id ID of the way
+     */
+    Way(long long id, bool visible, long long osm_id,  int maxspeed_forward, int maxspeed_backward);
+    //! Destructor
+    ~Way();
+    /**
+     *    saves the nodes of the way  
+     *    @param pNode node
+     */
+    void AddNodeRef(Node* pNode);
+    void AddTag(std::string key, std::string value);
+    bool HasTag(std::string key);
 };
 
 
-} // end namespace osm
+}  // end namespace osm
 #endif
