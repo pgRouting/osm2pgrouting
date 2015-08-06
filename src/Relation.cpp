@@ -17,34 +17,29 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include <string>
+#include "./stdafx.h"
+#include "./Relation.h"
+#include "./Way.h"
 
-#include "stdafx.h"
-#include "Relation.h"
-#include "Way.h"
 
+namespace osm {
 
-namespace osm
-{
-
-Relation::Relation( long long id )
+Relation::Relation(long long id)
 :
-	id(id)
-{
+    id(id) {
 }
 
-Relation::~Relation()
-{
+Relation::~Relation() {
 }
 
-void Relation::AddWayRef( long long pID )
-{
-	if( pID ) m_WayRefs.push_back(pID);
+void Relation::AddWayRef(long long pID) {
+    if (pID) m_WayRefs.push_back(pID);
 }
 
-void Relation::AddTag( std::string key, std::string value)
-{
-	m_Tags[key] = value;
+void Relation::AddTag(std::string key, std::string value) {
+    m_Tags[key] = value;
 }
 
-} // end namespace osm
+}  // end namespace osm
 
