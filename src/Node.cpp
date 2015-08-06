@@ -18,23 +18,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h"
-#include "Node.h"
+#include "./stdafx.h"
+#include "./Node.h"
 
-namespace osm
-{
+namespace osm {
 
-Node::Node( long long id, double lat, double lon )
+Node::Node(long long id, double lat, double lon)
 :
-	id(id),
-	lat(lat),
-	lon(lon)
-{
-	this->numsOfUse=0;
+    id(id),
+    lat(lat),
+    lon(lon) {
+    this->numsOfUse = 0;
 }
 
-Node::~Node()
-{
+Node::~Node() {
 }
 
-} // end namespace osm
+}  // end namespace osm

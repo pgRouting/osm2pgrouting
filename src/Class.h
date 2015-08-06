@@ -17,31 +17,34 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-                  
-#ifndef CLASS_H
-#define CLASS_H
+#ifndef SRC_CLASS_H_
+#define SRC_CLASS_H_
 
-namespace osm
-{
+#include <string>
 
-class Class
-{
-public:
-	long long id;
-	std::string name;
-	double priority;
-	int default_maxspeed;
-public:
-	/** 
-	 *	Constructor
-	 *	@param id ID of the class
-	 *	@param name name of the class
-	 */
-	Class( long long id, std::string name, double priority,int default_maxspeed);
-	//! Destructor
-	~Class();
+namespace osm {
+
+class Class {
+ public:
+    long long id;
+    std::string name;
+    double priority;
+    int default_maxspeed;
+ public:
+    /** 
+     *    Constructor
+     *    @param id ID of the class
+     *    @param name name of the class
+     */
+    Class(
+        long long id,
+        std::string name,
+        double priority,
+        int default_maxspeed);
+    //! Destructor
+    ~Class();
 };
 
 
-} // end namespace osm
-#endif
+}  // end namespace osm
+#endif  // SRC_CLASS_H_
