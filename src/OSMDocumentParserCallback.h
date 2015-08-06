@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,62 +18,57 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef OSMDOCUMENTPARSERCALLBACK_H
-#define OSMDOCUMENTPARSERCALLBACK_H
+#ifndef SRC_OSMDOCUMENTPARSERCALLBACK_H_
+#define SRC_OSMDOCUMENTPARSERCALLBACK_H_
 
 #include <string.h>
-#include "XMLParser.h"
+#include "./XMLParser.h"
 
-namespace osm
-{
+namespace osm {
 
 class OSMDocument;
 class Way;
 class Relation;
 
 /**
-	Parser callback for OSMDocument files
+    Parser callback for OSMDocument files
 */
-class OSMDocumentParserCallback : public xml::XMLParserCallback
-{	
-	//! reference to a OSMDocument object
-	OSMDocument& m_rDocument;
-	//! current way, which will be parsed
-	Way* m_pActWay;
-	Relation* m_pActRelation;
+class OSMDocumentParserCallback :
+  public xml::XMLParserCallback {
+    //! reference to a OSMDocument object
+    OSMDocument& m_rDocument;
+    //! current way, which will be parsed
+    Way* m_pActWay;
+    Relation* m_pActRelation;
 
-	virtual void StartElement( const char *name, const char** atts );
+    virtual void StartElement(const char *name, const char** atts);
 
-	virtual void EndElement( const char* name );
+    virtual void EndElement(const char* name);
 
-	virtual void SetContent( const char* ch, int len)
-	{
-	}
+    virtual void SetContent(const char* ch, int len) {
+    }
 
-	virtual void ProcessingInstruction( const char* target, const char* data )
-	{
-	}
+    virtual void ProcessingInstruction(const char* target, const char* data) {
+    }
 
-	virtual void CDataBlockInternal(const char *value, int len)
-	{
-	}
+    virtual void CDataBlockInternal(const char *value, int len) {
+    }
 
 
-public:
-	/**
-	 *	Constructor
-	 */
-	OSMDocumentParserCallback( OSMDocument& doc )
-	:
-		m_rDocument( doc ),
-		m_pActWay( 0 ),
-		m_pActRelation( 0 )
+ public:
+    /**
+     *    Constructor
+     */
+    OSMDocumentParserCallback(OSMDocument& doc)
+    :
+        m_rDocument(doc),
+        m_pActWay(0),
+        m_pActRelation(0)
 
-	{
-	}
+    {
+    }
+};  // class OSMDocumentParserCallback
 
-}; // class OSMDocumentParserCallback
+};  // end namespace osm
 
-}; // end namespace osm
-
-#endif
+#endif  // SRC_OSMDOCUMENTPARSERCALLBACK_H_
