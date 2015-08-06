@@ -17,38 +17,37 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-                  
-#ifndef TYPE_H
-#define TYPE_H
 
-#include "Class.h"
+#ifndef SRC_TYPE_H_
+#define SRC_TYPE_H_
 
-namespace osm
-{
+#include <map>
+#include <string>
+#include "./Class.h"
 
-class Type
-{
-public:
-	//std::vector<Class*> m_ClassRefs;
-	std::map<std::string, Class*> m_Classes;
-	//std::map<long long, Class*> m_Classes;
-	long long id;
-	std::string name;
-public:
-	/** 
-	 *	Constructor
-	 *	@param name name of the type
-	 */
-	Type( long long id, std::string );
-	//! Destructor
-	~Type();
-	/**
-	 *	saves the classes of the type
-	 *	@param pClass class
-	 */
-	void AddClass( Class* pClass );
+namespace osm {
+
+class Type {
+ public:
+    //  std::vector<Class*> m_ClassRefs;
+    std::map<std::string, Class*> m_Classes;
+    //  std::map<long long, Class*> m_Classes;
+    long long id;
+    std::string name;
+ public:
+    /** 
+     *    Constructor
+     *    @param name name of the type
+     */
+    Type(long long id, std::string);
+    //! Destructor
+    ~Type();
+    /**
+     *    saves the classes of the type
+     *    @param pClass class
+     */
+    void AddClass(Class* pClass);
 };
 
-
-} // end namespace osm
+}  // end namespace osm
 #endif
