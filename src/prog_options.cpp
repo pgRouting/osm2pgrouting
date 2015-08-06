@@ -24,22 +24,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 >> ./a --help
 */
 
-
-#include <boost/config.hpp>
-#include <string>
 #include <boost/program_options.hpp>
-namespace po = boost::program_options;
-
+#include <boost/config.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <string>
+namespace po = boost::program_options;
+
 using namespace std;
 
 
 void get_option_description(po::options_description &od_desc) {
-    // po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
-    po::options_description help_od_desc("Help"), general_od_desc("General"), db_options_od_desc("Database options"), not_used_od_desc("Not used currently");
+    /* po::options_description help_od_desc("Help"),
+        required_od_desc("Required options"),
+        optional_od_desc("Optional options");
+    */
+    po::options_description help_od_desc("Help"),
+        general_od_desc("General"),
+        db_options_od_desc("Database options"),
+        not_used_od_desc("Not used currently");
 
     help_od_desc.add_options()
         // help
