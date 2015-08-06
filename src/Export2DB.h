@@ -90,8 +90,9 @@ public:
  	void createTempTable(const std::string &sql,
 			 const std::string &msg) const;
         void dropTable(const std::string &table) const;
- 	void createTable(const std::string &sql,
-			 const std::string &msg) const;
+ 	bool createTable(const std::string &sql,
+			 const std::string &table,
+			 const std::string &constraint = std::string("")) const;
 	void addGeometry( const std::string &table,
                          const std::string &geometry_type) const;
         inline std::string full_table_name(const std::string &table) const {
