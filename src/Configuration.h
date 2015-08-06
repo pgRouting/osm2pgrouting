@@ -67,4 +67,5 @@ class Configuration {
 
 
 }  // end namespace osm
-#endif
+
+#endif  // SRC_CONFIGURATION_H__
