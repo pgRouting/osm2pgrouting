@@ -24,22 +24,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 >> ./a --help
 */
 
-
-#include <boost/config.hpp>
-#include <string>
 #include <boost/program_options.hpp>
-namespace po = boost::program_options;
-
+#include <boost/config.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <string>
+namespace po = boost::program_options;
+
 using namespace std;
 
 
 void get_option_description(po::options_description &od_desc) {
-    // po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
-    po::options_description help_od_desc("Help"), general_od_desc("General"), db_options_od_desc("Database options"), not_used_od_desc("Not used currently");
+    /* po::options_description help_od_desc("Help"),
+        required_od_desc("Required options"),
+        optional_od_desc("Optional options");
+    */
+    po::options_description help_od_desc("Help"),
+        general_od_desc("General"),
+        db_options_od_desc("Database options"),
+        not_used_od_desc("Not used currently");
 
     help_od_desc.add_options()
         // help
@@ -48,11 +53,12 @@ void get_option_description(po::options_description &od_desc) {
 
     general_od_desc.add_options()
         // general
-        ("file,f", po::value<string>()->required(), "Name of your osm xml file (Required).")
-        ("prefix", po::value<string>()->default_value("pgr_"), "Add at the beginning of table names.")
-        ("suffix", po::value<string>()->default_value("_car"), "Add at the end of table names.")
-        ("skipnodes,s", po::value<bool>()->default_value(false), "Don't import the node table.")
+        ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
+        ("prefix", po::value<string>()->default_value("planet_"), "Prefix added at the beginning of table names.")
+        ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
+        ("skipnodes,s", po::value<bool>()->default_value(true), "When ture: don't import the node table.")
+        ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")
         ;
 
     db_options_od_desc.add_options()
@@ -62,7 +68,6 @@ void get_option_description(po::options_description &od_desc) {
         ("host,h", po::value<string>()->default_value("localhost"), "Host of your postgresql database.")
         ("db_port,p", po::value<string>()->default_value("5432"), "db_port of your database.")
         ("passwd", po::value<string>()->default_value(""), "Password for database access.")
-        ("clean", po::value<bool>()->default_value(false), "Drop previously created tables.")
         ;
 
     not_used_od_desc.add_options()
@@ -76,39 +81,26 @@ void get_option_description(po::options_description &od_desc) {
     return;
 }
 
+
+
 int process_command_line(
   po::variables_map &vm,
   po::options_description &od_desc) {
-    if (vm.count("file"))
-        cout << "Filename is: " << vm["file"].as<string>() << "\n";
-    else
-        std::cout << "Parameter: file missing\n";
-
-    if (vm.count("conf"))
-        cout << "Configuration XML Filename is: " << vm["conf"].as<string>() << "\n";
-    else
-        std::cout << "Parameter: config file name missing\n";
-
-    if (vm.count("dbname"))
-        std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
-    else
-        std::cout << "Parameter: dbname missing\n";
-
-    std::cout << "user = " << vm["user"].as<std::string>() << "\n";
+    std::cout << "***************************************************\n";
+    std::cout << "           COMMAND LINE CONFIGURATION             *\n";
+    std::cout << "***************************************************\n";
+    std::cout << "Filename = " << vm["file"].as<string>() << "\n";
+    std::cout << "Configuration file = " << vm["conf"].as<string>() << "\n";
     std::cout << "host = " << vm["host"].as<std::string>() << "\n";
     std::cout << "db_port = " << vm["db_port"].as<std::string>() << "\n";
-    std::cout << "passwd is: " << vm["passwd"].as<string>() << "\n";
-    std::cout << "prefix is: " << vm["prefix"].as<string>() << "\n";
-    std::cout << "suffix is: " << vm["suffix"].as<string>() << "\n";
-    std::cout << "clean is: " << vm["clean"].as<bool>() << "\n";
-    std::cout << "skipnodes is: " << vm["skipnodes"].as<bool>() << "\n";
-
-    if ( vm.count("dbname") & vm.count("user") & vm.count("host") & vm.count("passwd") ) {
-        return 2;
-    } else {
-        std::cout << "Missing Database connectivity parameter.\n";
-        return 1;
-    }
+    std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
+    std::cout << "user = " << vm["user"].as<std::string>() << "\n";
+    std::cout << "passwd = " << vm["passwd"].as<string>() << "\n";
+    std::cout << "prefix = " << vm["prefix"].as<string>() << "\n";
+    std::cout << "suffix = " << vm["suffix"].as<string>() << "\n";
+    std::cout << (vm["clean"].as<bool>()? "C" : "Don't c") << "lean tables\n";
+    std::cout << (vm["skipnodes"].as<bool>()? "I" : "Don't I") << "nclude node table\n";
+    std::cout << "***************************************************\n";
 
     return 0;
 }

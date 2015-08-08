@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,59 +21,53 @@
 #include <cstdio> 
 #include <errno.h>
 #include <string.h>
-#include "stdafx.h"
-#include "XMLParser.h"
+
+#include "./stdafx.h"
+#include "./XMLParser.h"
 
 
-namespace xml
-{
+namespace xml {
 
 //------------------------------------- global Expat Callbacks:
 
-static void startElement(void *userData, const char *name, const char **atts)
-{
-	XMLParserCallback* pCallback = (XMLParserCallback*) userData;
-	if( pCallback ) pCallback->StartElement( name, atts );
+static void startElement(void *userData, const char *name, const char **atts) {
+    XMLParserCallback* pCallback = (XMLParserCallback*) userData;
+    if (pCallback) pCallback->StartElement(name, atts);
 }
 
-static void endElement(void *userData, const char *name)
-{
-	XMLParserCallback* pCallback = (XMLParserCallback*) userData;
-	if( pCallback ) pCallback->EndElement( name );
+static void endElement(void *userData, const char *name) {
+    XMLParserCallback* pCallback = (XMLParserCallback*) userData;
+    if (pCallback) pCallback->EndElement(name);
 }
 
 
 
 
-int XMLParser::Parse( XMLParserCallback& rCallback, const char* chFileName )
-{
-  int ret = 1; // File not found
+int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
+  int ret = 1;  // File not found
 
-  FILE* fp = fopen(chFileName,"rb");
-  if( fp )
-  {
+  FILE* fp = fopen(chFileName, "rb");
+  if (fp) {
     XML_Parser parser = XML_ParserCreate(NULL);
 
-    XML_SetUserData( parser, (void*)&rCallback );
+    XML_SetUserData(parser, (void*)&rCallback);
 
     // register Callbacks for start- and end-element events of the parser:
     XML_SetElementHandler(parser, startElement, endElement);
 
     int done;
-    do // loop over whole file content
-    {
+    do {  // loop over whole file content
       char buf[BUFSIZ];
-      size_t len = fread(buf, 1, sizeof(buf), fp);	// read chunk of data
-      done = len < sizeof(buf);	// end of file reached if buffer not completely filled
-      if (!XML_Parse(parser, buf, (int)len, done))
-  	{
-  	  // a parse error occured:
+      size_t len = fread(buf, 1, sizeof(buf), fp);    // read chunk of data
+      done = len < sizeof(buf);    // end of file reached if buffer not completely filled
+      if (!XML_Parse(parser, buf, (int)len, done)) {
+        // a parse error occured:
         fprintf(stderr,
-  	      "%s at line %d\n",
-  	      XML_ErrorString(XML_GetErrorCode(parser)),(int)
-  	      XML_GetCurrentLineNumber(parser));
-  	       fclose(fp);
-        ret = 2;	// quit, return = 2 indicating parsing error
+            "%s at line %d\n",
+            XML_ErrorString(XML_GetErrorCode(parser)), (int)
+            XML_GetCurrentLineNumber(parser));
+             fclose(fp);
+        ret = 2;    // quit, return = 2 indicating parsing error
         done = 1;
       }
     } while (!done);
@@ -81,13 +75,13 @@ int XMLParser::Parse( XMLParserCallback& rCallback, const char* chFileName )
     XML_ParserFree(parser);
     fclose(fp);
     ret = 0;
-  }else{
+  } else {
     fprintf(stderr, "Error opening %s: %s\n", chFileName, strerror(errno));
   }
-  return ret; // return = 0 indicating success
+  return ret;  // return = 0 indicating success
 }
 
 
 
-} // end namespace xml
+}  // end namespace xml
 //! \endcond
