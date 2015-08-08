@@ -21,8 +21,12 @@
 #ifndef EXPORT2DB_H
 #define EXPORT2DB_H
 
+#ifdef __MINGW32__
+#include "libpq-fe.h"
+#else
 #include "postgresql/libpq-fe.h"
-//#include "libpq-fe.h"
+#endif
+
 #include "Node.h"
 #include "Way.h"
 #include "Relation.h"
