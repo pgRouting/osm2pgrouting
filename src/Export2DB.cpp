@@ -595,11 +595,13 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     PQendcopy(mycon);
     PQclear(q_result);
 
+    fill_source_target( "__ways_temp" );
+
     std::string insert_into_ways(
          " WITH data AS ( "
          " SELECT a.* "
          " FROM  __ways_temp a LEFT JOIN " + full_table_name("ways") + " b USING (source_osm, target_osm, the_geom) "
-         "     WHERE (b.source_osm IS NULL OR target_osm IS NULL OR the_geom IS NULL))"
+         "     WHERE (b.source_osm IS NULL OR b.target_osm IS NULL OR b.the_geom IS NULL))"
 
          " INSERT INTO " + full_table_name("ways") +
           "( " + ways_columns + " ) "
@@ -717,5 +719,5 @@ void Export2DB::createTopology() const
 {
     fill_source_target( full_table_name( "ways" ) );
     fill_vertices_table( full_table_name( "ways" ), full_table_name( "nodes" ) );
-    fill_source_target( full_table_name( "ways" ) );
+    //fill_source_target( full_table_name( "ways" ) );
 }
