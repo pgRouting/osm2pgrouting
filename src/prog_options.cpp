@@ -24,22 +24,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 >> ./a --help
 */
 
-
-#include <boost/config.hpp>
-#include <string>
 #include <boost/program_options.hpp>
-namespace po = boost::program_options;
-
+#include <boost/config.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <string>
+namespace po = boost::program_options;
+
 using namespace std;
 
 
 void get_option_description(po::options_description &od_desc) {
-    // po::options_description help_od_desc("Help"),required_od_desc("Required options"),optional_od_desc("Optional options");
-    po::options_description help_od_desc("Help"), general_od_desc("General"), db_options_od_desc("Database options"), not_used_od_desc("Not used currently");
+    /* po::options_description help_od_desc("Help"),
+        required_od_desc("Required options"),
+        optional_od_desc("Optional options");
+    */
+    po::options_description help_od_desc("Help"),
+        general_od_desc("General"),
+        db_options_od_desc("Database options"),
+        not_used_od_desc("Not used currently");
 
     help_od_desc.add_options()
         // help
@@ -50,7 +55,7 @@ void get_option_description(po::options_description &od_desc) {
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
-        ("prefix", po::value<string>()->default_value("pgr_"), "Prefix added at the beginning of table names.")
+        ("prefix", po::value<string>()->default_value("planet_"), "Prefix added at the beginning of table names.")
         ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
         ("skipnodes,s", po::value<bool>()->default_value(true), "When ture: don't import the node table.")
         ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")

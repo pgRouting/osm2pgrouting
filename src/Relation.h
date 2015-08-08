@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,12 +17,15 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef RELATION_H
-#define RELATION_H
+#ifndef SRC_RELATION_H_
+#define SRC_RELATION_H_
 
-namespace osm
-{
-	class Way;
+#include <vector>
+#include <map>
+#include <string>
+
+namespace osm {
+class Way;
 
 /**
 \code
@@ -44,31 +47,29 @@ namespace osm
   </way>
 \endcode
 */
-class Relation
-{
-public:
-	long long id;
+class Relation {
+ public:
+    long long id;
     std::string name;
-	std::vector<long long> m_WayRefs;
-	std::map<std::string, std::string> m_Tags;
+    std::vector<long long> m_WayRefs;
+    std::map<std::string, std::string> m_Tags;
 
-public:
-	/** 
-	 *	Constructor
-	 *	@param id ID of the way
-	 */
-	Relation( long long id );
-	//! Destructor
-	~Relation();
-	/**
-	 *	saves the nodes of the way  
-	 *	@param pNode node
-	 */
-	void AddWayRef( long long pID );
-	void AddTag(std::string key, std::string value);
-
+ public:
+    /** 
+     *    Constructor
+     *    @param id ID of the way
+     */
+    Relation(long long id);
+    //! Destructor
+    ~Relation();
+    /**
+     *    saves the nodes of the way  
+     *    @param pNode node
+     */
+    void AddWayRef(long long pID);
+    void AddTag(std::string key, std::string value);
 };
 
 
-} // end namespace osm
-#endif
+}  // end namespace osm
+#endif  // SRC_RELATION_H_

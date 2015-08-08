@@ -63,12 +63,14 @@ public:
  	void createTables() const;
  	void createTempTables() const;
  	//! exports nodes to the database
- 	void exportNodes(std::map<long long, Node*>& nodes) const;
+ 	void exportNodes(const std::map<long long, Node*>& nodes) const;
  	//! exports ways to the database
- 	void exportWays(std::vector<Way*>& ways, Configuration* config) const;
- 	void exportRelations(std::vector<Relation*>& relations, Configuration* config) const;
-
- 	void exportTypesWithClasses(std::map<std::string, Type*>& types) const;
+ 	void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
+ 	void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
+ 	void exportRelationsWays(const std::vector<Relation*> &relations, Configuration *config) const;
+ 	void exportTypes(const std::map<std::string, Type*>& types) const;
+ 	void exportClasses(const std::map<std::string, Type*>& types) const;
+ 	void exportWays(const std::vector<Way*> &ways, Configuration *config) const;
 
  	/**
  	 * creates the topology
@@ -87,12 +89,16 @@ public:
 
  private:
         void dropTempTable(const std::string &table) const;
- 	void createTempTable(const std::string &sql,
-			 const std::string &msg) const;
+ 	bool createTempTable(const std::string &sql,
+			 const std::string &table) const;
         void dropTable(const std::string &table) const;
+ 	bool createTempTable(const std::string &sql,
+			 const std::string &table);
  	bool createTable(const std::string &sql,
 			 const std::string &table,
 			 const std::string &constraint = std::string("")) const;
+	void addTempGeometry( const std::string &table,
+                         const std::string &geometry_type) const;
 	void addGeometry( const std::string &table,
                          const std::string &geometry_type) const;
         inline std::string full_table_name(const std::string &table) const {

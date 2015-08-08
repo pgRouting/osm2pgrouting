@@ -17,28 +17,24 @@
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
-                  
-#include "stdafx.h"
-#include "Type.h"
+#include <string>
+#include "./stdafx.h"
+#include "./Type.h"
 
-namespace osm
-{
+namespace osm {
 
-Type::Type( long long id, std::string name)
+Type::Type(long long id, std::string name)
 :
   id(id),
-  name(name)
-{
+  name(name) {
 }
-                        
-Type::~Type()
-{
-}
-                        
-void Type::AddClass( Class* pClass )
-{
-  if( pClass ) m_Classes[pClass->name] = pClass;
-}
-                                
 
-} // end namespace osm
+Type::~Type() {
+}
+
+void Type::AddClass(Class* pClass ) {
+  if (pClass) m_Classes[pClass->name] = pClass;
+}
+
+
+}  // end namespace osm
