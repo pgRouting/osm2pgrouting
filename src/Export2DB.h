@@ -87,12 +87,16 @@ public:
 
  private:
         void dropTempTable(const std::string &table) const;
- 	void createTempTable(const std::string &sql,
-			 const std::string &msg) const;
+ 	bool createTempTable(const std::string &sql,
+			 const std::string &table) const;
         void dropTable(const std::string &table) const;
+ 	bool createTempTable(const std::string &sql,
+			 const std::string &table);
  	bool createTable(const std::string &sql,
 			 const std::string &table,
 			 const std::string &constraint = std::string("")) const;
+	void addTempGeometry( const std::string &table,
+                         const std::string &geometry_type) const;
 	void addGeometry( const std::string &table,
                          const std::string &geometry_type) const;
         inline std::string full_table_name(const std::string &table) const {
