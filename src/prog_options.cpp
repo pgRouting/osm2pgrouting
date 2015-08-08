@@ -76,7 +76,7 @@ void get_option_description(po::options_description &od_desc) {
         ("multilevel,l", po::value<bool>()->default_value(false), "multilevel.")
         ;
 
-    od_desc.add(help_od_desc).add(general_od_desc).add(db_options_od_desc).add(not_used_od_desc);
+    od_desc.add(help_od_desc).add(general_od_desc).add(db_options_od_desc);  // .add(not_used_od_desc);
 
     return;
 }
