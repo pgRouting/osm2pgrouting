@@ -40,17 +40,28 @@ osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -u
 A complete list of arguments are:
 
 ```
-required: 
--file <file>  			-- name of your osm xml file
--dbname <dbname> 		-- name of your database
--user <user> 			-- name of the user, which have write access to the database
--conf <file> 			-- name of your configuration xml file
+Allowed options:
 
-optional:
--host <host>  			-- host of your postgresql database (default: 127.0.0.1)
--port <port> 			-- port of your database (default: 5432)
--prefixtables <prefix> 	-- add at the beginning of table names
--passwd <passwd> 		-- password for database access
--clean 					-- drop previously created tables
--skipnodes				-- do not load nodes into the node table (reduces runtime) 
+Help:
+  --help                Produce help message for this version.
+
+General:
+  -f [ --file ] arg                     Name of your osm file (Required).
+  -c [ --conf ] arg (=/usr/share/osm2pgrouting/mapconfig.xml)
+                                        Name of your configuration xml file.
+  --prefix arg (=planet_)               Prefix added at the beginning of table 
+                                        names.
+  --suffix arg                          Suffix added at the end of table names.
+  -s [ --skipnodes ] arg (=1)           When ture: dont import the node table.
+  --clean arg (=0)                      When true: Drop previously created 
+                                        tables.
+
+Database options:
+  -d [ --dbname ] arg            Name of your database (Required).
+  -u [ --user ] arg (=mapas)     Name of the user, which have write access to 
+                                 the database.
+  -h [ --host ] arg (=localhost) Host of your postgresql database.
+  -p [ --db_port ] arg (=5432)   db_port of your database.
+  --passwd arg                   Password for database access.
+
 ```

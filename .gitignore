@@ -11,3 +11,4 @@ tools/vagrant/packaging.sh
 .project
 .cproject
 .vagrant
+run.sh
