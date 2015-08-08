@@ -50,7 +50,7 @@ void get_option_description(po::options_description &od_desc) {
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
-        ("prefix", po::value<string>()->default_value("pgr_"), "Prefix added at the beginning of table names.")
+        ("prefix", po::value<string>()->default_value("planet_"), "Prefix added at the beginning of table names.")
         ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
         ("skipnodes,s", po::value<bool>()->default_value(true), "When ture: don't import the node table.")
         ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")
