@@ -510,6 +510,8 @@ std::cout << relation->m_WayRefs.size() << "\n";
     <tag k="type" v="route"/>
   </relation>
  */
+
+#if 0
 void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
 {
     std::cout << "    Processing " <<  ways.size() <<  " ways for tags"  << ": ";
@@ -537,9 +539,10 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
+}
 
-
-
+#else
+void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
 ////////  NOW THE WAYS
 
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ": ";
@@ -641,13 +644,13 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
 
 
     q_result = PQexec(mycon, insert_into_ways.c_str());
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
+    std::cout << " Inserted " << PQcmdTuples(q_result) << " ways\n";
 
     PQclear(q_result);
     dropTempTable("__ways_temp");
 
 }
-
+#endif
 
 
 
