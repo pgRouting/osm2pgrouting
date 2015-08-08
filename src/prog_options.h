@@ -16,8 +16,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef _prog_options_h
-#define _prog_options_h
+#ifndef SRC_PROG_OPTIONS_H_
+#define SRC_PROG_OPTIONS_H_
 
 #include <boost/config.hpp>
 // #include <string>
@@ -31,6 +31,7 @@ namespace po = boost::program_options;
 using namespace std;
 
 void get_option_description(po::options_description &od_desc);
-int process_command_line(po::variables_map &vm,po::options_description &od_desc);
+int process_command_line(po::variables_map &vm,
+    po::options_description &od_desc);
 
-#endif
+#endif  // SRC_PROG_OPTIONS_H_
