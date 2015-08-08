@@ -152,7 +152,7 @@ void OSMDocumentParserCallback::StartElement( const char *name, const char** att
 	// END OF THE RELATIONS CODE
 	else if( strcmp(name,"tag") == 0 )
 	{
-		// <tag k="name" v="Pf�nderweg"/>
+		// <tag k="name" v="Pfnderweg"/>
 		if (atts != NULL)
 		{
 			std::string k;

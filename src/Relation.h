@@ -48,7 +48,7 @@ class Relation
 {
 public:
 	long long id;
-    std::string name;
+        std::string name;
 	std::vector<long long> m_WayRefs;
 	std::map<std::string, std::string> m_Tags;
 
