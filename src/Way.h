@@ -24,7 +24,7 @@ namespace osm
 {
 	class Node;
 
-	enum OneWayType{ YES, NO, REVERSED};
+	enum OneWayType{ UNKNOWN = 0, YES, NO, REVERSED = -1};
 
 /**
 \code
