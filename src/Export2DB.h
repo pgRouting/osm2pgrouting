@@ -63,12 +63,13 @@ public:
  	void createTables() const;
  	void createTempTables() const;
  	//! exports nodes to the database
- 	void exportNodes(std::map<long long, Node*>& nodes) const;
+ 	void exportNodes(const std::map<long long, Node*>& nodes) const;
  	//! exports ways to the database
- 	void exportWays(std::vector<Way*>& ways, Configuration* config) const;
- 	void exportRelations(std::vector<Relation*>& relations, Configuration* config) const;
-
- 	void exportTypesWithClasses(std::map<std::string, Type*>& types) const;
+ 	void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
+ 	void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
+ 	void exportTypes(const std::map<std::string, Type*>& types) const;
+ 	void exportClasses(const std::map<std::string, Type*>& types) const;
+ 	void exportWays(const std::vector<Way*> &ways, Configuration *config) const;
 
  	/**
  	 * creates the topology

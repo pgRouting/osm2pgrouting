@@ -45,13 +45,12 @@ Export2DB::Export2DB(const  po::variables_map &vm)
     );
 
     create_way_tag = std::string(
-           "type_id integer,"
            " class_id integer,"
            " way_id bigint"
     );
 
     create_nodes =std::string(
-        "id bigserial PRIMARY KEY,"
+        " node_id bigserial PRIMARY KEY,"
         " osm_id bigint,"
         " lon decimal(11,8),"
         " lat decimal(11,8),"
@@ -71,7 +70,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
     );
         create_ways =std::string(
 
-            "gid bigserial,"
+            " gid bigserial,"
             " class_id integer not null,"
             " length double precision,"
             " name text,"
@@ -93,7 +92,6 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " priority double precision DEFAULT 1"
         );
         create_relations =std::string(
-
            "relation_id bigint,"
            " type_id integer,"
            " class_id integer,"
@@ -101,13 +99,12 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         );
         create_relations_ways =std::string(
 
-           "relation_id bigint,"
+           " relation_id bigint,"
            " way_id bigint,"
            " type character varying(200)"
        ); 
-       create_classes =std::string(
-
-           "id integer PRIMARY KEY,"
+       create_classes = std::string(
+           " class_id integer PRIMARY KEY,"
            " type_id integer,"
            " name text,"
            " priority double precision,"
@@ -142,11 +139,13 @@ int Export2DB::connect() {
 ***/
 }
 
+
 /*!
- CREATE TABLE prefix_table_suffix (
-    table_description,
-    constraint
+
+ CREATE TEMP TABLE table (
+    table_description
  );
+
 */
 bool Export2DB::createTempTable (const std::string &table_description,
                             const std::string &table) const {
@@ -161,20 +160,26 @@ bool Export2DB::createTempTable (const std::string &table_description,
     return created;
 }
 
+/*!
+
+ CREATE TABLE table (
+    table_description,
+    constraint
+ );
+
+*/
 bool Export2DB::createTable(const std::string &table_description,
                             const std::string &table,
                             const std::string &constraint) const {
     std::string sql = 
 	"CREATE TABLE " + table + "("    // + schema + "." + prefix etc
         + table_description + ")";
+
     PGresult *result = PQexec(mycon, sql.c_str());
     bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
-    std::cout << "Creating '" << table <<"': " ;
-    if ( created ) {
-            std::cout << "   OK" << std::endl;
-    } else {
-            std::cout << "   Table " << table << " already exists... skipping." << std::endl;
-    }
+
+    std::cout << (created? "Creating '" : " Exists: '") << table <<"': OK\n" ;
+
     PQclear(result);
     return created;
 }
@@ -183,7 +188,7 @@ bool Export2DB::createTable(const std::string &table_description,
 void Export2DB::addGeometry(
              const std::string &table,
              const std::string &geometry_type) const {
-           std::cout << "Adding Geometry to '" << table << "':";
+           std::cout << "   Adding Geometry: ";
     std::string sql = 
                + " SELECT AddGeometryColumn('" 
          + table + "'," 
@@ -228,7 +233,7 @@ void Export2DB::createTables() const{
                      ", CONSTRAINT node_id UNIQUE(osm_id)") )
         addGeometry( "osm_nodes", "POINT" );
     createTable( create_relations, "osm_relations" );
-    createTable( create_way_tag, "osm_way_tag" );
+    createTable( create_way_tag, "osm_way_tags" );
     createTable( create_types, "osm_way_types" );
     createTable( create_classes, "osm_way_classes" );
 }
@@ -275,12 +280,7 @@ void Export2DB::dropTables() const {
     dropTable(full_table_name("ways") + "_vertices_pgr");
     dropTable(full_table_name("relations_ways"));
 
-    // we are not deleting general tables
-    // dropTable(full_table_name("nodes"));
-    // dropTable(full_table_name("classes"));
-    // dropTable(full_table_name("relations"));
-    // dropTable(full_table_name("way_tag"));
-    // dropTable(full_table_name("way_types"));
+    // we are not deleting general tables osm_
 }
 
 /*!
@@ -291,8 +291,7 @@ Inserts the data to the final table only if
 doesnt exist already
 
 */
-void Export2DB::exportNodes(std::map<long long, Node*>& nodes) const
-{
+void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
     std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ": ";
 
     if (createTempTable( create_nodes, "__nodes_temp" ))
@@ -361,7 +360,7 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 }
 
 void Export2DB::fill_source_target(const std::string &table) const {
-    std::cout << "Filling source and target columns of'" << table << "': ";
+    std::cout << "Filling source and target columns of '" << table << "': ";
     std::string sql1(
         " UPDATE " + table + " AS w"
         " SET source = v.id "
@@ -374,6 +373,10 @@ void Export2DB::fill_source_target(const std::string &table) const {
         " WHERE target is NULL and w.target_osm = v.osm_id;");
 
     PGresult* q_result = PQexec(mycon, sql1.c_str());
+
+    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+
+#if 0
     if (PQresultStatus(q_result) == PGRES_COMMAND_OK)
          std::cout << " OK " << PQcmdStatus(q_result);
     else
@@ -385,12 +388,13 @@ void Export2DB::fill_source_target(const std::string &table) const {
          std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
     else
          std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
+#endif
     PQclear(q_result);
 }
 
 
 #if 1
-void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration* config) const
+void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configuration *config) const
 {
     std::cout << "    Processing " << relations.size() << " relations\n";
     createTempTable( create_relations, "__relations_temp" );
@@ -511,39 +515,46 @@ std::cout << relation->m_WayRefs.size() << "\n";
   </relation>
  */
 
-#if 0
-void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
+void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config) const
 {
-    std::cout << "    Processing " <<  ways.size() <<  " ways for tags"  << ": ";
+    std::cout << "    Processing way's tags"  << ": ";
 
-    std::string copy_way_tag( "COPY  osm_way_tag (type_id, class_id, way_id) FROM STDIN");
-
+    createTempTable( create_way_tag, "__way_tag_temp"); 
+    std::string copy_way_tag( "COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
     
-    for (const auto &way : ways)
-    {
-        std::map<std::string, std::string>::iterator it_tag( way->m_Tags.begin() );
-        std::map<std::string, std::string>::iterator last_tag( way->m_Tags.end() );
-        for (const auto &tag : way->m_Tags)
-        {
-            std::string row_data = TO_STR(config->FindType(tag.first)->id);
-            row_data += "\t";
-            row_data += TO_STR(config->FindClass(tag.first, tag.second)->id);
+    for (const auto &way : ways) {
+        for (const auto &tag : way->m_Tags) {
+            std::string row_data = TO_STR(config->FindClass(tag.first, tag.second)->id);
             row_data += "\t";
             row_data += TO_STR(way->id);
             row_data += "\n";
-
             PQputline(mycon, row_data.c_str());
         }
     }
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
+
+    std::string insert_into_tags(
+         " WITH data AS ( "
+         " SELECT a.class_id, a.way_id "
+         " FROM  __way_tag_temp a LEFT JOIN osm_way_tags b USING ( class_id, way_id ) "
+         "     WHERE ( b.class_id IS NULL OR b.way_id IS NULL))"
+
+         " INSERT INTO osm_way_tags "
+         " SELECT * FROM data; ");
+
+    q_result = PQexec(mycon, insert_into_tags.c_str());
+    std::cout << " Inserted " << PQcmdTuples(q_result) << " way's tags\n";
+    PQclear(q_result);
+
+    dropTempTable("__way_tag_temp");
 }
 
-#else
-void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
-////////  NOW THE WAYS
+
+
+void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config) const {
 
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ": ";
     if (createTempTable( create_ways, "__ways_temp") )
@@ -563,7 +574,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
     std::string copy_ways( "COPY __ways_temp  ("
                     + ways_columns
                     + " ) FROM STDIN");
-    q_result = PQexec(mycon, copy_ways.c_str());
+     PGresult* q_result = PQexec(mycon, copy_ways.c_str());
 
     for (const auto &way : ways)
     {
@@ -650,7 +661,6 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
     dropTempTable("__ways_temp");
 
 }
-#endif
 
 
 
@@ -659,7 +669,7 @@ void Export2DB::exportWays(std::vector<Way*>& ways, Configuration* config) const
 
 
 
-void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)  const
+void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const
 {
     std::cout << "    Processing " << types.size() << " way types: ";
 
@@ -695,31 +705,38 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)  con
 
     PQclear(q_result);
     dropTempTable("__way_types_temp");
+}
 
 
 
 
 
 
-    std::cout << "Processing Classes\n";
-    std::string copy_classes( "COPY " + full_table_name( "classes" ) + "(id, type_id, name, priority, default_maxspeed) FROM STDIN");
-    q_result = PQexec(mycon, copy_classes.c_str());
-    for ( const auto &e : types)
-    {
-        //Type* type = *tIt++.second;
-        Type* type = e.second;
-        for (const auto &c : type->m_Classes )
-        {
-            Class* clss = c.second;
-            std::string row_data = TO_STR(clss->id);
+void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const {
+    std::cout << "    Processing way's classes: ";
+
+    std::string copy_classes(
+            "COPY __classes_temp"   
+            "   (class_id, type_id, name, priority, default_maxspeed)"
+            "   FROM STDIN");
+
+    createTempTable( create_classes, "__classes_temp" );
+    PGresult *q_result = PQexec(mycon, copy_classes.c_str());
+
+    for ( const auto &t : types) {
+        Type type(*t.second);
+
+        for (const auto &c : type.m_Classes ) {
+            Class clss(*c.second);
+            std::string row_data = TO_STR(clss.id);
             row_data += "\t";
-            row_data += TO_STR(type->id);
+            row_data += TO_STR(type.id);
             row_data += "\t";
-            row_data += clss->name;
+            row_data += clss.name;
             row_data += "\t";
-            row_data += TO_STR(clss->priority);
+            row_data += TO_STR(clss.priority);
             row_data += "\t";
-            row_data += TO_STR(clss->default_maxspeed);
+            row_data += TO_STR(clss.default_maxspeed);
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
@@ -727,6 +744,21 @@ void Export2DB::exportTypesWithClasses(std::map<std::string, Type*>& types)  con
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
+
+    std::string insert_into_classes(
+         " WITH data AS ( "
+         " SELECT a.* "
+         " FROM  __classes_temp a LEFT JOIN osm_way_classes b USING ( class_id ) "
+         "     WHERE (b.class_id IS NULL))"
+
+         " INSERT INTO osm_way_classes "
+         " SELECT *  FROM data; ");
+
+    q_result = PQexec(mycon, insert_into_classes.c_str());
+    std::cout << " Inserted " << PQcmdTuples(q_result) << " way's classes\n";
+
+    PQclear(q_result);
+    dropTempTable("__classes_temp");
 }
 
 void Export2DB::createTopology() const
