@@ -104,8 +104,8 @@ public:
         inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }
-	void fill_vertices_table(const std::string &table, const std::string &nodes_table) const;
-	void fill_source_target(const std::string &table) const;
+	void fill_vertices_table(const std::string &table, const std::string &vertices_tab) const;
+	void fill_source_target(const std::string &table, const std::string &vertices_tab) const;
 
 private:
 	PGconn *mycon;
