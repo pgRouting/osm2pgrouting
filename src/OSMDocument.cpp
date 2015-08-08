@@ -33,7 +33,7 @@
 
 namespace osm {
 
-OSMDocument::OSMDocument(Configuration& config) : m_rConfig(config) {
+OSMDocument::OSMDocument(Configuration &config) : m_rConfig(config) {
 }
 
 OSMDocument::~OSMDocument() {

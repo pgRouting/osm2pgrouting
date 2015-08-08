@@ -238,26 +238,7 @@ void Export2DB::createTables() const{
     createTable( create_classes, "osm_way_classes" );
 }
 
-void Export2DB::createTempTables() const{
-#if 0
-    createTable( create_classes, full_table_name("classes_temp") );
-    createTable( create_nodes, full_table_name("nodes_temp") );
-    createTable( create_ways, full_table_name("ways_temp") );
-    createTable( create_relations, full_table_name("relations_temp") );
-    createTable( create_relations_ways, full_table_name("relations_ways_temp") );
-    createTable( create_way_tag, full_table_name("way_tag_temp") );
-    createTable( create_types, full_table_name("way_types_temp") );
-    createTable( create_vertices, full_table_name("ways") + "_vertices_pgr_temp" );
-    addGeometry( full_table_name("ways_temp"), "LINESTRING" );
-    addGeometry( full_table_name("ways_temp") + "_vertices_pgr" , "POINT" );
-#endif
-}
 
-void Export2DB::dropTempTable(const std::string &table) const {
-    std::string drop_tables( "DROP TABLE IF EXISTS " +  table);
-    PGresult *result = PQexec(mycon, drop_tables.c_str());
-    PQclear(result);
-}   
 
 void Export2DB::dropTable(const std::string &table) const {
     std::string drop_tables( "DROP TABLE IF EXIST " +  table);
@@ -266,14 +247,6 @@ void Export2DB::dropTable(const std::string &table) const {
 }   
 
 
-void Export2DB::dropTempTables() const {
-    dropTempTable(full_table_name("classes_temp"));
-    dropTempTable(full_table_name("relations_temp"));
-    dropTempTable(full_table_name("relations_ways_temp"));
-    dropTempTable(full_table_name("way_tag_temp"));
-    dropTempTable(full_table_name("way_types_temp"));
-    dropTempTable(full_table_name("ways") + "_vertices_pgr_temp");
-}
 
 void Export2DB::dropTables() const {
     dropTable(full_table_name("ways"));
@@ -334,7 +307,7 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
     PQclear(q_result);
     std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
 
-    dropTempTable("__nodes_temp");
+    dropTable("__nodes_temp");
 }
 
 /*!
@@ -351,6 +324,7 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 	  " data1 AS (SELECT osm_id, lon, lat,  ST_SetSRID(ST_Point(lon, lat), 4326)  FROM (SELECT DISTINCT * from osm_vertex) a "
           ") "
           " INSERT INTO " + table + "_vertices_pgr (osm_id, lon, lat, the_geom) (SELECT * FROM data1)");
+
     PGresult* q_result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
          std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
@@ -358,6 +332,10 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
          std::cout  << "   " << PQresultErrorMessage( q_result )  << std::endl;
     PQclear(q_result);
 }
+
+
+
+
 
 void Export2DB::fill_source_target(const std::string &table) const {
     std::cout << "Filling source and target columns of '" << table << "': ";
@@ -376,24 +354,10 @@ void Export2DB::fill_source_target(const std::string &table) const {
 
     std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
 
-#if 0
-    if (PQresultStatus(q_result) == PGRES_COMMAND_OK)
-         std::cout << " OK " << PQcmdStatus(q_result);
-    else
-         std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
-    PQclear(q_result);
-
-    q_result = PQexec(mycon, sql2.c_str());
-    if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
-         std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
-    else
-         std::cout  << " " << PQresultErrorMessage( q_result ) << std::endl;
-#endif
     PQclear(q_result);
 }
 
 
-#if 1
 void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configuration *config) const
 {
     std::cout << "    Processing " << relations.size() << " relations\n";
@@ -406,11 +370,7 @@ void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configu
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
     for (const auto &relation : relations)
     {
-#if 0
-        std::map<std::string, std::string>::iterator it_tag( relation->m_Tags.begin() );
-        std::map<std::string, std::string>::iterator last_tag( relation->m_Tags.end() );
-        while( it_tag!=last_tag )
-#endif
+std::cout << relation->m_Tags.size();
         for (const auto &tag : relation->m_Tags)
         {
             // std::pair<std::string, std::string> pair = *it_tag++;
@@ -445,56 +405,48 @@ std::cout << row_data << "\n";
     q_result = PQexec(mycon, insert_into_relations.c_str());
     std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
     PQclear(q_result);
-    dropTempTable("__relations_temp");
+    dropTable("__relations_temp");
 }
 
 
 //////////should break into 2 functions
 
-#else
-void Export2DB::exportRelations(std::vector<Relation*>& relations, Configuration* config) const {
-    // Second round of iteration is needed to copy relation_ways
-    //it_relation = relations.begin();
-    createTable( create_relations_ways, "__relations_ways_temp" );
+void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, Configuration *config) const {
+    std::cout << "    Processing way's relations: ";
+    createTempTable( create_relations_ways, "__relations_ways_temp" );
     
     std::string relations_ways_columns(" relation_id, way_id " );   
     std::string copy_relations_ways( "COPY __relations_ways_temp (" + relations_ways_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_relations_ways.c_str());
 
 
-    for (const auto &relation : relations)
-    {
-std::cout << relation->m_WayRefs.size() << "\n";
-        for (const auto &way_id : relation->m_WayRefs)
-        {
-            //long long way_id = *it_way++;
+    for (const auto &relation : relations) {
+        for (const auto &way_id : relation->m_WayRefs) {
             std::string row_data = TO_STR(relation->id);
             row_data += "\t";
             row_data += TO_STR(way_id);
             row_data += "\n";
-            // missing name???
             PQputline(mycon, row_data.c_str());
         }
     }
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
+
     std::string insert_into_relations_ways(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __relations_ways_temp a LEFT JOIN osm_relations_ways b USING (relation_id, way_id)"
-         "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL)"
+         " FROM  __relations_ways_temp a LEFT JOIN " + full_table_name("relations_ways") + " b USING (relation_id, way_id)"
+         "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL))"
 
-         " INSERT INTO osm_relations_ways" 
-          "( " + relations_ways_columns + " ) "
-         " (SELECT " + relations_ways_columns + " FROM data); ");
+         " INSERT INTO " + full_table_name("relations_ways") +
+         " SELECT * FROM data; ");
     q_result = PQexec(mycon, insert_into_relations_ways.c_str());
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n" << PQcmdStatus(q_result) <<"\n" << insert_into_relations_ways;
+    std::cout << " Inserted: " << PQcmdTuples(q_result) << "way's relations\n" ;
     PQclear(q_result);
-    // dropTempTable("__relations_ways_temp");
+    dropTable("__relations_ways_temp");
 
 }
-#endif
 
 
 
@@ -549,7 +501,7 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
     std::cout << " Inserted " << PQcmdTuples(q_result) << " way's tags\n";
     PQclear(q_result);
 
-    dropTempTable("__way_tag_temp");
+    dropTable("__way_tag_temp");
 }
 
 
@@ -658,7 +610,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     std::cout << " Inserted " << PQcmdTuples(q_result) << " ways\n";
 
     PQclear(q_result);
-    dropTempTable("__ways_temp");
+    dropTable("__ways_temp");
 
 }
 
@@ -704,7 +656,7 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const
     std::cout << " Inserted " << PQcmdTuples(q_result) << " way types\n";
 
     PQclear(q_result);
-    dropTempTable("__way_types_temp");
+    dropTable("__way_types_temp");
 }
 
 
@@ -758,7 +710,7 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
     std::cout << " Inserted " << PQcmdTuples(q_result) << " way's classes\n";
 
     PQclear(q_result);
-    dropTempTable("__classes_temp");
+    dropTable("__classes_temp");
 }
 
 void Export2DB::createTopology() const

@@ -67,6 +67,7 @@ public:
  	//! exports ways to the database
  	void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
  	void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
+ 	void exportRelationsWays(const std::vector<Relation*> &relations, Configuration *config) const;
  	void exportTypes(const std::map<std::string, Type*>& types) const;
  	void exportClasses(const std::map<std::string, Type*>& types) const;
  	void exportWays(const std::vector<Way*> &ways, Configuration *config) const;

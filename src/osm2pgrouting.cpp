@@ -133,51 +133,16 @@ int main(int argc, char* argv[]) {
             }
             dbConnection.exportTypes(config->m_Types);
             dbConnection.exportClasses(config->m_Types);
+            //dbConnection.exportRelations(document->m_Relations, config);
+            dbConnection.exportRelationsWays(document->m_Relations, config);
             dbConnection.exportTags(document->m_SplittedWays, config);
-            dbConnection.exportRelations(document->m_Relations, config);
-
             dbConnection.exportWays(document->m_SplittedWays, config);
 
-            // TODO: make some free memory, document will be not used anymore,
-            // so there will be more memory available to future DB operations.
 
             std::cout << "Creating topology..." << endl;
             dbConnection.createTopology();
         }
 
-        //#############
-
-        /*
-        std::vector<Way*>& ways= document.m_Ways;
-        std::vector<Way*>::iterator it(ways.begin());
-        std::vector<Way*>::iterator last(ways.end());
-        while(it!=last)
-        {
-            Way* pWay = *it;
-    
-            if (!pWay->name.empty())
-            {
-                if (pWay->m_NodeRefs.empty())
-                {
-                    std::std::cout << pWay->name.c_str() << endl;
-                }
-                else
-                {
-                    Node* n0 = pWay->m_NodeRefs.front();
-                    Node* n1 = pWay->m_NodeRefs.back();
-                    //if (n1->numsOfUse==1)
-                    //std::cout << "way-id: " << pWay->id << " name: " << pWay->name <<endl;
-                    //std::std::cout << n0->lon << " "  << n0->lat << " " << n1->lon << " " << n1->lat << " " << pWay->name.c_str() << " highway: " << pWay->highway.c_str() << " Start numberOfUse: " << n0->numsOfUse << " End numberOfUse: " << n1->numsOfUse  << " ID: " << n1->id <<  endl;
-                }
-            }
-            if (pWay->id == 20215432) // Pfaenderweg
-            {
-                std::cout << pWay->name << endl;
-                int a=4;
-            }
-            ++it;
-        }
-        */
 
         std::cout << "#########################" << endl;
 
