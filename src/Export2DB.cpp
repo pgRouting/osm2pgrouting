@@ -537,7 +537,7 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
 void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config) const {
 
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
-    if (createTable( create_ways, "__ways_temp") )
+    if (createTempTable( create_ways, "__ways_temp") )
         addTempGeometry( "__ways_temp", "LINESTRING" );
 
     std::string ways_columns(
@@ -662,7 +662,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     std::cout << " Inserted " << PQcmdTuples(q_result) << " ways\n";
 
     PQclear(q_result);
-    // dropTable("__ways_temp");
+    dropTable("__ways_temp");
 
 }
 
