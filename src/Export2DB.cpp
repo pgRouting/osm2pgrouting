@@ -24,6 +24,7 @@
 #include "Export2DB.h"
 #include "boost/algorithm/string/replace.hpp"
 #include "prog_options.h"
+#include <unistd.h>
 #include <iostream>
 
 #define TO_STR(x)    boost::lexical_cast<std::string>(x)
