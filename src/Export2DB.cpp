@@ -1,4 +1,6 @@
 /***************************************************************************
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *   Copyright (C) 2015 by Vicky Vergara                                   *
  *   vicky_vergara@hotmail.com                                             *
  *                                                                         *
@@ -83,6 +85,8 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " y2 double precision,"
             " cost double precision,"
             " reverse_cost double precision,"
+            " cost_s double precision, "
+            " reverse_cost_s double precision,"
             " rule text,"
             " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversed (1 way but geometry is reversed) 
             " maxspeed_forward integer,"
@@ -174,7 +178,7 @@ bool Export2DB::createTable(const std::string &table_description,
                             const std::string &constraint) const {
     std::string sql = 
 	"CREATE TABLE " + table + "("    // + schema + "." + prefix etc
-        + table_description + ")";
+        + table_description + ");";
 
     PGresult *result = PQexec(mycon, sql.c_str());
     bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
@@ -187,22 +191,22 @@ bool Export2DB::createTable(const std::string &table_description,
 
 
 void Export2DB::addGeometry(
-             const std::string &table,
-             const std::string &geometry_type) const {
-           std::cout << "   Adding Geometry: ";
+        const std::string &table,
+        const std::string &geometry_type) const {
+    std::cout << "   Adding Geometry: ";
     std::string sql = 
                + " SELECT AddGeometryColumn('" 
-         + table + "'," 
+               + table + "'," 
                + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
-        PGresult *result = PQexec(mycon, sql.c_str());
+    PGresult *result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {
             std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
                 << std::endl;
 	    throw;
-        } else {
+    } else {
             std::cout << "   OK" << std::endl;
-        }
+    }
     PQclear(result);
 }
 
@@ -315,7 +319,7 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
 
 */
 void Export2DB::fill_vertices_table(const std::string &table, const std::string &vertices_tab) const {
-    std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
+    //std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
     std::string sql(
         "WITH osm_vertex AS ( "
              "(select source_osm as osm_id, x1 as lon, y1 as lat FROM " + table + " where source is NULL)"
@@ -327,11 +331,13 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
           " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, the_geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
 
     PGresult* q_result = PQexec(mycon, sql.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " vertices into '" << vertices_tab << "'\n";
+    std::cout << "     Inserted " << PQcmdTuples(q_result) << " vertices into '" << vertices_tab << "'\n";
+#if 0
     if (PQresultStatus(q_result) == PGRES_COMMAND_OK) 
          std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
     else
          std::cout  << "   " << PQresultErrorMessage( q_result )  << std::endl;
+#endif
     PQclear(q_result);
 }
 
@@ -340,25 +346,42 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 
 
 void Export2DB::fill_source_target(const std::string &table, const std::string &vertices_tab) const {
-    std::cout << "Filling source and target columns of '" << table << "': ";
+    std::cout << "Filling other columns of '" << table << "': ";
     std::string sql1(
         " UPDATE " + table + " AS w"
         " SET source = v.id "
         " FROM " + vertices_tab + " AS v"
         " WHERE w.source is NULL and w.source_osm = v.osm_id;");
+    PGresult* q_result = PQexec(mycon, sql1.c_str());
+    //std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    PQclear(q_result);
+
     std::string sql2(
         " UPDATE " + table + " AS w"
         " SET target = v.id "
         " FROM " + vertices_tab + " AS v"
         " WHERE w.target is NULL and w.target_osm = v.osm_id;");
-
-    PGresult* q_result = PQexec(mycon, sql1.c_str());
-    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
-    PQclear(q_result);
-
     q_result = PQexec(mycon, sql2.c_str());
-    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    //std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
+
+    std::string sql3(
+        " UPDATE " + table + 
+        " SET  length_m = st_length(geography(ST_Transform(the_geom, 4326))),"
+        "      cost_s = CASE "
+        "           WHEN one_way = -1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward * 5 / 18)"
+        "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
+        "             END, "
+        "      reverse_cost_s = CASE "
+        "           WHEN one_way = 1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
+        "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
+        "             END "
+	" WHERE length_m IS NULL;");
+    q_result = PQexec(mycon, sql3.c_str());
+    //std::cout <<  PQcmdStatus(q_result) << "\n" << sql3;
+    std::cout << "     Updated \n"; // << PQcmdTuples(q_result) << " lengths in meters\n";
+    PQclear(q_result);
+
 }
 
 
@@ -522,7 +545,6 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                      " x2, y2,"
                      " osm_id, source_osm," " target_osm,"
                      " the_geom,"
-		     " length_m,"
                      " cost, reverse_cost,"
                      " one_way,"
                      " maxspeed_forward, maxspeed_backward,"
@@ -603,23 +625,22 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     std::cout << count << " ways inserted to temporary table\n";
 
 
+    std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
-         " DELETE FROM __ways_temp a USING " + full_table_name("ways") + "b where a.the_geom = b.the_geom;");
+         " DELETE FROM __ways_temp a USING " + full_table_name("ways") + " b where a.the_geom = b.the_geom;");
     q_result = PQexec(mycon, delete_from_temp.c_str());
-    std::cout <<  delete_from_temp << PQcmdStatus(q_result) << "\n";
-    std::cout << " Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
+    std::cout << "     Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
     PQclear(q_result);
 
-    std::cout << "Updating temporary table to have the existing source, target values from the vertex table\n";
+    std::cout << "Updating columns on temporary table\n";
     fill_source_target( "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
 
     std::cout << "Inserting new vertices in the vertex table\n";
     fill_vertices_table(  "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
 
-    std::cout << "Updating temporary table to have the existing source, target values from the vertex table\n";
+    std::cout << "Updating source, target n temporary table\n";
     fill_source_target( "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
 
-    std::cout << "
 
     std::string insert_into_ways(
 #if 0
@@ -632,8 +653,8 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
          "     WHERE ( b.the_geom IS NULL ))"
 #endif
          " INSERT INTO " + full_table_name("ways") +
-          "( " + ways_columns + ", source, target ) "
-         " (SELECT " + ways_columns + ", source, target FROM __ways_temp); ");
+          "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
+         " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
 
 
     q_result = PQexec(mycon, insert_into_ways.c_str());
