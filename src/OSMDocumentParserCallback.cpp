@@ -145,18 +145,27 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 if (m_pActWay && k.compare("name") == 0) {
                     m_pActWay->name = v;
                 } else if (m_pActWay && k.compare("oneway") == 0) {  // checks ONEWAY tag
+                    // one way tag
                     if ((v.compare("yes") == 0) || (v.compare("true") == 0) || (v.compare("1") == 0)) {
                         m_pActWay->oneWayType = YES;
                     } else {}
+
                     // check false conditions: 0, no, false
                     if ((v.compare("no") == 0) || (v.compare("false") == 0) || (v.compare("0") == 0)) {
                         m_pActWay->oneWayType = NO;
                     } else {}
+
+                    // check reversible condition
+                    if (v.compare("reversible") == 0) {
+                        m_pActWay->oneWayType = REVERSIBLE;
+                    } else {}
+
                     // check revers conditions: -1
                     if ((v.compare("-1") == 0)) {
                         m_pActWay->oneWayType = REVERSED;
                     }
-                // in case roundabout, if there is not additional oneway tag, set default oneway to YES
+
+                  // in case roundabout, if there is not additional oneway tag, set default oneway to YES
                 } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
                     if (m_pActWay->oneWayType == UNKNOWN) m_pActWay->oneWayType= YES;
                 }
