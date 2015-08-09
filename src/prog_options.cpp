@@ -55,9 +55,10 @@ void get_option_description(po::options_description &od_desc) {
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
+        ("schema", po::value<string>()->default_value(""), "Database schema to put tables. If left blank, defaults to default schema dictated by Postgresql search_path.")
         ("prefix", po::value<string>()->default_value("planet_"), "Prefix added at the beginning of table names.")
         ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
-        ("skipnodes,s", po::value<bool>()->default_value(true), "When ture: don't import the node table.")
+        ("skipnodes,s", po::value<bool>()->default_value(true), "When true: don't import the osm_nodes table.")
         ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")
         ;
 
@@ -97,10 +98,11 @@ int process_command_line(
     std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
     std::cout << "user = " << vm["user"].as<std::string>() << "\n";
     std::cout << "passwd = " << vm["passwd"].as<string>() << "\n";
+    std::cout << "schema= " << vm["schema"].as<string>() << "\n";
     std::cout << "prefix = " << vm["prefix"].as<string>() << "\n";
     std::cout << "suffix = " << vm["suffix"].as<string>() << "\n";
     std::cout << (vm["clean"].as<bool>()? "C" : "Don't c") << "lean tables\n";
-    std::cout << (vm["skipnodes"].as<bool>()? "I" : "Don't I") << "nclude node table\n";
+    std::cout << (vm["skipnodes"].as<bool>()? "Don't I" : "I") << "nclude node table\n";
     std::cout << "***************************************************\n";
 
     return 0;
