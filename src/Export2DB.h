@@ -108,8 +108,8 @@ public:
     inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }
-    inline std::string full_schema_table_name(const std::string &table) const {
-		return (tables_schema == "" ? "" : tables_schema + ".") + tables_prefix + table + tables_suffix;
+    inline std::string addSchema(const std::string &table) const {
+        return  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + table;
         }
     inline std::string default_tables_schema() const {
 		return tables_schema;
