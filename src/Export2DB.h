@@ -21,7 +21,16 @@
 #ifndef EXPORT2DB_H
 #define EXPORT2DB_H
 
+#if 1  // Nagase San code
 #include "libpq-fe.h"
+#else  // Code we were using temporarly
+#ifdef __MINGW32__
+#include "libpq-fe.h"
+#else
+#include "postgresql/libpq-fe.h"
+#endif
+#endif
+
 #include "Node.h"
 #include "Way.h"
 #include "Relation.h"
@@ -98,17 +107,24 @@ public:
 			 const std::string &constraint = std::string("")) const;
 	void addTempGeometry( const std::string &table,
                          const std::string &geometry_type) const;
-	void addGeometry( const std::string &table,
+	void addGeometry( const std::string &schema, const std::string &table,
                          const std::string &geometry_type) const;
-        inline std::string full_table_name(const std::string &table) const {
+    inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }
-	void fill_vertices_table(const std::string &table, const std::string &nodes_table) const;
-	void fill_source_target(const std::string &table) const;
+    inline std::string addSchema(const std::string &table) const {
+        return  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + table;
+        }
+    inline std::string default_tables_schema() const {
+		return tables_schema;
+        }
+	void fill_vertices_table(const std::string &table, const std::string &vertices_tab) const;
+	void fill_source_target(const std::string &table, const std::string &vertices_tab) const;
 
 private:
 	PGconn *mycon;
 	std::string conninf;
+	std::string tables_schema;
 	std::string tables_prefix;
 	std::string tables_suffix;
 
