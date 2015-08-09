@@ -429,7 +429,7 @@ std::cout << row_data << "\n";
          " FROM  __relations_temp a LEFT JOIN " +  addSchema( "osm_relations" ) + " b USING (relation_id, type_id)"
          "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL)"
 
-         " INSERT INTO osm_relations" 
+         " INSERT INTO " + addSchema( "osm_relations" )  + " "
           "( " + relations_columns + " ) "
          " (SELECT " + relations_columns + " FROM data); ");
     q_result = PQexec(mycon, insert_into_relations.c_str());
