@@ -36,6 +36,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             + " user=" +  vm["user"].as<std::string>()
             + " dbname=" + vm["dbname"].as<std::string>()
             + " port=" + vm["db_port"].as<std::string>() ),
+    tables_schema( vm["schema"].as<std::string>() ),
     tables_prefix( vm["prefix"].as<std::string>() ),
     tables_suffix( vm["suffix"].as<std::string>() ) {
 
@@ -175,7 +176,7 @@ bool Export2DB::createTempTable (const std::string &table_description,
 
 */
 bool Export2DB::createTable(const std::string &table_description,
-                            const std::string &table,
+                             const std::string &table,
                             const std::string &constraint) const {
     std::string sql = 
 	"CREATE TABLE " + table + "("    // + schema + "." + prefix etc
@@ -192,11 +193,12 @@ bool Export2DB::createTable(const std::string &table_description,
 
 
 void Export2DB::addGeometry(
-        const std::string &table,
+        const std::string &schema, const std::string &table,
         const std::string &geometry_type) const {
     std::cout << "   Adding Geometry: ";
+    /** PostGIS requires the schema to be specified as separate arg if not default user's schema **/
     std::string sql = 
-               + " SELECT AddGeometryColumn('" 
+               + " SELECT AddGeometryColumn(" + ( schema == "" ? "" : "'" + schema + "' ," ) + " '" 
                + table + "'," 
                + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
@@ -227,27 +229,27 @@ void Export2DB::addTempGeometry(
 ///////////////////////
 void Export2DB::createTables() const{
     // the following are particular of the file tables
-    if (createTable( create_vertices, full_table_name("ways") + "_vertices_pgr" ))
-        addGeometry( full_table_name("ways") + "_vertices_pgr" , "POINT" );
-    if (createTable( create_ways, full_table_name("ways") ))
-        addGeometry( full_table_name("ways"), "LINESTRING" );
-    createTable( create_relations_ways, full_table_name("relations_ways") );
+    if (createTable( create_vertices, full_schema_table_name("ways") + "_vertices_pgr" ))
+        addGeometry(default_tables_schema(), full_table_name("ways") + "_vertices_pgr" , "POINT" );
+    if (createTable( create_ways, full_schema_table_name("ways") ))
+        addGeometry( default_tables_schema(), full_table_name("ways"), "LINESTRING" );
+    createTable( create_relations_ways, full_schema_table_name("relations_ways") );
 
     // the following are general tables
     if ( createTable( create_nodes,
-                     "osm_nodes",
+                     (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_nodes",
                      ", CONSTRAINT node_id UNIQUE(osm_id)") )
-        addGeometry( "osm_nodes", "POINT" );
-    createTable( create_relations, "osm_relations" );
-    createTable( create_way_tag, "osm_way_tags" );
-    createTable( create_types, "osm_way_types" );
-    createTable( create_classes, "osm_way_classes" );
+        addGeometry(default_tables_schema(), "osm_nodes", "POINT" );
+    createTable( create_relations,  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_relations" );
+    createTable( create_way_tag, (default_tables_schema() == "" ? "" : default_tables_schema() + ".") +  "osm_way_tags" );
+    createTable( create_types, (default_tables_schema() == "" ? "" : default_tables_schema() + ".") +  "osm_way_types" );
+    createTable( create_classes,   (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_way_classes" );
 }
 
 
 
 void Export2DB::dropTable(const std::string &table) const {
-    std::string drop_tables( "DROP TABLE IF EXIST " +  table);
+    std::string drop_tables( "DROP TABLE IF EXISTS " +  table);
     PGresult *result = PQexec(mycon, drop_tables.c_str());
     PQclear(result);
 }   
@@ -255,9 +257,9 @@ void Export2DB::dropTable(const std::string &table) const {
 
 
 void Export2DB::dropTables() const {
-    dropTable(full_table_name("ways"));
-    dropTable(full_table_name("ways") + "_vertices_pgr");
-    dropTable(full_table_name("relations_ways"));
+    dropTable(full_schema_table_name("ways"));
+    dropTable(full_schema_table_name("ways") + "_vertices_pgr");
+    dropTable(full_schema_table_name("relations_ways"));
 
     // we are not deleting general tables osm_
 }
@@ -304,9 +306,9 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
     std::string insert_into_nodes(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __nodes_temp a LEFT JOIN osm_nodes b USING (osm_id) WHERE (b.osm_id IS NULL))"
+         " FROM  __nodes_temp a LEFT JOIN  " + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_nodes b USING (osm_id) WHERE (b.osm_id IS NULL))"
 
-         " INSERT INTO osm_nodes" 
+         " INSERT INTO "  + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_nodes" 
           "( " + nodes_columns + " ) "
          " (SELECT " + nodes_columns + " FROM data); ");
     q_result = PQexec(mycon, insert_into_nodes.c_str());
@@ -424,7 +426,7 @@ std::cout << row_data << "\n";
     std::string insert_into_relations(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __relations_temp a LEFT JOIN osm_relations b USING (relation_id, type_id)"
+         " FROM  __relations_temp a LEFT JOIN " +  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") +  "osm_relations b USING (relation_id, type_id)"
          "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL)"
 
          " INSERT INTO osm_relations" 
@@ -464,10 +466,10 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, Con
     std::string insert_into_relations_ways(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __relations_ways_temp a LEFT JOIN " + full_table_name("relations_ways") + " b USING (relation_id, way_id)"
+         " FROM  __relations_ways_temp a LEFT JOIN " + full_schema_table_name("relations_ways") + " b USING (relation_id, way_id)"
          "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL))"
 
-         " INSERT INTO " + full_table_name("relations_ways") +
+         " INSERT INTO " + full_schema_table_name("relations_ways") +
          " SELECT * FROM data; ");
     q_result = PQexec(mycon, insert_into_relations_ways.c_str());
     std::cout << " Inserted: " << PQcmdTuples(q_result) << "way's relations\n" ;
@@ -519,10 +521,10 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
     std::string insert_into_tags(
          " WITH data AS ( "
          " SELECT a.class_id, a.way_id "
-         " FROM  __way_tag_temp a LEFT JOIN osm_way_tags b USING ( class_id, way_id ) "
+         " FROM  __way_tag_temp a LEFT JOIN  " +  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_way_tags b USING ( class_id, way_id ) "
          "     WHERE ( b.class_id IS NULL OR b.way_id IS NULL))"
 
-         " INSERT INTO osm_way_tags "
+         " INSERT INTO " +  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") +  "osm_way_tags "
          " SELECT * FROM data; ");
 
     q_result = PQexec(mycon, insert_into_tags.c_str());
@@ -628,19 +630,19 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
 
     std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
-         " DELETE FROM __ways_temp a USING " + full_table_name("ways") + " b where a.the_geom = b.the_geom;");
+         " DELETE FROM __ways_temp a USING " + full_schema_table_name("ways") + " b where a.the_geom = b.the_geom;");
     q_result = PQexec(mycon, delete_from_temp.c_str());
     std::cout << "     Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
     PQclear(q_result);
 
     std::cout << "Updating columns on temporary table\n";
-    fill_source_target( "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
+    fill_source_target( "__ways_temp" , full_schema_table_name("ways") + "_vertices_pgr");
 
     std::cout << "Inserting new vertices in the vertex table\n";
-    fill_vertices_table(  "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
+    fill_vertices_table(  "__ways_temp" , full_schema_table_name("ways") + "_vertices_pgr");
 
     std::cout << "Updating source, target n temporary table\n";
-    fill_source_target( "__ways_temp" , full_table_name("ways") + "_vertices_pgr");
+    fill_source_target( "__ways_temp" , full_schema_table_name("ways") + "_vertices_pgr");
 
 
     std::string insert_into_ways(
@@ -648,12 +650,12 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
          " WITH data AS ( "
          " SELECT a.* "
 // insert only if the geometry is different
-         " FROM  __ways_temp a LEFT JOIN " + full_table_name("ways") + " b USING (the_geom) "
+         " FROM  __ways_temp a LEFT JOIN " + full_schema_table_name("ways") + " b USING (the_geom) "
 //         " FROM  __ways_temp a LEFT JOIN " + full_table_name("ways") + " b USING (source_osm, target_osm, the_geom) "
 //         "     WHERE (b.source_osm IS NULL OR b.target_osm IS NULL OR b.the_geom IS NULL))"
          "     WHERE ( b.the_geom IS NULL ))"
 #endif
-         " INSERT INTO " + full_table_name("ways") +
+         " INSERT INTO " + full_schema_table_name("ways") +
           "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
          " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
 
@@ -698,10 +700,10 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const
     std::string insert_into_types(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __way_types_temp a LEFT JOIN osm_way_types b USING ( type_id ) "
+         " FROM  __way_types_temp a LEFT JOIN  " + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_way_types b USING ( type_id ) "
          "     WHERE (b.type_id IS NULL))"
 
-         " INSERT INTO osm_way_types ( type_id, name ) "
+         " INSERT INTO "  + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") +  "osm_way_types ( type_id, name ) "
          " (SELECT *  FROM data); ");
 
     q_result = PQexec(mycon, insert_into_types.c_str());
@@ -752,10 +754,10 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
     std::string insert_into_classes(
          " WITH data AS ( "
          " SELECT a.* "
-         " FROM  __classes_temp a LEFT JOIN osm_way_classes b USING ( class_id ) "
+         " FROM  __classes_temp a LEFT JOIN " + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_way_classes b USING ( class_id ) "
          "     WHERE (b.class_id IS NULL))"
 
-         " INSERT INTO osm_way_classes "
+         " INSERT INTO " + (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + "osm_way_classes "
          " SELECT *  FROM data; ");
 
     q_result = PQexec(mycon, insert_into_classes.c_str());
