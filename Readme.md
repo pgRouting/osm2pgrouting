@@ -33,15 +33,19 @@ If you have libraries installed in non-standard locations, you might need to pas
 
 
 CMAKE options:
+
     -DBOOST_ROOT:PATH=/path/to/boost  folder that contains include, lib, bin directories for boost
+    
     -DEXPATH_INCLUDE_DIR:PATH=/path/to/expat/include  the include folder for where your expat is installed
+    
     -DPOSTGRESQL_INCLUDE_DIR:PATH=/path/to/postgresql/include  the include folder for postgresql development headers
     
     
 A cmake with custom options might look something like
 
 ```
-cmake -DBOOST_ROOT:PATH=/local/projects/rel-boost-1.58.0 -DPOSTGRESQL_INCLUDE_DIR:PATH=/local/projects/rel-pg94/include  -Bbuild
+cmake -DBOOST_ROOT:PATH=/local/projects/rel-boost-1.58.0 \
+    -DPOSTGRESQL_INCLUDE_DIR:PATH=/local/projects/rel-pg94/include  -Bbuild
 ```
 
 ## How to use
