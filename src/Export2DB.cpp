@@ -203,6 +203,7 @@ void Export2DB::addGeometry(
                + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
+#if 0
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {
             std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
                 << std::endl;
@@ -210,6 +211,7 @@ void Export2DB::addGeometry(
     } else {
             std::cout << "   OK" << std::endl;
     }
+#endif
     PQclear(result);
 }
 
@@ -217,22 +219,34 @@ void Export2DB::addTempGeometry(
              const std::string &table,
              const std::string &geometry_type) const {
     std::string sql = 
-               + " SELECT AddGeometryColumn('" 
-         + table + "'," 
-               + "'the_geom', 4326, '" + geometry_type + "',2 );";
+         " SELECT AddGeometryColumn('" 
+            + table + "'," 
+            + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
     PQclear(result);
 }
 
 
+void Export2DB::create_gindex(const std::string &index, const std::string &table) const {
+    std::string sql = (
+         " CREATE INDEX " 
+             + index + "_gdx ON " 
+             + table + " using gist(the_geom);" );
+    PGresult *result = PQexec(mycon, sql.c_str());
+    PQclear(result);
+}
+
 ///////////////////////
 void Export2DB::createTables() const{
     // the following are particular of the file tables
     if (createTable( create_vertices, addSchema( full_table_name( "ways_vertices_pgr" ) )  ))
         addGeometry(default_tables_schema(), full_table_name( "ways_vertices_pgr" ), "POINT" );
-    if (createTable( create_ways, addSchema( full_table_name("ways") ) ))
+        create_gindex( full_table_name("ways_vertices_pgr"), addSchema( full_table_name("ways_vertices_pgr") ));
+    if (createTable( create_ways, addSchema( full_table_name("ways") ) )) {
         addGeometry( default_tables_schema(), full_table_name("ways"), "LINESTRING" );
+        create_gindex( full_table_name("ways"), addSchema( full_table_name("ways") ));
+    }
     createTable( create_relations_ways, addSchema( full_table_name("relations_ways") ) );
 
     // the following are general tables
@@ -627,10 +641,13 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     PQclear(q_result);
     std::cout << count << " ways inserted to temporary table\n";
 
+    std::cout << "Creating index on geometry in temporary table\n";
+    create_gindex( "__ways_temp", "ways_temp");
+
 
     std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
-         " DELETE FROM __ways_temp a USING " + addSchema( full_table_name("ways") ) + " b where a.the_geom = b.the_geom;");
+         " DELETE FROM __ways_temp a USING " + addSchema( full_table_name("ways") ) + " b where a.the_geom && b.the_geom and ST_OrderingEquals(a.the_geom, b.the_geom);");
     q_result = PQexec(mycon, delete_from_temp.c_str());
     std::cout << "     Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
     PQclear(q_result);

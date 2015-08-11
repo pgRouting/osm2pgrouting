@@ -96,19 +96,20 @@ public:
  	void dropTempTables() const;
 
  private:
-        void dropTempTable(const std::string &table) const;
- 	bool createTempTable(const std::string &sql,
+    void dropTempTable(const std::string &table) const;
+    bool createTempTable(const std::string &sql,
 			 const std::string &table) const;
-        void dropTable(const std::string &table) const;
- 	bool createTempTable(const std::string &sql,
+    void dropTable(const std::string &table) const;
+    bool createTempTable(const std::string &sql,
 			 const std::string &table);
- 	bool createTable(const std::string &sql,
+    bool createTable(const std::string &sql,
 			 const std::string &table,
 			 const std::string &constraint = std::string("")) const;
-	void addTempGeometry( const std::string &table,
+    void addTempGeometry( const std::string &table,
                          const std::string &geometry_type) const;
-	void addGeometry( const std::string &schema, const std::string &table,
+    void addGeometry( const std::string &schema, const std::string &table,
                          const std::string &geometry_type) const;
+    void create_gindex(const std::string &index, const std::string &table) const;
     inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }
