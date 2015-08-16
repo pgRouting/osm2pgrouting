@@ -21,7 +21,6 @@
 #include "stdafx.h"
 #include "Way.h"
 
-
 namespace osm
 {
 
@@ -41,6 +40,12 @@ Way::~Way()
 {
 }
 
+/**
+ * @brief adds node
+ * @details same as above
+ * 
+ * @param pNode parent node
+ */
 void Way::AddNodeRef( Node* pNode )
 {
 	if( pNode ) m_NodeRefs.push_back(pNode);
