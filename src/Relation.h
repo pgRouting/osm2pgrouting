@@ -47,6 +47,11 @@ class Way;
   </way>
 \endcode
 */
+/**
+ * @brief The class for a Relation
+ * @details Contains the variable for the constructor and a destructor to delete then
+ * 
+ */
 class Relation {
  public:
     long long id;

@@ -83,7 +83,10 @@ void ConfigurationParserCallback::StartElement(
     }
 }
 
-
+/**
+ * @brief Parser callback for the last element of the document
+ * 
+ */
 void ConfigurationParserCallback::EndElement(const char* name) {
     if (strcmp(name, "type") == 0) {
         m_rDocument.AddType(m_pActType);

@@ -25,6 +25,7 @@
 
 using namespace osm;
 
+//! boost geometry function to calculate distances between two points
 double getLength(Node* a, Node* b);
 
 

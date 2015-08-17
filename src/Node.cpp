@@ -23,6 +23,14 @@
 
 namespace osm {
 
+/**
+ * @brief Constructor for a node
+ * @details Initializes a node on the graph with some provided values, which will be later required for routing
+ * 
+ * @param long The unique id of the node
+ * @param lat latitude of the point
+ * @param lon  longitude of the point
+ */
 Node::Node(long long id, double lat, double lon)
 :
     id(id),
@@ -31,6 +39,11 @@ Node::Node(long long id, double lat, double lon)
     this->numsOfUse = 0;
 }
 
+/**
+ * @brief Destructor
+ * @details Deleted the node from the DB
+ * @return [description]
+ */
 Node::~Node() {
 }
 

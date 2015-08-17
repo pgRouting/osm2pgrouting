@@ -45,7 +45,7 @@ class Node {
     unsigned short numsOfUse;
  public:
     /**
-     *    Construktor
+     *    Constructor
      *     @param id ID of the node
      *    @param lat latitude
      *    @param lon longitude

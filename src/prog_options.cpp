@@ -41,16 +41,20 @@ void get_option_description(po::options_description &od_desc) {
         required_od_desc("Required options"),
         optional_od_desc("Optional options");
     */
+
+    //! the variable for different types of options.
     po::options_description help_od_desc("Help"),
         general_od_desc("General"),
         db_options_od_desc("Database options"),
         not_used_od_desc("Not used currently");
 
+    //! the option for help menu, write --help and it will give all the possible options available.
     help_od_desc.add_options()
         // help
         ("help", "Produce help message for this version.")
         ;
 
+    //! the general options for file name and other options
     general_od_desc.add_options()
         // general
         ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
@@ -62,6 +66,7 @@ void get_option_description(po::options_description &od_desc) {
         ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")
         ;
 
+    //! the database connectivity options 
     db_options_od_desc.add_options()
         // database options
         ("dbname,d", po::value<string>()->required(), "Name of your database (Required).")
@@ -72,17 +77,18 @@ void get_option_description(po::options_description &od_desc) {
         ("passwd", po::value<string>()->default_value(""), "Password for database access.")
         ;
 
+    //! the options which are currently not used
     not_used_od_desc.add_options()
         ("threads,t", po::value<bool>()->default_value(false), "threads.")
         ("multimodal,m", po::value<bool>()->default_value(false), "multimodal.")
         ("multilevel,l", po::value<bool>()->default_value(false), "multilevel.")
         ;
 
+    //! bind all the options together in one variable.
     od_desc.add(help_od_desc).add(general_od_desc).add(db_options_od_desc);  // .add(not_used_od_desc);
 
     return;
 }
-
 
 
 int process_command_line(

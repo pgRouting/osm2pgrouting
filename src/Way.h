@@ -92,6 +92,8 @@ public:
 	 *	@param pNode node
 	 */
 	void AddNodeRef( Node* pNode );
+	
+
 	void AddTag( std::string key, std::string value);
 	bool HasTag(std::string key);
 };

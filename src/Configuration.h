@@ -27,6 +27,13 @@
 namespace osm
 {
 
+/**
+ * @brief Template to delete the map
+ * @details [long description]
+ * 
+ * @param c The map to be deleted
+ * @tparam  Map  [description]
+ */
 template< class Map >
 inline void ez_mapdelete( Map& c )
 {
@@ -38,6 +45,13 @@ inline void ez_mapdelete( Map& c )
 	}
 }
 
+/**
+ * @brief Template to delete the vector
+ * @details [long description]
+ * 
+ * @param c The vector to be deleted
+ * @tparam  Map  [description]
+ */
 template< class Vector >
 inline void ez_vectordelete( Vector& c )
 {

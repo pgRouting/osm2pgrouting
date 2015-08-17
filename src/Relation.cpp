@@ -25,11 +25,22 @@
 
 namespace osm {
 
+/**
+ * @brief Constructor
+ * @details [long description]
+ * 
+ * @param long Id for the Relation
+ */
 Relation::Relation(long long id)
 :
     id(id) {
 }
 
+/**
+ * @brief Destructor
+ * @details Deletes the relations
+ * @return [description]
+ */
 Relation::~Relation() {
 }
 

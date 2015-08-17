@@ -41,9 +41,9 @@ class OSMDocument {
     std::map<long long, Node*> m_Nodes;
     //! parsed ways
     std::vector<Way*> m_Ways;
-    //! splitted ways
+    //! spitted ways
     std::vector<Way*> m_SplittedWays;
-
+    //! relation between geometries
     std::vector<Relation*> m_Relations;
 
 

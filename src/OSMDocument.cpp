@@ -33,9 +33,18 @@
 
 namespace osm {
 
+/**
+ * @brief Constructor
+ * @details Deals with the OSM config file 
+ * 
+ * @param config the osm config file
+ */
 OSMDocument::OSMDocument(Configuration &config) : m_rConfig(config) {
 }
 
+/**
+ * @brief Destructor
+ */
 OSMDocument::~OSMDocument() {
     ez_mapdelete(m_Nodes);
     ez_vectordelete(m_Ways);

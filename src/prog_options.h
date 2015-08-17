@@ -30,7 +30,22 @@ namespace po = boost::program_options;
 // #include <iterator>
 using namespace std;
 
+/**
+ * @brief Get the options from the command line
+ * @details the user is asked for extra options like dbname and password for the db and this function resister them in a variable
+ * 
+ * @param od_desc The variable containing all the info of the options
+ */
 void get_option_description(po::options_description &od_desc);
+
+/**
+ * @brief prints the command line options
+ * @details the od_desc have the info and this function prints it from a map
+ * 
+ * @param vm the map which stores the options
+ * @param od_desc the variable containing all the info
+ * 
+ */
 int process_command_line(po::variables_map &vm,
     po::options_description &od_desc);
 

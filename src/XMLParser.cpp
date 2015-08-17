@@ -52,22 +52,22 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
 
     XML_SetUserData(parser, (void*)&rCallback);
 
-    // register Callbacks for start- and end-element events of the parser:
+    //! register Callbacks for start- and end-element events of the parser:
     XML_SetElementHandler(parser, startElement, endElement);
 
     int done;
-    do {  // loop over whole file content
+    do {  //! loop over whole file content
       char buf[BUFSIZ];
-      size_t len = fread(buf, 1, sizeof(buf), fp);    // read chunk of data
-      done = len < sizeof(buf);    // end of file reached if buffer not completely filled
+      size_t len = fread(buf, 1, sizeof(buf), fp);    //! read chunk of data
+      done = len < sizeof(buf);    //! end of file reached if buffer not completely filled
       if (!XML_Parse(parser, buf, (int)len, done)) {
-        // a parse error occured:
+        //! a parse error occured:
         fprintf(stderr,
             "%s at line %d\n",
             XML_ErrorString(XML_GetErrorCode(parser)), (int)
             XML_GetCurrentLineNumber(parser));
              fclose(fp);
-        ret = 2;    // quit, return = 2 indicating parsing error
+        ret = 2;    //! quit, return = 2 indicating parsing error
         done = 1;
       }
     } while (!done);
@@ -78,7 +78,7 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
   } else {
     fprintf(stderr, "Error opening %s: %s\n", chFileName, strerror(errno));
   }
-  return ret;  // return = 0 indicating success
+  return ret;  //! return = 0 indicating success
 }
 
 

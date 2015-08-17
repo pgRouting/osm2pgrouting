@@ -26,25 +26,31 @@
 
 namespace osm
 {
-
+    
+    //! Constructor
 	Configuration::Configuration()
 	{
 	}
 
+	//! Destructor
 	Configuration::~Configuration()
 	{
 		ez_mapdelete( m_Types );
 	}
+
+	//! Adds type t to the map
 	void Configuration::AddType( Type* t )
 	{
 		m_Types[t->name] = t;
 	}
 
+	//! Finds the name in the map
 	Type* Configuration::FindType( std::string name ) 
 	{
 		return m_Types[name];
 	}
 
+	//! Finds the name in the class
 	Class* Configuration::FindClass( std::string typeName, std::string className ) 
 	{
 		return m_Types[typeName]->m_Classes[className];

@@ -23,13 +23,21 @@
 
 
 namespace osm {
-
+/**
+ * @brief Constructor
+ * @details Constructor of Class
+ * 
+ * @param long The ID of the class
+ * @param name The name of the class
+ * @param priority The priority of the class
+ * @param default_maxspeed The default value of maxspeed
+ */
 Class::Class(
     long long id,
     std::string name,
     double priority,
     int default_maxspeed
-    )
+  
 :
   id(id),
   name(name),
@@ -37,6 +45,11 @@ Class::Class(
   default_maxspeed(default_maxspeed) {
 }
 
+/**
+ * @brief Destructor
+ * @details Destructor for Class
+ * @return [description]
+ */
 Class::~Class() {
 }
 
