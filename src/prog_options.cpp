@@ -56,7 +56,7 @@ void get_option_description(po::options_description &od_desc) {
         ("file,f", po::value<string>()->required(), "Name of your osm file (Required).")
         ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of your configuration xml file.")
         ("schema", po::value<string>()->default_value(""), "Database schema to put tables. If left blank, defaults to default schema dictated by Postgresql search_path.")
-        ("prefix", po::value<string>()->default_value("planet_"), "Prefix added at the beginning of table names.")
+        ("prefix", po::value<string>()->default_value(""), "Prefix added at the beginning of table names.")
         ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of table names.")
         ("skipnodes,s", po::value<bool>()->default_value(true), "When true: don't import the osm_nodes table.")
         ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")

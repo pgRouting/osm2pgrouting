@@ -110,6 +110,7 @@ public:
     void addGeometry( const std::string &schema, const std::string &table,
                          const std::string &geometry_type) const;
     void create_gindex(const std::string &index, const std::string &table) const;
+    void create_idindex(const std::string &colname, const std::string &table) const;
     inline std::string full_table_name(const std::string &table) const {
 		return tables_prefix + table + tables_suffix;
         }

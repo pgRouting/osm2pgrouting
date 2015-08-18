@@ -74,7 +74,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
     );
         create_ways =std::string(
 
-            " gid bigserial,"
+            " gid bigserial PRIMARY KEY,"
             " class_id integer not null,"
             " length double precision,"
             " length_m double precision,"
@@ -179,7 +179,7 @@ bool Export2DB::createTable(const std::string &table_description,
                              const std::string &table,
                             const std::string &constraint) const {
     std::string sql = 
-	"CREATE TABLE " + table + "("    // + schema + "." + prefix etc
+	"CREATE TABLE " + table + "("    
         + table_description + ");";
 
     PGresult *result = PQexec(mycon, sql.c_str());
@@ -203,8 +203,9 @@ void Export2DB::addGeometry(
                + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
+    //TODO check missing
 #if 0
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) { // TODO I think the condition is wrong (vicky)
             std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
                 << std::endl;
 	    throw;
@@ -224,6 +225,7 @@ void Export2DB::addTempGeometry(
             + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
+    //TODO check missing
     PQclear(result);
 }
 
@@ -234,19 +236,38 @@ void Export2DB::create_gindex(const std::string &index, const std::string &table
              + index + "_gdx ON " 
              + table + " using gist(the_geom);" );
     PGresult *result = PQexec(mycon, sql.c_str());
+    //TODO check missing
+    PQclear(result);
+}
+
+void Export2DB::create_idindex(const std::string &colname, const std::string &table) const {
+    std::string sql = (
+         " CREATE INDEX " 
+         "     ON " + table + 
+         "     USING btree ( " + colname + " );" );
+    PGresult *result = PQexec(mycon, sql.c_str());
+    //TODO check missing
     PQclear(result);
 }
 
 ///////////////////////
 void Export2DB::createTables() const{
     // the following are particular of the file tables
-    if (createTable( create_vertices, addSchema( full_table_name( "ways_vertices_pgr" ) )  ))
+    if (createTable( create_vertices, addSchema( full_table_name( "ways_vertices_pgr" ) )  )) {
         addGeometry(default_tables_schema(), full_table_name( "ways_vertices_pgr" ), "POINT" );
         create_gindex( full_table_name("ways_vertices_pgr"), addSchema( full_table_name("ways_vertices_pgr") ));
+        create_idindex( "osm_id", addSchema( full_table_name("ways_vertices_pgr") ));
+    }
+
     if (createTable( create_ways, addSchema( full_table_name("ways") ) )) {
         addGeometry( default_tables_schema(), full_table_name("ways"), "LINESTRING" );
         create_gindex( full_table_name("ways"), addSchema( full_table_name("ways") ));
+        create_idindex(  "source_osm", addSchema( full_table_name("ways") ));
+        create_idindex(  "target_osm", addSchema( full_table_name("ways") ));
+        create_idindex(  "source", addSchema( full_table_name("ways") ));
+        create_idindex(  "target", addSchema( full_table_name("ways") ));
     }
+
     createTable( create_relations_ways, addSchema( full_table_name("relations_ways") ) );
 
     // the following are general tables
@@ -363,25 +384,27 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 
 
 void Export2DB::fill_source_target(const std::string &table, const std::string &vertices_tab) const {
-    std::cout << "Filling other columns of '" << table << "': ";
+    std::cout << "    Filling 'source' column of '" << table << "': ";
     std::string sql1(
         " UPDATE " + table + " AS w"
         " SET source = v.id "
         " FROM " + vertices_tab + " AS v"
         " WHERE w.source is NULL and w.source_osm = v.osm_id;");
     PGresult* q_result = PQexec(mycon, sql1.c_str());
-    //std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
 
+    std::cout << "    Filling 'target' column of '" << table << "': ";
     std::string sql2(
         " UPDATE " + table + " AS w"
         " SET target = v.id "
         " FROM " + vertices_tab + " AS v"
         " WHERE w.target is NULL and w.target_osm = v.osm_id;");
     q_result = PQexec(mycon, sql2.c_str());
-    //std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
 
+    std::cout << "    Filling other columns of '" << table << "': ";
     std::string sql3(
         " UPDATE " + table + 
         " SET  length_m = st_length(geography(ST_Transform(the_geom, 4326))),"
@@ -395,8 +418,7 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
         "             END "
 	" WHERE length_m IS NULL;");
     q_result = PQexec(mycon, sql3.c_str());
-    //std::cout <<  PQcmdStatus(q_result) << "\n" << sql3;
-    std::cout << "     Updated \n"; // << PQcmdTuples(q_result) << " lengths in meters\n";
+    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
 
 }
@@ -574,7 +596,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
 
     int64_t count = 0;
     for (const auto &way : ways) {
-	if ((++count % 1000) == 0) std::cout << count << " ways inserted to temporary table\n";
+	if ((++count % 10000) == 0) std::cout << '\xd' << " Ways inserted to temporary table: " << count;
         std::string row_data = TO_STR(config->FindClass(way->type, way->clss)->id);
         row_data += "\t";
         row_data += TO_STR(way->length);
@@ -639,46 +661,44 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
-    std::cout << count << " ways inserted to temporary table\n";
+    std::cout << '\xd' << " Ways inserted to temporary table: " << count << "\n";
 
-    std::cout << "Creating index on geometry in temporary table\n";
-    create_gindex( "__ways_temp", "ways_temp");
+    std::cout << "Creating indices in temporary table\n";
+    create_gindex( "__ways_temp", "__ways_temp");
+    create_idindex(  "source_osm", "__ways_temp");
+    create_idindex(  "target_osm", "__ways_temp");
+#if 0
+    create_idindex(  "source", "__ways_temp" );
+    create_idindex(  "target", "__ways_temp" );
+#endif
 
 
     std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
-         " DELETE FROM __ways_temp a USING " + addSchema( full_table_name("ways") ) + " b where a.the_geom && b.the_geom and ST_OrderingEquals(a.the_geom, b.the_geom);");
+         " DELETE FROM __ways_temp a " 
+         "     USING " + addSchema( full_table_name("ways") ) + " b "
+         "     WHERE a.the_geom ~= b.the_geom AND ST_OrderingEquals(a.the_geom, b.the_geom);");
     q_result = PQexec(mycon, delete_from_temp.c_str());
     std::cout << "     Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
     PQclear(q_result);
 
-    std::cout << "Updating columns on temporary table\n";
+    std::cout << "Updating to existing toplology the temporary table\n";
     fill_source_target( "__ways_temp" , addSchema( full_table_name("ways_vertices_pgr") ) );
 
     std::cout << "Inserting new vertices in the vertex table\n";
     fill_vertices_table(  "__ways_temp" , addSchema( full_table_name("ways_vertices_pgr") ) );
 
-    std::cout << "Updating source, target n temporary table\n";
+    std::cout << "Updating to new toplology the temporary table\n";
     fill_source_target( "__ways_temp" , addSchema( full_table_name("ways_vertices_pgr") ) );
 
 
+    std::cout << "Inserting new splitted ways to '" << addSchema( full_table_name("ways") ) << "'\n";
     std::string insert_into_ways(
-#if 0
-         " WITH data AS ( "
-         " SELECT a.* "
-// insert only if the geometry is different
-         " FROM  __ways_temp a LEFT JOIN " + addSchema( full_table_name("ways") ) + " b USING (the_geom) "
-//         " FROM  __ways_temp a LEFT JOIN " + full_table_name("ways") + " b USING (source_osm, target_osm, the_geom) "
-//         "     WHERE (b.source_osm IS NULL OR b.target_osm IS NULL OR b.the_geom IS NULL))"
-         "     WHERE ( b.the_geom IS NULL ))"
-#endif
          " INSERT INTO " + addSchema( full_table_name("ways") ) +
           "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
          " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
-
-
     q_result = PQexec(mycon, insert_into_ways.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " ways\n";
+    std::cout << " Inserted " << PQcmdTuples(q_result) << " splitted ways\n";
 
     PQclear(q_result);
     dropTable("__ways_temp");
