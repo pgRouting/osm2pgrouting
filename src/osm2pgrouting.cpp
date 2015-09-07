@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <string>
 #include <ctime>
+#include <chrono>
 #include "./stdafx.h"
 #include "./Configuration.h"
 #include "./ConfigurationParserCallback.h"
@@ -36,6 +37,9 @@
 int main(int argc, char* argv[]) {
     //  Start Timers
     clock_t begin = clock();
+    std::time_t start_t = std::time(NULL);
+    std::cout << "Execution starts at: " << std::ctime(&start_t) << "\n";
+    std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
     try {
 
         po::options_description od_desc("Allowed options");
@@ -150,9 +154,19 @@ int main(int argc, char* argv[]) {
         std::cout << "size of splitted ways : " << document->m_SplittedWays.size() <<    endl;
 
         clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+        double elapsed_secs = double(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
 
-        std::cout << "Total processing time: -> " << elapsed_secs << " seconds\n";
+        std::time_t end_t = std::time(NULL);
+        std::chrono::steady_clock::time_point end_elapsed = std::chrono::steady_clock::now();
+
+        typedef std::chrono::duration<int,std::milli> millisecs_t ;
+        millisecs_t duration = std::chrono::duration_cast<millisecs_t>(end_elapsed - begin_elapsed);
+
+        std::cout << "Execution started at: " << std::ctime(&start_t);
+        std::cout << "Execution ended at:   " << std::ctime(&end_t);
+        std::cout << "Elapsed time: " << (double)duration.count()/(double)1000 << " Seconds.\n" ;
+        std::cout << "User CPU time: -> " << elapsed_secs << " seconds\n";
+        
         std::cout << "#########################" << endl;
         //  string n;
         //  getline(cin, n);
