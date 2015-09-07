@@ -96,6 +96,10 @@ public:
  	void dropTempTables() const;
 
  private:
+    //! to use with creating the ways
+    void prepare_table(const std::string &ways_columns) const;
+    void process_section(int count, const std::string &ways_columns) const;
+
     void dropTempTable(const std::string &table) const;
     bool createTempTable(const std::string &sql,
 			 const std::string &table) const;
