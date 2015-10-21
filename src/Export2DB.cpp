@@ -26,11 +26,12 @@
 
 using namespace std;
 
-Export2DB::Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string passwd, std::string tables_prefix)
+Export2DB::Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string passwd, std::string tables_prefix, std::string postgis_schema)
 :mycon(0)
 {
     this->conninf="host="+host+" user="+user+" dbname="+ dbname +" port="+port;
     this->tables_prefix = tables_prefix;
+    this->postgis_schema = postgis_schema;
     if(!passwd.empty())
         this->conninf+=" password="+passwd;
 }
@@ -82,7 +83,7 @@ void Export2DB::createTables()
 
 	// gid cannot be "bigint" right now because pgRouting doesn't support "bigint"
     std::string create_ways("CREATE TABLE " + tables_prefix + "ways (gid integer, class_id integer not null, length double precision, name text, x1 double precision, y1 double precision, x2 double precision, y2 double precision, reverse_cost double precision, rule text, to_cost double precision, maxspeed_forward integer, maxspeed_backward integer, osm_id bigint, priority double precision DEFAULT 1);"
-            + " SELECT AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
+            + " SELECT "+ postgis_schema + ".AddGeometryColumn('" + tables_prefix + "ways','the_geom',4326,'LINESTRING',2);");
 	result = PQexec(mycon, create_ways.c_str());
 	if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -471,7 +472,7 @@ void Export2DB::createTopology()
         everything_fine = false;
 	}
 
-    std::string create_topology("SELECT pgr_createTopology('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
+    std::string create_topology("SELECT "+ postgis_schema + ".pgr_createTopology('"+ tables_prefix + "ways', 0.00001, 'the_geom', 'gid');");
 	result = PQexec(mycon, create_topology.c_str());
 	if (PQresultStatus(result) != PGRES_TUPLES_OK)
     {

@@ -47,7 +47,7 @@ public:
 	 * @param dbname name of the database
 	 *
 	 */
- 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix);
+ 	Export2DB(std::string host, std::string user, std::string dbname, std::string port, std::string password, std::string tables_prefix, std::string postgis_schema);
  	
  	/**
  	 * Destructor
@@ -85,6 +85,7 @@ private:
 	PGconn *mycon;
 	std::string conninf;
 	std::string tables_prefix;
+	std::string postgis_schema;
 };
 
 #endif
