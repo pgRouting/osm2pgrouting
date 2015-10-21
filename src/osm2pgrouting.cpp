@@ -44,6 +44,7 @@ void _error()
 				cout << "-port <port> -- port of your database (default: 5432)" << endl;
 				cout << "-passwd <passwd> --  password for database access" << endl;
 				cout << "-prefixtables <prefix> --  add at the beginning of table names" << endl;
+				cout << "-postgisschema <schema> --  if postgis was installed in a specific schema (defaults to 'public')" << endl;
 				cout << "-clean -- drop previously created tables" << endl;
                 cout << "-skipnodes -- don't import the nodes table" << endl;
 
@@ -60,6 +61,7 @@ int main(int argc, char* argv[])
 	std::string dbname;
 	std::string passwd;
 	std::string prefixtables="";
+	std::string postgisschema="public";
 	bool skipnodes = false;
 	bool clean = false;
 	if(argc >=7 && argc <=19)
@@ -109,6 +111,11 @@ int main(int argc, char* argv[])
 				i++;
 				prefixtables = argv[i];
 			}
+			else if(strcmp(argv[i],"-postgisschema")==0)
+			{
+				i++;
+				postgisschema = argv[i];
+			}
 			else if(strcmp(argv[i],"-clean")==0)
 			{
 				clean = true;
@@ -140,7 +147,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	Export2DB test(host, user, dbname, port, passwd, prefixtables);
+	Export2DB test(host, user, dbname, port, passwd, prefixtables, postgisschema);
 	if(test.connect()==1)
 		return 1;
 
