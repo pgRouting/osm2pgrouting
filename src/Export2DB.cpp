@@ -90,7 +90,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " cost_s double precision, "
             " reverse_cost_s double precision,"
             " rule text,"
-            " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way), -1 reversed (1 way but geometry is reversed) 
+            " one_way int, "  // 0 unknown, 1 yes(normal direction), 2 (2 way),
+                              // -1 reversed (1 way but geometry is reversed)
+                              // 3 - reversible (one way street but direction chnges on time)
             " maxspeed_forward integer,"
             " maxspeed_backward integer,"
             " osm_id bigint,"
