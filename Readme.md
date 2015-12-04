@@ -31,6 +31,12 @@ make install
 
 If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake.  Commonly useful parameters are
 
+Install some prerqeuisites
+
+```
+sudo apt-get install expat
+sudo apt-get install libexpat1-dev
+```
 
 CMAKE options:
 
@@ -71,7 +77,7 @@ General:
   --schema arg                          Database schema to put tables. If left
                                         blank, defaults to default schema
                                         dictated by Postgresql search_path.
-  --prefix arg (=planet_)               Prefix added at the beginning of table
+  --prefix arg                          Prefix added at the beginning of table
                                         names.
   --suffix arg                          Suffix added at the end of table names.
   -s [ --skipnodes ] arg (=1)           When true: don't import the osm_nodes
