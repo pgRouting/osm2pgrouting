@@ -20,14 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #define SRC_PROG_OPTIONS_H_
 
 #include <boost/config.hpp>
-// #include <string>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
 
-// #include <iostream>
-// #include <fstream>
-// #include <iterator>
 using namespace std;
 
 void get_option_description(po::options_description &od_desc);

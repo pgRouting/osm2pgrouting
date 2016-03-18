@@ -38,7 +38,6 @@ int main(int argc, char* argv[]) {
     //  Start Timers
     clock_t begin = clock();
     std::time_t start_t = std::time(NULL);
-    std::cout << "Execution starts at: " << std::ctime(&start_t) << "\n";
     std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
     try {
 
@@ -54,6 +53,11 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
+        if (vm.count("version")) {
+            std::cout << "This is osm2pgrouting Version 2.1\n";
+            return 0;
+        }
+
         try {
             notify(vm);
         }
@@ -64,28 +68,14 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
+        std::cout << "Execution starts at: " << std::ctime(&start_t) << "\n";
         process_command_line(vm, od_desc);
 
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
-#if 0
-        auto host(vm["host"].as<std::string>());
-        auto user(vm["user"].as<std::string>());
-        auto db_port(vm["db_port"].as<std::string>());
-        auto dbname(vm["dbname"].as<std::string>());
-        auto passwd(vm["passwd"].as<std::string>());
-        auto prefixtables(vm["prefix"].as<std::string>());
-        auto suffixtables(vm["suffix"].as<std::string>());
-#endif
         auto skipnodes(vm["skipnodes"].as<bool>());
-        auto clean(vm["clean"].as<bool>());
+        auto clean(vm.count("clean"));
 
-#if 0
-        // variable to be used later 
-        auto threads (vm["threads"].as<bool>() );
-        auto multimodal (vm["multimodal"].as<bool>() );
-        auto multilevel (vm["multilevel"].as<bool>() );
-#endif
 
         std::cout << "Connecting to the database"  << endl;
             Export2DB dbConnection(vm);

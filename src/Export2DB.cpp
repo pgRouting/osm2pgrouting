@@ -33,7 +33,7 @@
 Export2DB::Export2DB(const  po::variables_map &vm)
 :     mycon(0),
       conninf ( "host=" + vm["host"].as<std::string>()
-            + " user=" +  vm["user"].as<std::string>()
+            + " user=" +  vm["username"].as<std::string>()
             + " dbname=" + vm["dbname"].as<std::string>()
             + " port=" + vm["db_port"].as<std::string>() ),
     tables_schema( vm["schema"].as<std::string>() ),
