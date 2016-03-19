@@ -55,23 +55,22 @@ void get_option_description(po::options_description &od_desc) {
     general_od_desc.add_options()
         // general
         ("file,f", po::value<string>()->required(), "REQUIRED: Name of the osm file.")
-        ("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of the configuration xml file.")
+        ("conf,c", po::value<string>()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of the configuration xml file.")
+        //("conf,c", po::value<string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of the configuration xml file.")
         ("schema", po::value<string>()->default_value(""), "Database schema to put tables.\n  blank:\t defaults to default schema dictated by PostgreSQL search_path.")
         ("prefix", po::value<string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<string>()->default_value(""), "Suffix added at the end of the table names.")
-        ("skipnodes,s", po::value<bool>()->default_value(true), "When true: don't import the osm_nodes table.")
-        // ("clean", po::value<bool>()->default_value(false), "When true: Drop previously created tables.")
+        ("addnodes", "Import the osm_nodes table.")
         ("clean", "Drop previously created tables.")
         ;
 
     db_options_od_desc.add_options()
         // database options
         ("dbname,d", po::value<string>()->required(), "Name of your database (Required).")
-        //("user,u", po::value<string>()->default_value(getlogin()), "Name of the user, which have write access to the database.")
         ("username,U", po::value<string>()->default_value("postgres"), "Name of the user, which have write access to the database.")
         ("host,h", po::value<string>()->default_value("localhost"), "Host of your postgresql database.")
-        ("db_port,p", po::value<string>()->default_value("5432"), "db_port of your database.")
-        ("passwd", po::value<string>()->default_value(""), "Password for database access.")
+        ("port,p", po::value<string>()->default_value("5432"), "db_port of your database.")
+        ("password,W", po::value<string>()->default_value(""), "Password for database access.")
         ;
 
     not_used_od_desc.add_options()
@@ -96,15 +95,15 @@ int process_command_line(
     std::cout << "Filename = " << vm["file"].as<string>() << "\n";
     std::cout << "Configuration file = " << vm["conf"].as<string>() << "\n";
     std::cout << "host = " << vm["host"].as<std::string>() << "\n";
-    std::cout << "db_port = " << vm["db_port"].as<std::string>() << "\n";
+    std::cout << "port = " << vm["port"].as<std::string>() << "\n";
     std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
     std::cout << "username = " << vm["username"].as<std::string>() << "\n";
-    std::cout << "passwd = " << vm["passwd"].as<string>() << "\n";
+    std::cout << "password = " << vm["password"].as<string>() << "\n";
     std::cout << "schema= " << vm["schema"].as<string>() << "\n";
     std::cout << "prefix = " << vm["prefix"].as<string>() << "\n";
     std::cout << "suffix = " << vm["suffix"].as<string>() << "\n";
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
-    std::cout << (vm["skipnodes"].as<bool>()? "Don't I" : "I") << "nclude node table\n";
+    std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
     std::cout << "***************************************************\n";
 
     return 0;

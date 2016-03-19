@@ -66,6 +66,7 @@ public:
 
  	//! connects to database
  	int connect();
+    bool has_postGIS() const;
 
  	//! creates needed tables and geometries
  	void createTables() const;

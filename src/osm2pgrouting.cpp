@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
-        auto skipnodes(vm["skipnodes"].as<bool>());
+        auto skipnodes(!vm.count("addnodes"));
         auto clean(vm.count("clean"));
 
 
@@ -81,6 +81,10 @@ int main(int argc, char* argv[]) {
             Export2DB dbConnection(vm);
             if (dbConnection.connect() == 1)
                 return 1;
+            if (!dbConnection.has_postGIS()) {
+                std::cout << "ERROR: postGIS not found\n";
+                return 1;
+            }
 
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
@@ -165,5 +169,13 @@ int main(int argc, char* argv[]) {
     catch (exception &e) {
         std::cout << e.what() << endl;
         return 1;
-    }
+    } 
+    catch (string &e) {
+        std::cout << e << endl;
+        return 1;
+    } 
+    catch (...) {
+        std::cout << "Terminating" << endl;
+        return 1;
+    } 
 }

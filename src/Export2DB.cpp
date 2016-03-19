@@ -35,13 +35,13 @@ Export2DB::Export2DB(const  po::variables_map &vm)
       conninf ( "host=" + vm["host"].as<std::string>()
             + " user=" +  vm["username"].as<std::string>()
             + " dbname=" + vm["dbname"].as<std::string>()
-            + " port=" + vm["db_port"].as<std::string>() ),
+            + " port=" + vm["port"].as<std::string>() ),
     tables_schema( vm["schema"].as<std::string>() ),
     tables_prefix( vm["prefix"].as<std::string>() ),
     tables_suffix( vm["suffix"].as<std::string>() ) {
 
-        if(!vm["passwd"].as<std::string>().empty())
-            this->conninf+=" password=" + vm["passwd"].as<std::string>();
+        if(!vm["password"].as<std::string>().empty())
+            this->conninf+=" password=" + vm["password"].as<std::string>();
 
     create_types = std::string(
                " type_id integer PRIMARY KEY,"
@@ -177,6 +177,16 @@ bool Export2DB::createTempTable (const std::string &table_description,
  );
 
 */
+bool Export2DB::has_postGIS() const{
+    std::string sql = "SELECT * FROM pg_extension WHERE extname = 'postgis'";
+    PGresult *result = PQexec(mycon, sql.c_str());
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+        std::cout << PQresultErrorMessage(result) << "\n";
+        throw;
+    }
+    return  static_cast<bool>(PQntuples(result));
+}
+
 bool Export2DB::createTable(const std::string &table_description,
                              const std::string &table,
                             const std::string &constraint) const {
@@ -205,16 +215,11 @@ void Export2DB::addGeometry(
                + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
-    //TODO check missing
-#if 0
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) { // TODO I think the condition is wrong (vicky)
-            std::cout << "   Something went wrong when adding the geomtery column in Table " << table << ".\n"
-                << std::endl;
-	    throw;
-    } else {
-            std::cout << "   OK" << std::endl;
+
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+        std::cout << PQresultErrorMessage(result) << "<-------\n";
+        throw std::string(PQresultErrorMessage(result)) ;
     }
-#endif
     PQclear(result);
 }
 
@@ -227,7 +232,10 @@ void Export2DB::addTempGeometry(
             + "'the_geom', 4326, '" + geometry_type + "',2 );";
 
     PGresult *result = PQexec(mycon, sql.c_str());
-    //TODO check missing
+    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
+        std::cout << PQresultErrorMessage(result);
+        throw std::string(PQresultErrorMessage(result)) ;
+    }
     PQclear(result);
 }
 
@@ -238,7 +246,11 @@ void Export2DB::create_gindex(const std::string &index, const std::string &table
              + index + "_gdx ON " 
              + table + " using gist(the_geom);" );
     PGresult *result = PQexec(mycon, sql.c_str());
-    //TODO check missing
+
+    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
+        std::cout << PQresultErrorMessage(result);
+        throw std::string(PQresultErrorMessage(result)) ;
+    }
     PQclear(result);
 }
 
