@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include <string>
-#include "./stdafx.h"
+#include <boost/lexical_cast.hpp>
 #include "./ConfigurationParserCallback.h"
 #include "./OSMDocument.h"
 #include "./Configuration.h"
 #include "./Type.h"
 #include "./Class.h"
 
-namespace osm {
+namespace osm2pgr {
 
 /**
     Parser callback for configuration files
@@ -36,7 +36,7 @@ void ConfigurationParserCallback::StartElement(
     // std::cout << "SE for <" << name << ">" << std::endl;
     if (strcmp(name, "class") == 0) {
         if (atts != NULL) {
-            long long id = -1;
+            int64_t id = -1;
             std::string name;
             double priority  =  1;
             int maxspeed = 50;
@@ -62,7 +62,7 @@ void ConfigurationParserCallback::StartElement(
         }
     } else if (strcmp(name, "type") == 0) {
         if (atts != NULL) {
-            long long id;
+            int64_t id(0);
             std::string name;
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
@@ -91,4 +91,4 @@ void ConfigurationParserCallback::EndElement(const char* name) {
     }
 }
 
-};  // end namespace osm
+}  // end namespace osm2pgr

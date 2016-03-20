@@ -27,7 +27,6 @@ namespace po = boost::program_options;
 using namespace std;
 
 void get_option_description(po::options_description &od_desc);
-int process_command_line(po::variables_map &vm,
-    po::options_description &od_desc);
+void process_command_line(po::variables_map &vm);
 
 #endif  // SRC_PROG_OPTIONS_H_

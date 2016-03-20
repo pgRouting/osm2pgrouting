@@ -18,14 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h"
+#include <string>
 #include "Way.h"
 
 
-namespace osm
-{
+namespace osm2pgr {
 
-Way::Way( long long id, bool visible, long long osm_id, int maxspeed_forward, int maxspeed_backward)
+Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward)
 :
 	id(id),
 	visible(visible),
@@ -33,13 +32,14 @@ Way::Way( long long id, bool visible, long long osm_id, int maxspeed_forward, in
 	maxspeed_forward(maxspeed_forward),
 	maxspeed_backward(maxspeed_backward),
 	oneWayType(UNKNOWN),
-	osm_id(osm_id)
-{
+	osm_id(osm_id) {
 }
 
+#if 0
 Way::~Way()
 {
 }
+#endif
 
 void Way::AddNodeRef( Node* pNode )
 {
@@ -58,5 +58,5 @@ bool Way::HasTag(std::string key)
 
 
 
-} // end namespace osm
+} // end namespace osm2pgr
 

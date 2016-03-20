@@ -20,8 +20,9 @@
 
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
+#include <cstdint>
 
-namespace osm {
+namespace osm2pgr {
 
 /**
 \code
@@ -34,7 +35,7 @@ namespace osm {
 class Node {
  public:
     // ! ID of the node
-    long long id;
+    int64_t id;
     // ! latitude coordinate
     double lat;
     // ! longitude coordinate
@@ -50,11 +51,9 @@ class Node {
      *    @param lat latitude
      *    @param lon longitude
      */
-    Node(long long id = -1, double lat = 0, double lon = 0);
-    //! Destructor
-    virtual ~Node();
+    Node(int64_t id = -1, double lat = 0, double lon = 0);
 };
 
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 #endif  // SRC_NODE_H_

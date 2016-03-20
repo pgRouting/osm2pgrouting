@@ -24,7 +24,7 @@
 #include <string.h>
 #include "./XMLParser.h"
 
-namespace osm {
+namespace osm2pgr {
 
 class OSMDocument;
 class Way;
@@ -45,16 +45,13 @@ class OSMDocumentParserCallback :
 
     virtual void EndElement(const char* name);
 
-    virtual void SetContent(const char* ch, int len) {
-    }
+#if 0
+    virtual void SetContent(const char* ch, int len)=0;
 
-    virtual void ProcessingInstruction(const char* target, const char* data) {
-    }
+    virtual void ProcessingInstruction(const char* target, const char* data)=0;
 
-    virtual void CDataBlockInternal(const char *value, int len) {
-    }
-
-
+    virtual void CDataBlockInternal(const char *value, int len)=0;
+#endif
  public:
     /**
      *    Constructor
@@ -69,6 +66,6 @@ class OSMDocumentParserCallback :
     }
 };  // class OSMDocumentParserCallback
 
-};  // end namespace osm
+}  // end namespace osm2pgr
 
 #endif  // SRC_OSMDOCUMENTPARSERCALLBACK_H_

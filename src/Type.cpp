@@ -18,10 +18,10 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/
 #include <string>
-#include "./stdafx.h"
+// #include "./stdafx.h"
 #include "./Type.h"
 
-namespace osm {
+namespace osm2pgr {
 
 Type::Type(long long id, std::string name)
 :
@@ -37,4 +37,4 @@ void Type::AddClass(Class* pClass ) {
 }
 
 
-}  // end namespace osm
+}  // end namespace osm2pgr

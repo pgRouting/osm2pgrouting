@@ -22,11 +22,11 @@
 
 #include <string>
 
-namespace osm {
+namespace osm2pgr {
 
 class Class {
  public:
-    long long id;
+    int64_t id;
     std::string name;
     double priority;
     int default_maxspeed;
@@ -37,12 +37,10 @@ class Class {
      *    @param name name of the class
      */
     Class(
-        long long id,
+        int64_t id,
         std::string name,
         double priority,
         int default_maxspeed);
-    //! Destructor
-    ~Class();
 };
 
 

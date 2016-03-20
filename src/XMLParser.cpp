@@ -22,7 +22,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "./stdafx.h"
+// #include "./stdafx.h"
 #include "./XMLParser.h"
 
 

@@ -21,14 +21,9 @@
 #include <string>
 #include <ctime>
 #include <chrono>
-#include "./stdafx.h"
-#include "./Configuration.h"
 #include "./ConfigurationParserCallback.h"
 #include "./OSMDocument.h"
 #include "./OSMDocumentParserCallback.h"
-#include "./Way.h"
-#include "./Node.h"
-#include "./Relation.h"
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
@@ -69,7 +64,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Execution starts at: " << std::ctime(&start_t) << "\n";
-        process_command_line(vm, od_desc);
+        process_command_line(vm);
 
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
@@ -132,7 +127,7 @@ int main(int argc, char* argv[]) {
             dbConnection.exportTypes(config->m_Types);
             dbConnection.exportClasses(config->m_Types);
             //dbConnection.exportRelations(document->m_Relations, config);
-            dbConnection.exportRelationsWays(document->m_Relations, config);
+            dbConnection.exportRelationsWays(document->m_Relations);
             dbConnection.exportTags(document->m_SplittedWays, config);
             dbConnection.exportWays(document->m_SplittedWays, config);
 

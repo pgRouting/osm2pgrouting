@@ -39,7 +39,7 @@
 #include "Configuration.h"
 #include "prog_options.h"
  
-using namespace osm;
+using namespace osm2pgr;
 
 /**
  * This class connects to a postgresql database. For using this class,
@@ -76,7 +76,7 @@ public:
  	//! exports ways to the database
  	void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
  	void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
- 	void exportRelationsWays(const std::vector<Relation*> &relations, Configuration *config) const;
+ 	void exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const;
  	void exportTypes(const std::map<std::string, Type*>& types) const;
  	void exportClasses(const std::map<std::string, Type*>& types) const;
  	void exportWays(const std::vector<Way*> &ways, Configuration *config) const;
@@ -99,7 +99,7 @@ public:
  private:
     //! to use with creating the ways
     void prepare_table(const std::string &ways_columns) const;
-    void process_section(int count, const std::string &ways_columns) const;
+    void process_section(int64_t count, const std::string &ways_columns) const;
 
     void dropTempTable(const std::string &table) const;
     bool createTempTable(const std::string &sql,

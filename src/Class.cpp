@@ -18,14 +18,13 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/                  
 #include <string>
-#include "./stdafx.h"
 #include "./Class.h"
 
 
-namespace osm {
+namespace osm2pgr {
 
 Class::Class(
-    long long id,
+    int64_t id,
     std::string name,
     double priority,
     int default_maxspeed
@@ -37,7 +36,5 @@ Class::Class(
   default_maxspeed(default_maxspeed) {
 }
 
-Class::~Class() {
-}
 
-}  // end namespace osm
+}  // end namespace osm2pgr

@@ -86,9 +86,8 @@ void get_option_description(po::options_description &od_desc) {
 
 
 
-int process_command_line(
-  po::variables_map &vm,
-  po::options_description &od_desc) {
+void
+process_command_line( po::variables_map &vm) {
     std::cout << "***************************************************\n";
     std::cout << "           COMMAND LINE CONFIGURATION             *\n";
     std::cout << "***************************************************\n";
@@ -105,6 +104,4 @@ int process_command_line(
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
     std::cout << "***************************************************\n";
-
-    return 0;
 }

@@ -18,20 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "./stdafx.h"
 #include "./Node.h"
 
-namespace osm {
+namespace osm2pgr {
 
-Node::Node(long long id, double lat, double lon)
-:
+Node::Node(int64_t id, double lat, double lon) :
     id(id),
     lat(lat),
     lon(lon) {
     this->numsOfUse = 0;
 }
 
-Node::~Node() {
-}
 
-}  // end namespace osm
+}  // end namespace osm2pgr

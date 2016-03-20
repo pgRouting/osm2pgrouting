@@ -23,7 +23,7 @@
 
 #include "Node.h"
 
-using namespace osm;
+using namespace osm2pgr;
 
 double getLength(Node* a, Node* b);
 

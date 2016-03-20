@@ -24,7 +24,7 @@
 #include <map>
 #include <string>
 
-namespace osm {
+namespace osm2pgr {
 class Way;
 
 /**
@@ -51,7 +51,7 @@ class Relation {
  public:
     long long id;
     std::string name;
-    std::vector<long long> m_WayRefs;
+    std::vector<int64_t> m_WayRefs;
     std::map<std::string, std::string> m_Tags;
 
  public:
@@ -59,17 +59,17 @@ class Relation {
      *    Constructor
      *    @param id ID of the way
      */
-    Relation(long long id);
+    Relation(int64_t id);
     //! Destructor
     ~Relation();
     /**
      *    saves the nodes of the way  
      *    @param pNode node
      */
-    void AddWayRef(long long pID);
+    void AddWayRef(int64_t pID);
     void AddTag(std::string key, std::string value);
 };
 
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 #endif  // SRC_RELATION_H_

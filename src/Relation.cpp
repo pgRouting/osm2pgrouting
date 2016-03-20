@@ -18,14 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include <string>
-#include "./stdafx.h"
 #include "./Relation.h"
-#include "./Way.h"
+//#include "./Way.h"
 
 
-namespace osm {
+namespace osm2pgr {
 
-Relation::Relation(long long id)
+Relation::Relation(int64_t id)
 :
     id(id) {
 }
@@ -33,7 +32,7 @@ Relation::Relation(long long id)
 Relation::~Relation() {
 }
 
-void Relation::AddWayRef(long long pID) {
+void Relation::AddWayRef(int64_t pID) {
     if (pID) m_WayRefs.push_back(pID);
 }
 
@@ -41,5 +40,5 @@ void Relation::AddTag(std::string key, std::string value) {
     m_Tags[key] = value;
 }
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 

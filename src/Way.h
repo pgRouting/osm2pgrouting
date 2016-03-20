@@ -20,8 +20,9 @@
 #ifndef WAY_H
 #define WAY_H
 
-namespace osm
-{
+#include <vector>
+#include <map>
+namespace osm2pgr {
 	class Node;
 
 	enum OneWayType{ UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
@@ -53,7 +54,7 @@ public:
 	std::vector<Node*> m_NodeRefs;
 	std::map<std::string, std::string> m_Tags;
 	//! ID of the way
-	long long id;
+	int64_t id;
 	bool visible;
 	//! name of the street
 	std::string name;
@@ -63,8 +64,8 @@ public:
 	std::string type;
 	std::string clss;
 
-	//long long type;
-	//long long clss;
+	//int64_t type;
+	//int64_t clss;
 	
 	//! geometry of the street
 	std::string geom;
@@ -76,7 +77,7 @@ public:
 
 	OneWayType oneWayType;
 	
-	long long osm_id;
+	int64_t osm_id;
 
 
 public:
@@ -84,9 +85,9 @@ public:
 	 *	Constructor
 	 *	@param id ID of the way
 	 */
-	Way( long long id, bool visible, long long osm_id,  int maxspeed_forward, int maxspeed_backward);
+	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward);
 	//! Destructor
-	~Way();
+	// ~Way();
 	/**
 	 *	saves the nodes of the way  
 	 *	@param pNode node
@@ -97,5 +98,5 @@ public:
 };
 
 
-} // end namespace osm
+} // end namespace osm2pgr
 #endif

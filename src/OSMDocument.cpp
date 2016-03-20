@@ -23,7 +23,6 @@
 #include <map>
 #include <utility>
 #include <string>
-#include "./stdafx.h"
 #include "./OSMDocument.h"
 #include "./Configuration.h"
 #include "./Node.h"
@@ -31,7 +30,7 @@
 #include "./Way.h"
 #include "./math_functions.h"
 
-namespace osm {
+namespace osm2pgr {
 
 OSMDocument::OSMDocument(Configuration &config) : m_rConfig(config) {
 }
@@ -148,4 +147,4 @@ void OSMDocument::SplitWays() {
     }
 }  // end SplitWays
 
-}  // end namespace osm
+}  // end namespace osm2pgr

@@ -25,7 +25,7 @@
 #include <vector>
 #include "./Configuration.h"
 
-namespace osm {
+namespace osm2pgr {
 
 
 class Node;
@@ -67,5 +67,5 @@ class OSMDocument {
 };
 
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 #endif  // SRC_OSMDOCUMENT_H_

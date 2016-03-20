@@ -18,7 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include <string>
-#include "./stdafx.h"
+#include <iostream>
+#include <sstream>
+#include "math.h"
 #include "./OSMDocumentParserCallback.h"
 #include "./OSMDocument.h"
 #include "./Relation.h"
@@ -30,7 +32,7 @@
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
 // #define _FILTER if (m_pActWay->highway == "motorway" || m_pActWay->highway == "primary" || m_pActWay->highway == "secondary")
 
-namespace osm {
+namespace osm2pgr {
 
 /*
 <relation id ="147411" version="5" timestamp="2010-01-22T17:02:14Z" uid ="24299" user="james_hiebert" changeset="3684904">
@@ -82,7 +84,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
                 Node * node = m_rDocument.FindNode(nodeRefId);
                 if (node != 0) {
-                    node->numsOfUse+=1;
+                    ++node->numsOfUse;
                 } else {
                     std::cout << "Reference nd=" << nodeRefId
                             << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
@@ -308,4 +310,4 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
     // END OF THE RELATIONS CODE
 }
 
-};  // end namespace osm
+}  // end namespace osm2pgr

@@ -20,7 +20,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h"
 #include "Export2DB.h"
 #include "boost/algorithm/string/replace.hpp"
 #include "prog_options.h"
@@ -192,7 +191,7 @@ bool Export2DB::createTable(const std::string &table_description,
                             const std::string &constraint) const {
     std::string sql = 
 	"CREATE TABLE " + table + "("    
-        + table_description + ");";
+        + table_description + constraint + ");";
 
     PGresult *result = PQexec(mycon, sql.c_str());
     bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
@@ -491,7 +490,7 @@ std::cout << row_data << "\n";
 
 //////////should break into 2 functions
 
-void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, Configuration *config) const {
+void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const {
     std::cout << "    Processing way's relations: ";
     createTempTable( create_relations_ways, "__relations_ways_temp" );
     
@@ -687,7 +686,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     process_section(count, ways_columns);
 }
 
-void Export2DB::process_section(int count, const std::string &ways_columns) const{
+void Export2DB::process_section(int64_t count, const std::string &ways_columns) const{
 
 
     // std::cout << "Creating indices in temporary table\n";

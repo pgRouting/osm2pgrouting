@@ -25,7 +25,7 @@
 #include <string>
 #include "./Class.h"
 
-namespace osm {
+namespace osm2pgr {
 
 class Type {
  public:
@@ -49,5 +49,5 @@ class Type {
     void AddClass(Class* pClass);
 };
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 #endif
