@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include <unistd.h>
 #include <string>
+#include <iostream>
 #include <ctime>
 #include <chrono>
 #include "./ConfigurationParserCallback.h"
