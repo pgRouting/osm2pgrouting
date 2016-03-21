@@ -28,6 +28,14 @@
 #include "Relation.h"
 #include "Export2DB.h"
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__linux__)
+#define IS_UNIX
+#endif
+
+#ifdef IS_UNIX
+#include <unistd.h>
+#endif
+
 using namespace osm;
 using namespace xml;
 using namespace std;
@@ -43,6 +51,9 @@ void _error()
 				cout << "-host <host>  -- host of your postgresql database (default: 127.0.0.1)" << endl;
 				cout << "-port <port> -- port of your database (default: 5432)" << endl;
 				cout << "-passwd <passwd> --  password for database access" << endl;
+#ifdef IS_UNIX
+				cout << "-ipasswd -- interactively ask for a password" << endl;
+#endif
 				cout << "-prefixtables <prefix> --  add at the beginning of table names" << endl;
 				cout << "-clean -- drop previously created tables" << endl;
                 cout << "-skipnodes -- don't import the nodes table" << endl;
@@ -104,6 +115,12 @@ int main(int argc, char* argv[])
 				i++;
 				passwd = argv[i];
 			}
+#ifdef IS_UNIX
+			else if(strcmp(argv[i],"-ipasswd")==0)
+			{
+				passwd = getpass("PostgreSQL password: ");
+			}
+#endif
 			else if(strcmp(argv[i],"-prefixtables")==0)
 			{
 				i++;
