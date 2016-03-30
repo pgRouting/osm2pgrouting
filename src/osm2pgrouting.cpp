@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.1 beta\n";
+            std::cout << "This is osm2pgrouting Version 2.1 RC1\n";
             return 0;
         }
 
