@@ -56,41 +56,60 @@ cmake -DBOOST_ROOT:PATH=/local/projects/rel-boost-1.58.0 \
 
 ## How to use
 
+Prepare the database:
+
+```
+createdb routing
+psql -dbname routing -c 'CREATE EXTENSION postgis'
+psql -dbname routing -c 'CREATE EXTENSION pgRouting'
+```
+
 Start the program like this:
 
 ```
-osm2pgrouting -file your-OSM-XML-File.osm -conf mapconfig.xml -dbname routing -user postgres -clean
+osm2pgrouting --f your-OSM-XML-File.osm --conf mapconfig.xml --dbname routing --username postgres --clean
 ```
+
+Do incremental adition of data without using --clean
+
+```
+osm2pgrouting --f next-OSM-XML-File.osm --conf mapconfig.xml --dbname routing --username postgres
+```
+
 
 A complete list of arguments are:
 
 ```
 Allowed options:
 
+
+Allowed options:
+
 Help:
-  --help                                Produce help message for this version.
+  --help                Produce help message for this version.
+  -v [ --version ]      Print version string
 
 General:
-  -f [ --file ] arg                     Name of your osm file (Required).
+  -f [ --file ] arg                     REQUIRED: Name of the osm file.
   -c [ --conf ] arg (=/usr/share/osm2pgrouting/mapconfig.xml)
-                                        Name of your configuration xml file.
-  --schema arg                          Database schema to put tables. If left
-                                        blank, defaults to default schema
-                                        dictated by Postgresql search_path.
-  --prefix arg                          Prefix added at the beginning of table
+                                        Name of the configuration xml file.
+  --schema arg                          Database schema to put tables.
+                                          blank: defaults to default schema 
+                                                dictated by PostgreSQL 
+                                                search_path.
+  --prefix arg                          Prefix added at the beginning of the 
+                                        table names.
+  --suffix arg                          Suffix added at the end of the table 
                                         names.
-  --suffix arg                          Suffix added at the end of table names.
-  -s [ --skipnodes ] arg (=1)           When true: don't import the osm_nodes
-                                        table.
-  --clean arg (=0)                      When true: Drop previously created
-                                        tables.
+  --addnodes                            Import the osm_nodes table.
+  --clean                               Drop previously created tables.
 
 Database options:
-  -d [ --dbname ] arg                   Name of your database (Required).
-  -u [ --user ] arg (=postgres)         Name of the user, which have write
-                                        access to the database.
-  -h [ --host ] arg (=localhost)        Host of your postgresql database.
-  -p [ --db_port ] arg (=5432)          db_port of your database.
-  --passwd arg                          Password for database access.
+  -d [ --dbname ] arg               Name of your database (Required).
+  -U [ --username ] arg (=postgres) Name of the user, which have write access 
+                                    to the database.
+  -h [ --host ] arg (=localhost)    Host of your postgresql database.
+  -p [ --port ] arg (=5432)         db_port of your database.
+  -W [ --password ] arg             Password for database access.
 
 ```
