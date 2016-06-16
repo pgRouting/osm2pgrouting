@@ -60,8 +60,8 @@ Prepare the database:
 
 ```
 createdb routing
-psql -dbname routing -c 'CREATE EXTENSION postgis'
-psql -dbname routing -c 'CREATE EXTENSION pgRouting'
+psql --dbname routing -c 'CREATE EXTENSION postgis'
+psql --dbname routing -c 'CREATE EXTENSION pgRouting'
 ```
 
 Start the program like this:
