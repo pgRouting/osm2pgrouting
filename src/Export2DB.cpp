@@ -717,13 +717,13 @@ void Export2DB::process_section(int64_t count, const std::string &ways_columns) 
     fill_source_target( "__ways_temp" , addSchema( full_table_name("ways_vertices_pgr") ) );
 
 
-    // std::cout << "Inserting new splitted ways to '" << addSchema( full_table_name("ways") ) << "'\n";
+    // std::cout << "Inserting new split ways to '" << addSchema( full_table_name("ways") ) << "'\n";
     std::string insert_into_ways(
          " INSERT INTO " + addSchema( full_table_name("ways") ) +
           "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
          " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
     q_result = PQexec(mycon, insert_into_ways.c_str());
-    // std::cout << " Inserted " << PQcmdTuples(q_result) << " splitted ways\n";
+    // std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
     std::cout << "    Ways inserted: " << count << "\n";
     PQclear(q_result);
     dropTable("__ways_temp");
