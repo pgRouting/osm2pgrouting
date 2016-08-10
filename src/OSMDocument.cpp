@@ -39,7 +39,7 @@ OSMDocument::~OSMDocument() {
     ez_mapdelete(m_Nodes);
     ez_vectordelete(m_Ways);
     ez_vectordelete(m_Relations);
-    ez_vectordelete(m_SplittedWays);
+    ez_vectordelete(m_SplitWays);
 }
 void OSMDocument::AddNode(Node* n) {
     m_Nodes[n->id] = n;
@@ -63,7 +63,7 @@ void OSMDocument::SplitWays() {
     std::vector<Way*>::const_iterator it(m_Ways.begin());
     std::vector<Way*>::const_iterator last(m_Ways.end());
 
-    //  splitted ways get a new ID
+    //  split ways get a new ID
     long long id = 0;
 
     while (it != last) {
@@ -80,14 +80,14 @@ void OSMDocument::SplitWays() {
             Node* secondNode = 0;
             Node* lastNode = 0;
 
-            Way* splitted_way = new Way(++id, currentWay->visible,
+            Way* split_way = new Way(++id, currentWay->visible,
                 currentWay->osm_id,
                 currentWay->maxspeed_forward,
                 currentWay->maxspeed_backward);
-            splitted_way->name = currentWay->name;
-            splitted_way->type = currentWay->type;
-            splitted_way->clss = currentWay->clss;
-            splitted_way->oneWayType = currentWay->oneWayType;
+            split_way->name = currentWay->name;
+            split_way->type = currentWay->type;
+            split_way->clss = currentWay->clss;
+            split_way->oneWayType = currentWay->oneWayType;
 
             std::map<std::string, std::string>::iterator it_tag(currentWay->m_Tags.begin());
             std::map<std::string, std::string>::iterator last_tag(currentWay->m_Tags.end());
@@ -99,49 +99,49 @@ void OSMDocument::SplitWays() {
             while (it_tag != last_tag) {
                 std::pair<std::string, std::string> pair = *it_tag++;
 
-                splitted_way->AddTag(pair.first, pair.second);
+                split_way->AddTag(pair.first, pair.second);
             }
 
     // GeometryFromText('LINESTRING('||x1||' '||y1||','||x2||' '||y2||')',4326);
 
-            splitted_way->geom = "LINESTRING("+ boost::lexical_cast<std::string>(node->lon) + " " + boost::lexical_cast<std::string>(node->lat) +",";
+            split_way->geom = "LINESTRING("+ boost::lexical_cast<std::string>(node->lon) + " " + boost::lexical_cast<std::string>(node->lat) +",";
 
-            splitted_way->AddNodeRef(node);
+            split_way->AddNodeRef(node);
 
             bool found = false;
 
             if (it_node != last_node) {
                 while (it_node != last_node && !found) {
-                    splitted_way->AddNodeRef(*it_node);
+                    split_way->AddNodeRef(*it_node);
                     if ((*it_node)->numsOfUse > 1) {
                         found = true;
                         secondNode = *it_node;
-                        splitted_way->AddNodeRef(secondNode);
+                        split_way->AddNodeRef(secondNode);
                         double length = getLength(node, secondNode);
                         if (length < 0)
                             length*=-1;
-                        splitted_way->length+=length;
-                        splitted_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
+                        split_way->length+=length;
+                        split_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
                     } else if (backNode == (*it_node)) {
                         lastNode =*it_node++;
-                        splitted_way->AddNodeRef(lastNode);
+                        split_way->AddNodeRef(lastNode);
                         double length = getLength(node, lastNode);
                         if (length < 0)
                             length*=-1;
-                        splitted_way->length+=length;
-                        splitted_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
+                        split_way->length+=length;
+                        split_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
                     } else {
-                        splitted_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
+                        split_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
                         *it_node++;
                     }
                 }
             }
 
-            if (splitted_way->m_NodeRefs.front() != splitted_way->m_NodeRefs.back()) {
-                m_SplittedWays.push_back(splitted_way);
+            if (split_way->m_NodeRefs.front() != split_way->m_NodeRefs.back()) {
+                m_SplitWays.push_back(split_way);
             } else {
-                delete splitted_way;
-                splitted_way = 0;
+                delete split_way;
+                split_way = 0;
             }
         }
     }

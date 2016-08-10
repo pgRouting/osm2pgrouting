@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
             dbConnection.exportClasses(config->m_Types);
             //dbConnection.exportRelations(document->m_Relations, config);
             dbConnection.exportRelationsWays(document->m_Relations);
-            dbConnection.exportTags(document->m_SplittedWays, config);
-            dbConnection.exportWays(document->m_SplittedWays, config);
+            dbConnection.exportTags(document->m_SplitWays, config);
+            dbConnection.exportWays(document->m_SplitWays, config);
 
 
             std::cout << "Creating topology..." << endl;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         std::cout << "#########################" << endl;
 
         std::cout << "size of streets: " << document->m_Ways.size() <<    endl;
-        std::cout << "size of splitted ways : " << document->m_SplittedWays.size() <<    endl;
+        std::cout << "size of split ways : " << document->m_SplitWays.size() <<    endl;
 
         clock_t end = clock();
         double elapsed_secs = double(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
