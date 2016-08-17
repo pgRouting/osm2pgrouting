@@ -1,4 +1,5 @@
 # osm2pgrouting
+TODO: Add functionality to extract version & timestamp from OSM objects and push them to postgresql database 
 
 ## Requirements
 
