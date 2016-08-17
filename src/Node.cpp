@@ -27,6 +27,7 @@ Node::Node(int64_t id, double lat, double lon) :
     lat(lat),
     lon(lon) {
     this->numsOfUse = 0;
+//TODO Add version & date information here
 }
 
 

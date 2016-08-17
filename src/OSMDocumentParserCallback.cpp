@@ -106,7 +106,9 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     lat = atof(value);
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
-                }
+                } else if (strcmp(name, "version") == 0){
+                    version = atoll(version);
+                } //TODO Add timestamp too
             }
             if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
         }
@@ -119,6 +121,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 const char* value = *attribut++;
                 if (strcmp(name, "id") == 0) {
                     id = atoll(value);
+                } else if ( strcmp(name,"version") == 0){
+                    version = atoll(value);  // For storing version information
                 }
             }
             if (id > 0) m_pActRelation = new Relation(id);

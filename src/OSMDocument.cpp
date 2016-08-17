@@ -88,6 +88,8 @@ void OSMDocument::SplitWays() {
             split_way->type = currentWay->type;
             split_way->clss = currentWay->clss;
             split_way->oneWayType = currentWay->oneWayType;
+			split_way->version = currentWay->version;
+//TODO Add version & date information here
 
             std::map<std::string, std::string>::iterator it_tag(currentWay->m_Tags.begin());
             std::map<std::string, std::string>::iterator last_tag(currentWay->m_Tags.end());

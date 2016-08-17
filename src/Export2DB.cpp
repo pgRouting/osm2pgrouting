@@ -57,7 +57,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " osm_id bigint,"
         " lon decimal(11,8),"
         " lat decimal(11,8),"
-        " numOfUse int"
+        " numOfUse int",
+//TODO version & date
+		" version int"
     );
 
         create_vertices =std::string(
@@ -97,7 +99,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " osm_id bigint,"
             " source_osm bigint,"
             " target_osm bigint,"
-            " priority double precision DEFAULT 1"
+            " priority double precision DEFAULT 1",
+//TODO Version & date
+			" version int"
         );
         create_relations =std::string(
            "relation_id bigint,"
