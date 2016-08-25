@@ -54,11 +54,11 @@ namespace osm2pgr {
 std::string fix_timestamp(std:string inputTimestamp){
     if(inputTimestamp.length() == 0){
         return "";
-    }else{
+        } else {
         inputTimestamp.replace(10, ' ');
-        inputTimestamp.replace(19, '');
+        inputTimestamp.replace(19, '\0');
         return inputTimestamp;
-    }
+        }
 
     }
 }
@@ -117,9 +117,9 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
-                    version = atoll(version);
+                    version = atoll(value);
                 } else if (strcmp(name, "timestamp") == 0){
-                    timestamp = fix_timestamp(timestamp);
+                    timestamp = fix_timestamp(value);
                 }
             }
             if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
