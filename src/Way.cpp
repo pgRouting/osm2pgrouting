@@ -32,10 +32,11 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
 	maxspeed_forward(maxspeed_forward),
 	maxspeed_backward(maxspeed_backward),
 	oneWayType(UNKNOWN),
-	osm_id(osm_id),
+	osm_id(osm_id)
 	// //TODO Add timestamp information here
 	// version(version)
-	// timestamp(timestamp) {
+	// timestamp(timestamp) 
+	{
 }
 
 #if 0
@@ -60,11 +61,11 @@ bool Way::HasTag(std::string key)
 }
 
 void AddVersion( int newVersion){
-	version = newVersion;
+	// version = newVersion;
 }
 
 void AddTimestamp( std::string newTimestamp){
-	timestamp = newTimestamp;
+	// timestamp = newTimestamp;
 }
 
 

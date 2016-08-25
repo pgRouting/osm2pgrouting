@@ -30,12 +30,12 @@ Node::Node(int64_t id, double lat, double lon) :
 //TODO Add version & date information here
 }
 
-void AddVersion( int nVersion){
-	this->version=nVersion;
+void AddVersion( int version){
+	// version(version);
 }
 
-void AddTimestamp( std::string newTimestamp){
-	this->timestamp = newTimestamp;
+void AddTimestamp( std::string timestamp){
+	// timestamp(timestamp);
 }
 
 

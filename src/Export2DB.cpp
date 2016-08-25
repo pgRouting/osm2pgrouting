@@ -57,9 +57,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " osm_id bigint,"
         " lon decimal(11,8),"
         " lat decimal(11,8),"
-        " numOfUse int",
+        " numOfUse int,"
 //TODO version & date
-		    " version int",
+		    " version int,"
         " time_stamp TIMESTAMP WITHOUT TIME ZONE"
     );
 
@@ -72,9 +72,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " eout integer,"
         " lon decimal(11,8),"
         " lat decimal(11,8),"
-        " CONSTRAINT vertex_id UNIQUE(osm_id)",
+        " CONSTRAINT vertex_id UNIQUE(osm_id),"
 //TODO version & date
-        " version int",
+        " version int,"
         " time_stamp TIMESTAMP WITHOUT TIME ZONE"
     );
         create_ways =std::string(

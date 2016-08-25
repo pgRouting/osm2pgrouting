@@ -47,7 +47,7 @@ class Node {
      /*
      Modifications to track version & timestamp of nodes
      */
-    int version;
+    unsigned short version;
 
     std::string timestamp;
     

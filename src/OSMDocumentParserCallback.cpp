@@ -51,16 +51,18 @@ namespace osm2pgr {
   </relation>
  */
 
-std::string fix_timestamp(std:string inputTimestamp){
-    if(inputTimestamp.length() == 0){
+std::string fix_timestamp(std::string inputTimestamp) 
+{
+    if(inputTimestamp.length() == 0)
+    {
         return "";
-        } else {
-        inputTimestamp.replace(10, ' ');
-        inputTimestamp.replace(19, '\0');
+    } else {
+        // inputTimestamp.replace(10, ' ');
+        // inputTimestamp.replace(19, '\0');
         return inputTimestamp;
-        }
     }
 }
+
 /**
     Parser callback for OSMDocument files
 */
@@ -116,9 +118,9 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
-                    version = atoll(value);
+                    // version = atoll(value);
                 } else if (strcmp(name, "timestamp") == 0){
-                    timestamp = fix_timestamp(value);
+                    // timestamp = fix_timestamp(value);
                 }
             }
             if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
@@ -133,7 +135,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 if (strcmp(name, "id") == 0) {
                     id = atoll(value);
                 } else if ( strcmp(name,"version") == 0){
-                    version = atoll(value);  // For storing version information
+                    // version = atoll(value);  // For storing version information
                 }
             }
             if (id > 0) m_pActRelation = new Relation(id);

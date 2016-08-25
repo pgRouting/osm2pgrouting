@@ -81,7 +81,7 @@ public:
    /*
      Modifications to track version & timestamp of ways
      */
-	int version;
+	unsigned short version;
 	std::string timestamp;
 
 
