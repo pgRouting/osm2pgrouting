@@ -63,7 +63,7 @@ void AddVersion( int newVersion){
 	version = newVersion;
 }
 
-void AddTimestamp( std:string newTimestamp){
+void AddTimestamp( std::string newTimestamp){
 	timestamp = newTimestamp;
 }
 
