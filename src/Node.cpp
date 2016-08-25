@@ -30,5 +30,13 @@ Node::Node(int64_t id, double lat, double lon) :
 //TODO Add version & date information here
 }
 
+void AddVersion( int nVersion){
+	this->version=nVersion;
+}
+
+void AddTimestamp( std::string newTimestamp){
+	this->timestamp = newTimestamp;
+}
+
 
 }  // end namespace osm2pgr

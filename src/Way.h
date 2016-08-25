@@ -101,7 +101,7 @@ public:
 	void AddTag( std::string key, std::string value);
 	bool HasTag(std::string key);
 	void AddVersion( int version);
-	void AddTimestamp( std:string timestamp);
+	void AddTimestamp( std::string timestamp);
 };
 
 

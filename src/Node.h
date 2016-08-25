@@ -21,6 +21,7 @@
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
 #include <cstdint>
+#include <string>
 
 namespace osm2pgr {
 
@@ -58,7 +59,9 @@ class Node {
      *    @param lat latitude
      *    @param lon longitude
      */
-    Node(int64_t id = -1, double lat = 0, double lon = 0, int version = 0, std::string timestamp = "1970-01-01 08:00:00");
+    Node(int64_t id = -1, double lat = 0, double lon = 0);
+	void AddVersion( int version);
+	void AddTimestamp( std::string timestamp);
 };
 
 
