@@ -57,8 +57,8 @@ std::string fix_timestamp(std::string inputTimestamp)
     {
         return "";
     } else {
-        // inputTimestamp.replace(10, ' ');
-        // inputTimestamp.replace(19, '\0');
+        inputTimestamp.replace(10, 1, " "); //Removing T
+        inputTimestamp.replace(19, 1, "\0"); //Removing Z
         return inputTimestamp;
     }
 }
@@ -107,6 +107,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
             long long id =-1;
             double lat =-1;
             double lon =-1;
+            unsigned short version = 0;
+            std::string timestamp = "";
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
@@ -118,12 +120,12 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
-                    // version = atoll(value);
+                    version = atoll(value);
                 } else if (strcmp(name, "timestamp") == 0){
-                    // timestamp = fix_timestamp(value);
+                    timestamp = fix_timestamp(value);
                 }
             }
-            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
+            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon, version, timestamp));
         }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
         if (atts != NULL) {
@@ -134,9 +136,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 const char* value = *attribut++;
                 if (strcmp(name, "id") == 0) {
                     id = atoll(value);
-                } else if ( strcmp(name,"version") == 0){
-                    // version = atoll(value);  // For storing version information
-                }
+                }     
             }
             if (id > 0) m_pActRelation = new Relation(id);
             // std::cout<<"Starting relation: "<<id<<std::endl;
@@ -283,7 +283,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     id = atoll(value);
                 } else if (strcmp(name, "visible") == 0) {
                     visibility = strcmp(value, "true") == 0;
-                }
+                }//TODO: Version & timestamp
             }
             if (id > 0) {
                 m_pActWay = new Way(id, visibility, id , -1, -1);

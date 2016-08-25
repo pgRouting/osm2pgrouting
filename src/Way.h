@@ -91,6 +91,7 @@ public:
 	 *	@param id ID of the way
 	 */
 	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward);
+	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward, int version, std::string timestamp);
 	//! Destructor
 	// ~Way();
 	/**
@@ -100,8 +101,7 @@ public:
 	void AddNodeRef( Node* pNode );
 	void AddTag( std::string key, std::string value);
 	bool HasTag(std::string key);
-	void AddVersion( int version);
-	void AddTimestamp( std::string timestamp);
+
 };
 
 
