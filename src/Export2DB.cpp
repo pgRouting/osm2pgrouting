@@ -59,7 +59,8 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " lat decimal(11,8),"
         " numOfUse int",
 //TODO version & date
-		" version int"
+		    " version int",
+        " time_stamp TIMESTAMP WITHOUT TIME ZONE"
     );
 
         create_vertices =std::string(
@@ -71,7 +72,10 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " eout integer,"
         " lon decimal(11,8),"
         " lat decimal(11,8),"
-        " CONSTRAINT vertex_id UNIQUE(osm_id)"
+        " CONSTRAINT vertex_id UNIQUE(osm_id)",
+//TODO version & date
+        " version int",
+        " time_stamp TIMESTAMP WITHOUT TIME ZONE"
     );
         create_ways =std::string(
 
@@ -329,7 +333,7 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
 
     if (createTempTable( create_nodes, "__nodes_temp" ))
        addTempGeometry( "__nodes_temp", "POINT" );
-
+//TODO Modify query here
     std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom " );   
     std::string copy_nodes( "COPY __nodes_temp (" + nodes_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());

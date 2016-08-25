@@ -108,7 +108,9 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
                     version = atoll(version);
-                } //TODO Add timestamp too
+                } else if (strcmp(name, "timestamp") == 0){
+                    timestamp = fix_timestamp(timestamp);
+                }
             }
             if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
         }
