@@ -78,6 +78,11 @@ public:
 	OneWayType oneWayType;
 	
 	int64_t osm_id;
+   /*
+     Modifications to track version & timestamp of ways
+     */
+	int version;
+	std::string timestamp;
 
 
 public:
@@ -85,7 +90,7 @@ public:
 	 *	Constructor
 	 *	@param id ID of the way
 	 */
-	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward);
+	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward, int version, std::string timestamp);
 	//! Destructor
 	// ~Way();
 	/**

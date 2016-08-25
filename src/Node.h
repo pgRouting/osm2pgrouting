@@ -43,6 +43,13 @@ class Node {
     /**
      *    counts the rate, how much this node is used in different ways
      */
+     /*
+     Modifications to track version & timestamp of nodes
+     */
+    int version;
+
+    std::string timestamp;
+    
     unsigned short numsOfUse;
  public:
     /**
@@ -51,7 +58,7 @@ class Node {
      *    @param lat latitude
      *    @param lon longitude
      */
-    Node(int64_t id = -1, double lat = 0, double lon = 0);
+    Node(int64_t id = -1, double lat = 0, double lon = 0, int version = 0, std::string timestamp = "1970-01-01 08:00:00");
 };
 
 

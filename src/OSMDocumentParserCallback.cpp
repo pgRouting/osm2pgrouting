@@ -59,7 +59,6 @@ std::string fix_timestamp(std:string inputTimestamp){
         inputTimestamp.replace(19, '\0');
         return inputTimestamp;
         }
-
     }
 }
 /**

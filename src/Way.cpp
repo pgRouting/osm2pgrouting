@@ -24,7 +24,7 @@
 
 namespace osm2pgr {
 
-Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward, int version)
+Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward, int version, std::string timestamp)
 :
 	id(id),
 	visible(visible),
@@ -34,7 +34,8 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
 	oneWayType(UNKNOWN),
 	osm_id(osm_id),
 	//TODO Add timestamp information here
-	version(version) {
+	version(version)
+	timestamp(timestamp) {
 }
 
 #if 0
