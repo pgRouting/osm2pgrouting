@@ -51,7 +51,17 @@ namespace osm2pgr {
   </relation>
  */
 
+std::string fix_timestamp(std:string inputTimestamp){
+    if(inputTimestamp.length() == 0){
+        return "";
+    }else{
+        inputTimestamp.replace(10, ' ');
+        inputTimestamp.replace(19, '');
+        return inputTimestamp;
+    }
 
+    }
+}
 /**
     Parser callback for OSMDocument files
 */
