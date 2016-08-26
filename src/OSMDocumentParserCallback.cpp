@@ -27,6 +27,7 @@
 #include "./Way.h"
 #include "./Node.h"
 #include "./utils.h"
+#include <boost/lexical_cast.hpp>
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
@@ -120,7 +121,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
-                    version = atoll(value);
+                    version = boost::lexical_cast<unsigned short>(value);
                 } else if (strcmp(name, "timestamp") == 0){
                     timestamp = fix_timestamp(value);
                 }
@@ -286,7 +287,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (strcmp(name, "visible") == 0) {
                     visibility = strcmp(value, "true") == 0;
                 } else if (strcmp(name, "version") == 0) {
-                    version = atoi(value);
+                    version = boost::lexical_cast<unsigned short>(value);
                 } else if (strcmp(name, "timestamp") == 0) {
                     timestamp = fix_timestamp(value);
                 }
