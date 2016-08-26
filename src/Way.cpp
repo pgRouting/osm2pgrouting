@@ -50,7 +50,7 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
 	,version(version)
 	,timestamp(timestamp) 
 
-	{std::cout << "Version "<<version<<" timestamp "<<timestamp<<std::endl;
+	{
 }
 #if 0
 Way::~Way()
