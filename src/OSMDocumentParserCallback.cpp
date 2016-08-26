@@ -122,8 +122,10 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     lon = atof(value);
                 } else if (strcmp(name, "version") == 0){
                     version = boost::lexical_cast<unsigned short>(value);
+                    std::cout << version;
                 } else if (strcmp(name, "timestamp") == 0){
                     timestamp = fix_timestamp(value);
+                    std::cout << timestamp;
                 }
             }
             if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon, version, timestamp));
