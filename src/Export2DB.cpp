@@ -696,7 +696,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
         row_data += "\t";
         row_data += TO_STR(way->version);
         row_data += "\t";
-        row_data += TO_STR(way->timestamp);
+        row_data += "'" + TO_STR(way->timestamp) + "'";;
                 
         row_data += "\n";
 
