@@ -58,9 +58,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " lon decimal(11,8),"
         " lat decimal(11,8),"
         " numOfUse int"
-//TODO version & date
+// version & timestamp
 		    ", version int"
-        ", time_stamp TIMESTAMP WITHOUT TIME ZONE"
+        ", timestamp TIMESTAMP WITHOUT TIME ZONE"
     );
 
         create_vertices =std::string(
@@ -73,9 +73,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " lon decimal(11,8),"
         " lat decimal(11,8),"
         " CONSTRAINT vertex_id UNIQUE(osm_id)"
-//TODO version & date
+// version & timestamp
         ", version int"
-        ", time_stamp TIMESTAMP WITHOUT TIME ZONE"
+        ", timestamp TIMESTAMP WITHOUT TIME ZONE"
     );
         create_ways =std::string(
 
@@ -103,9 +103,10 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " osm_id bigint,"
             " source_osm bigint,"
             " target_osm bigint,"
-            " priority double precision DEFAULT 1",
-//TODO Version & date
-			" version int"
+            " priority double precision DEFAULT 1"
+// Version & timestamp
+	       		", version int"
+            ", timestamp TIMESTAMP WITHOUT TIME ZONE"
         );
         create_relations =std::string(
            "relation_id bigint,"
@@ -334,7 +335,7 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
     if (createTempTable( create_nodes, "__nodes_temp" ))
        addTempGeometry( "__nodes_temp", "POINT" );
 //TODO Modify query here
-    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom " );   
+    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom, version, timestamp" );   
     std::string copy_nodes( "COPY __nodes_temp (" + nodes_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
 
@@ -351,6 +352,10 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
             row_data += TO_STR(node->numsOfUse);
             row_data += "\t";
             row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
+            row_data += "\t";
+            row_data += TO_STR(node->version);
+            row_data += "\t";
+            row_data += TO_STR(node->timestamp);
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
@@ -617,7 +622,9 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                      " one_way,"
                      " maxspeed_forward, maxspeed_backward,"
                      " priority,"
-                     " name");
+                     " name"
+                     ", version"
+                     ", timestamp");
     prepare_table(ways_columns);
 
     int64_t count = 0;
@@ -685,6 +692,11 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
             boost::replace_all(escaped_name, "\r", "");
             row_data += escaped_name.substr(0,199);
           }
+        row_data += "\t";
+        row_data += TO_STR(way->version);
+        row_data += "\t";
+        row_data += TO_STR(way->timestamp);
+                
         row_data += "\n";
 
         PQputline(mycon, row_data.c_str());
