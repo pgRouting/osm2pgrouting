@@ -275,6 +275,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
         if (atts != NULL) {
             long long id =-1;
             bool visibility = false;
+            unsigned short version = 0;
+            std::string timestamp = "";
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
@@ -283,10 +285,14 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     id = atoll(value);
                 } else if (strcmp(name, "visible") == 0) {
                     visibility = strcmp(value, "true") == 0;
-                }//TODO: Version & timestamp
+                } else if (strcmp(name, "version") == 0) {
+                    version = atoi(value);
+                } else if (strcmp(name, "timestamp") == 0) {
+                    timestamp = fix_timestamp(value);
+                }
             }
             if (id > 0) {
-                m_pActWay = new Way(id, visibility, id , -1, -1);
+                m_pActWay = new Way(id, visibility, id , -1, -1, version, timestamp);
             }
         }
     } else if (strcmp(name, "osm") == 0) {

@@ -1,5 +1,7 @@
 # osm2pgrouting
-TODO: Add functionality to extract version & timestamp from OSM objects and push them to postgresql database 
+Changes in this version
+
+# Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
 
 ## Requirements
 
@@ -39,7 +41,6 @@ sudo apt-get install expat
 sudo apt-get install libexpat1-dev
 sudo apt-get install libboost-dev
 sudo apt-get install libboost-program-options-dev
-
 ```
 
 CMAKE options:
