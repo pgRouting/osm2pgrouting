@@ -60,7 +60,7 @@ class Node {
      *    @param lon longitude
      */
     Node(int64_t id = -1, double lat = 0, double lon = 0);
-    Node(int64_t id = -1, double lat = 0, double lon = 0, int version , std::string timestamp);
+    Node(int64_t id, double lat, double lon, int version , std::string timestamp);
 
 };
 
