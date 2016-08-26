@@ -20,6 +20,7 @@
 
 #include <string>
 #include "Way.h"
+#include <iostream>
 
 
 namespace osm2pgr {
@@ -48,7 +49,8 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
 	// //TODO Add timestamp information here
 	,version(version)
 	,timestamp(timestamp) 
-	{
+
+	{std::cout << "Version "<<version<<" timestamp "<<timestamp<<std::endl;
 }
 #if 0
 Way::~Way()
