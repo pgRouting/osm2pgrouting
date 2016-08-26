@@ -358,6 +358,7 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
             row_data += TO_STR(node->timestamp);
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
+            std::cout << row_data.c_str();
         }
         PQputline(mycon, "\\.\n");
         PQendcopy(mycon);
