@@ -37,6 +37,9 @@ Install some prerqeuisites
 ```
 sudo apt-get install expat
 sudo apt-get install libexpat1-dev
+sudo apt-get install libboost-dev
+sudo apt-get install libboost-program-options-dev
+
 ```
 
 CMAKE options:
