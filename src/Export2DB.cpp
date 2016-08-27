@@ -456,7 +456,7 @@ void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configu
     std::cout << "    Processing " << relations.size() << " relations\n";
     createTempTable( create_relations, "__relations_temp" );
     
-    std::string relations_columns("relation_id, type_id, class_id, name, version, timestamp" );   
+    std::string relations_columns("relation_id, type_id, class_id, name" );   
     std::string copy_relations( "COPY __relations_temp (" + relations_columns + ") FROM STDIN");
 
     
