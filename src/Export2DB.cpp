@@ -74,8 +74,8 @@ Export2DB::Export2DB(const  po::variables_map &vm)
         " lat decimal(11,8),"
         " CONSTRAINT vertex_id UNIQUE(osm_id)"
 // version & timestamp
-        // ", version int"
-        // ", timestamp TIMESTAMP WITHOUT TIME ZONE"
+        ", version int"
+        ", timestamp TIMESTAMP WITHOUT TIME ZONE"
     );
         create_ways =std::string(
 
@@ -624,8 +624,8 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                      " maxspeed_forward, maxspeed_backward,"
                      " priority,"
                      " name"
-                     // ", version"
-                     // ", timestamp"
+                     ", version"
+                     ", timestamp"
                      );
     prepare_table(ways_columns);
 
@@ -694,10 +694,10 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
             boost::replace_all(escaped_name, "\r", "");
             row_data += escaped_name.substr(0,199);
           }
-        // row_data += "\t";
-        // row_data += TO_STR(way->version);
-        // row_data += "\t";
-        // row_data += "'" + TO_STR(way->timestamp) + "'";;
+        row_data += "\t";
+        row_data += TO_STR(way->version);
+        row_data += "\t";
+        row_data += "'" + TO_STR(way->timestamp) + "'";;
                 
         row_data += "\n";
 

@@ -56,7 +56,7 @@ std::string fix_timestamp(std::string inputTimestamp)
 {
     if(inputTimestamp.length() == 0)
     {
-        return "";
+        return "1970-01-01 01:00:00";
     } else {
         inputTimestamp.replace(10, 1, " "); //Removing T
         inputTimestamp.replace(19, 1, "\0"); //Removing Z
