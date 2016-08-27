@@ -113,6 +113,9 @@ Export2DB::Export2DB(const  po::variables_map &vm)
            " type_id integer,"
            " class_id integer,"
            " name text"
+           ", version int"
+           ", timestamp TIMESTAMP WITHOUT TIME ZONE"
+
         );
         create_relations_ways =std::string(
 
@@ -456,7 +459,7 @@ void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configu
     std::cout << "    Processing " << relations.size() << " relations\n";
     createTempTable( create_relations, "__relations_temp" );
     
-    std::string relations_columns("relation_id, type_id, class_id, name " );   
+    std::string relations_columns("relation_id, type_id, class_id, name, version, timestamp" );   
     std::string copy_relations( "COPY __relations_temp (" + relations_columns + ") FROM STDIN");
 
     
@@ -478,8 +481,12 @@ std::cout << relation->m_Tags.size();
                 boost::replace_all(escaped_name, "\t", "\\\t");
                 row_data += escaped_name;
             }
+            row_data += "\t";
+            row_data += TO_STR(relation->version);
+            row_data += "\t";
+            row_data += "'" + TO_STR(relation->timestamp) + "'";
             row_data += "\n";
-std::cout << row_data << "\n";
+// std::cout << row_data << "\n";
             PQputline(mycon, row_data.c_str());
         }
     }
@@ -697,7 +704,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
         row_data += "\t";
         row_data += TO_STR(way->version);
         row_data += "\t";
-        row_data += "'" + TO_STR(way->timestamp) + "'";;
+        row_data += "'" + TO_STR(way->timestamp) + "'";
                 
         row_data += "\n";
 
