@@ -113,9 +113,6 @@ Export2DB::Export2DB(const  po::variables_map &vm)
            " type_id integer,"
            " class_id integer,"
            " name text"
-           ", version int"
-           ", timestamp TIMESTAMP WITHOUT TIME ZONE"
-
         );
         create_relations_ways =std::string(
 
@@ -481,10 +478,10 @@ std::cout << relation->m_Tags.size();
                 boost::replace_all(escaped_name, "\t", "\\\t");
                 row_data += escaped_name;
             }
-            row_data += "\t";
-            row_data += TO_STR(relation->version);
-            row_data += "\t";
-            row_data += "'" + TO_STR(relation->timestamp) + "'";
+            // row_data += "\t";
+            // row_data += TO_STR(relation->version);
+            // row_data += "\t";
+            // row_data += "'" + TO_STR(relation->timestamp) + "'";
             row_data += "\n";
 // std::cout << row_data << "\n";
             PQputline(mycon, row_data.c_str());
