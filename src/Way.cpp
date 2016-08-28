@@ -20,6 +20,7 @@
 
 #include <string>
 #include "Way.h"
+#include <iostream>
 
 
 namespace osm2pgr {
@@ -32,9 +33,25 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
 	maxspeed_forward(maxspeed_forward),
 	maxspeed_backward(maxspeed_backward),
 	oneWayType(UNKNOWN),
-	osm_id(osm_id) {
+	osm_id(osm_id)
+	{
 }
 
+Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward, int version, std::string timestamp)
+:
+	id(id),
+	visible(visible),
+	length(0),
+	maxspeed_forward(maxspeed_forward),
+	maxspeed_backward(maxspeed_backward),
+	oneWayType(UNKNOWN),
+	osm_id(osm_id)
+	// //TODO Add timestamp information here
+	,version(version)
+	,timestamp(timestamp) 
+
+	{
+}
 #if 0
 Way::~Way()
 {
@@ -56,6 +73,13 @@ bool Way::HasTag(std::string key)
 	return (m_Tags.count(key)>0);
 }
 
+// void AddVersion( int newVersion){
+// 	// version = newVersion;
+// }
+
+// void AddTimestamp( std::string newTimestamp){
+// 	// timestamp = newTimestamp;
+// }
 
 
 } // end namespace osm2pgr

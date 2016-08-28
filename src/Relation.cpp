@@ -29,6 +29,13 @@ Relation::Relation(int64_t id)
     id(id) {
 }
 
+Relation::Relation(int64_t id, int version, std::string timestamp)
+:
+    id(id),
+    version(version),
+    timestamp(timestamp) {
+}
+
 Relation::~Relation() {
 }
 

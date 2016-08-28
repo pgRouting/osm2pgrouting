@@ -27,6 +27,7 @@
 #include "./Way.h"
 #include "./Node.h"
 #include "./utils.h"
+#include <boost/lexical_cast.hpp>
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
@@ -51,6 +52,17 @@ namespace osm2pgr {
   </relation>
  */
 
+std::string fix_timestamp(std::string inputTimestamp) 
+{
+    if(inputTimestamp.length() == 0)
+    {
+        return "1970-01-01 01:00:00";
+    } else {
+        inputTimestamp.replace(10, 1, " "); //Removing T
+        inputTimestamp.replace(19, 1, "\0"); //Removing Z
+        return inputTimestamp;
+    }
+}
 
 /**
     Parser callback for OSMDocument files
@@ -96,6 +108,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
             long long id =-1;
             double lat =-1;
             double lon =-1;
+            unsigned short version = 0;
+            std::string timestamp = "";
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
@@ -106,22 +120,36 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     lat = atof(value);
                 } else if (strcmp(name, "lon") == 0) {
                     lon = atof(value);
+                } else if (strcmp(name, "version") == 0){
+                    version = boost::lexical_cast<unsigned short>(value);
+                    // std::cout << version;
+                } else if (strcmp(name, "timestamp") == 0){
+                    timestamp = fix_timestamp(value);
+                    // std::cout << timestamp;
                 }
             }
-            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
+            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon, version, timestamp));
         }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
         if (atts != NULL) {
             long long id =-1;
+            unsigned short version = 0;
+            std::string timestamp = "";
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
                 const char* value = *attribut++;
                 if (strcmp(name, "id") == 0) {
                     id = atoll(value);
-                }
+                } else if (strcmp(name, "version") == 0){
+                    version = boost::lexical_cast<unsigned short>(value);
+                    // std::cout << version;
+                } else if (strcmp(name, "timestamp") == 0){
+                    timestamp = fix_timestamp(value);
+                    // std::cout << timestamp;
+                }    
             }
-            if (id > 0) m_pActRelation = new Relation(id);
+            if (id > 0) m_pActRelation = new Relation(id, version, timestamp);
             // std::cout<<"Starting relation: "<<id<<std::endl;
         }
     } else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
@@ -269,6 +297,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
         if (atts != NULL) {
             long long id =-1;
             bool visibility = false;
+            unsigned short version = 0;
+            std::string timestamp = "";
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
@@ -277,10 +307,14 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     id = atoll(value);
                 } else if (strcmp(name, "visible") == 0) {
                     visibility = strcmp(value, "true") == 0;
+                } else if (strcmp(name, "version") == 0) {
+                    version = boost::lexical_cast<unsigned short>(value);
+                } else if (strcmp(name, "timestamp") == 0) {
+                    timestamp = fix_timestamp(value);
                 }
             }
             if (id > 0) {
-                m_pActWay = new Way(id, visibility, id , -1, -1);
+                m_pActWay = new Way(id, visibility, id , -1, -1, version, timestamp);
             }
         }
     } else if (strcmp(name, "osm") == 0) {

@@ -27,7 +27,20 @@ Node::Node(int64_t id, double lat, double lon) :
     lat(lat),
     lon(lon) {
     this->numsOfUse = 0;
+//TODO Add version & date information here
 }
+
+Node::Node(int64_t id, double lat, double lon, int version, std::string timestamp) :
+    id(id),
+    lat(lat),
+    version(version),
+	timestamp(timestamp),
+    lon(lon) {
+    this->numsOfUse = 0;
+//TODO Add version & date information here
+}
+
+
 
 
 }  // end namespace osm2pgr

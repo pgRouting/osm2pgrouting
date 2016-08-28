@@ -21,6 +21,7 @@
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
 #include <cstdint>
+#include <string>
 
 namespace osm2pgr {
 
@@ -43,6 +44,13 @@ class Node {
     /**
      *    counts the rate, how much this node is used in different ways
      */
+     /*
+     Modifications to track version & timestamp of nodes
+     */
+    unsigned short version;
+
+    std::string timestamp;
+    
     unsigned short numsOfUse;
  public:
     /**
@@ -52,6 +60,8 @@ class Node {
      *    @param lon longitude
      */
     Node(int64_t id = -1, double lat = 0, double lon = 0);
+    Node(int64_t id, double lat, double lon, int version , std::string timestamp);
+
 };
 
 
