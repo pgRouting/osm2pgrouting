@@ -1,7 +1,8 @@
 # osm2pgrouting
 Changes in this version
 
-# Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
+## Changes from main version of osm2pgrouting
+### Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
 
 ## Requirements
 
