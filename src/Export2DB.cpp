@@ -749,7 +749,7 @@ void Export2DB::process_section(int64_t count, const std::string &ways_columns) 
     std::string insert_into_ways(
          " INSERT INTO " + addSchema( full_table_name("ways") ) +
           "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
-         " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s, version FROM __ways_temp); ");
+         " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
     q_result = PQexec(mycon, insert_into_ways.c_str());
     // std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
     std::cout << "    Ways inserted: " << count << "\n";
