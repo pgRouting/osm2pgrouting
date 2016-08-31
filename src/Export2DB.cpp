@@ -106,7 +106,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " priority double precision DEFAULT 1"
 // Version & timestamp
 	       		", version int"
-          //   ", timestamp TIMESTAMP WITHOUT TIME ZONE"
+            ", timestamp TIMESTAMP WITHOUT TIME ZONE"
         );
         create_relations =std::string(
            "relation_id bigint,"
@@ -631,7 +631,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                      " priority,"
                      " name"
                      ", version"
-                     // ", timestamp"
+                     ", timestamp"
                      );
     prepare_table(ways_columns);
 
@@ -702,9 +702,8 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
           }
         row_data += "\t";
         row_data += TO_STR(way->version);
-        // row_data += "\t";
-        // row_data += "'" + TO_STR(way->timestamp) + "'";
-                
+        row_data += "\t";
+        row_data += "'" + TO_STR(way->timestamp) + "'";
         row_data += "\n";
 
         PQputline(mycon, row_data.c_str());
@@ -749,7 +748,7 @@ void Export2DB::process_section(int64_t count, const std::string &ways_columns) 
     std::string insert_into_ways(
          " INSERT INTO " + addSchema( full_table_name("ways") ) +
           "( " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s ) "
-         " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s, version FROM __ways_temp); ");
+         " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
     q_result = PQexec(mycon, insert_into_ways.c_str());
     // std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
     std::cout << "    Ways inserted: " << count << "\n";

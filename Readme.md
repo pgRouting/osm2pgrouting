@@ -1,7 +1,10 @@
 # osm2pgrouting
-Changes in this version
+##Changes in this version
 
-# Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
+1. Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
+2. Works for osm_nodes & osm_ways
+3. Related data is added to tables `osm_nodes` & `ways` while importing
+4. `--addnodes` is required parameter for enabling import of osm_node data along with version & timestamp
 
 ## Requirements
 
