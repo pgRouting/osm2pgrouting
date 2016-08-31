@@ -95,6 +95,7 @@ public:
  	//! Be careful! It deletes the created tables!
  	void dropTables() const;
  	void dropTempTables() const;
+	void createFKeys();
 
  private:
     //! to use with creating the ways
