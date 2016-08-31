@@ -106,7 +106,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " priority double precision DEFAULT 1"
 // Version & timestamp
 	       		", version int"
-          //   ", timestamp TIMESTAMP WITHOUT TIME ZONE"
+            ", timestamp TIMESTAMP WITHOUT TIME ZONE"
         );
         create_relations =std::string(
            "relation_id bigint,"
@@ -631,7 +631,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                      " priority,"
                      " name"
                      ", version"
-                     // ", timestamp"
+                     ", timestamp"
                      );
     prepare_table(ways_columns);
 
@@ -702,9 +702,8 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
           }
         row_data += "\t";
         row_data += TO_STR(way->version);
-        // row_data += "\t";
-        // row_data += "'" + TO_STR(way->timestamp) + "'";
-                
+        row_data += "\t";
+        row_data += "'" + TO_STR(way->timestamp) + "'";
         row_data += "\n";
 
         PQputline(mycon, row_data.c_str());
