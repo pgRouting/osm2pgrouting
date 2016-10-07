@@ -18,14 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef MATH_FUNCTIONS_H
-#define MATH_FUNCTIONS_H
+#ifndef SRC_MATH_FUNCTIONS_H_
+#define SRC_MATH_FUNCTIONS_H_
 
 #include "Node.h"
 
-using namespace osm2pgr;
+using osm2pgr::Node;
 
 double getLength(Node* a, Node* b);
 
 
-#endif
+#endif  // SRC_MATH_FUNCTIONS_H_

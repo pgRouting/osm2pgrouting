@@ -19,37 +19,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "./math_functions.h"
 #include <math.h>
-#include "math_functions.h"
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 
-#if 0
-// calculation of the lenght is correct???
-double getLength(Node* a, Node* b)
-{
-    int R = 6371; //km
-    double PI =3.141592653589793238462643;
 
-    double dLat=(b->lat -a->lat)*PI/180;
-    double dLon=(b->lon -a->lon)*PI/180;
-
-    double c = sin(dLat/2) * sin(dLat/2) + cos(a->lat*PI/180) * cos(b->lat*PI/180) * sin(dLon/2) * sin(dLon/2);
-
-    double d = 2 * atan2(sqrt(c), sqrt(1-c)); 
-
-    return R*d;
-
-}
-#endif
-
-//boost fucntion to calculate the distance
-double getLength(Node* a, Node *b)
-{
+// boost fucntion to calculate the distance
+double getLength(Node* a, Node *b) {
     typedef boost::geometry::model::d2::point_xy<double> point_type;
-    
-    //converted point to fit boost.geomtery (`p` and `q` are same as `a ` and `b`)
+
+    /* converted point to fit boost.geomtery
+     * (`p` and `q` are same as `a ` and `b`)
+     */
     point_type p(a->lat , a->lon);
     point_type q(b->lat , b->lon);
 
