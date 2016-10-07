@@ -1,7 +1,7 @@
 
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,17 +29,17 @@
 // calculation of the lenght is correct???
 double getLength(Node* a, Node* b)
 {
-	int R = 6371; //km
-	double PI =3.141592653589793238462643;
+    int R = 6371; //km
+    double PI =3.141592653589793238462643;
 
-	double dLat=(b->lat -a->lat)*PI/180;
-	double dLon=(b->lon -a->lon)*PI/180;
+    double dLat=(b->lat -a->lat)*PI/180;
+    double dLon=(b->lon -a->lon)*PI/180;
 
-	double c = sin(dLat/2) * sin(dLat/2) + cos(a->lat*PI/180) * cos(b->lat*PI/180) * sin(dLon/2) * sin(dLon/2);
+    double c = sin(dLat/2) * sin(dLat/2) + cos(a->lat*PI/180) * cos(b->lat*PI/180) * sin(dLon/2) * sin(dLon/2);
 
-	double d = 2 * atan2(sqrt(c), sqrt(1-c)); 
+    double d = 2 * atan2(sqrt(c), sqrt(1-c)); 
 
-	return R*d;
+    return R*d;
 
 }
 #endif
@@ -47,7 +47,7 @@ double getLength(Node* a, Node* b)
 //boost fucntion to calculate the distance
 double getLength(Node* a, Node *b)
 {
-	typedef boost::geometry::model::d2::point_xy<double> point_type;
+    typedef boost::geometry::model::d2::point_xy<double> point_type;
     
     //converted point to fit boost.geomtery (`p` and `q` are same as `a ` and `b`)
     point_type p(a->lat , a->lon);

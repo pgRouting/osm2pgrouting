@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,53 +49,53 @@ using namespace osm2pgr;
 class Export2DB
 {
 public:
-	/**
-	 * Construktor
-	 * @param host Host address of the database
-	 * @param user a user, who has write access to the database
-	 * @param dbname name of the database
-	 *
-	 */
- 	Export2DB(const  po::variables_map &vm);
- 	
- 	/**
- 	 * Destructor
- 	 * closes the connection to the database
- 	 */
- 	~Export2DB();
+    /**
+     * Construktor
+     * @param host Host address of the database
+     * @param user a user, who has write access to the database
+     * @param dbname name of the database
+     *
+     */
+    Export2DB(const  po::variables_map &vm);
+    
+    /**
+     * Destructor
+     * closes the connection to the database
+     */
+    ~Export2DB();
 
- 	//! connects to database
- 	int connect();
+    //! connects to database
+    int connect();
     bool has_postGIS() const;
 
- 	//! creates needed tables and geometries
- 	void createTables() const;
- 	void createTempTables() const;
- 	//! exports nodes to the database
- 	void exportNodes(const std::map<long long, Node*>& nodes) const;
- 	//! exports ways to the database
- 	void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
- 	void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
- 	void exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const;
- 	void exportTypes(const std::map<std::string, Type*>& types) const;
- 	void exportClasses(const std::map<std::string, Type*>& types) const;
- 	void exportWays(const std::vector<Way*> &ways, Configuration *config) const;
+    //! creates needed tables and geometries
+    void createTables() const;
+    void createTempTables() const;
+    //! exports nodes to the database
+    void exportNodes(const std::map<long long, Node*>& nodes) const;
+    //! exports ways to the database
+    void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
+    void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;
+    void exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const;
+    void exportTypes(const std::map<std::string, Type*>& types) const;
+    void exportClasses(const std::map<std::string, Type*>& types) const;
+    void exportWays(const std::vector<Way*> &ways, Configuration *config) const;
 
- 	/**
- 	 * creates the topology
- 	 * Be careful, it takes some time.
- 	 *
- 	 * for example:
- 	 * complete germany: OSM file with a size of 1,1 GiB.
- 	 * Export and create topology:
- 	 * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
- 	 * But only for the streettypes "motorway", "primary" and "secondary"
- 	 */
- 	void createTopology() const;
- 	//! Be careful! It deletes the created tables!
- 	void dropTables() const;
- 	void dropTempTables() const;
-	void createFKeys();
+    /**
+     * creates the topology
+     * Be careful, it takes some time.
+     *
+     * for example:
+     * complete germany: OSM file with a size of 1,1 GiB.
+     * Export and create topology:
+     * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
+     * But only for the streettypes "motorway", "primary" and "secondary"
+     */
+    void createTopology() const;
+    //! Be careful! It deletes the created tables!
+    void dropTables() const;
+    void dropTempTables() const;
+    void createFKeys();
 
  private:
     //! to use with creating the ways
@@ -104,13 +104,13 @@ public:
 
     void dropTempTable(const std::string &table) const;
     bool createTempTable(const std::string &sql,
-			 const std::string &table) const;
+             const std::string &table) const;
     void dropTable(const std::string &table) const;
     bool createTempTable(const std::string &sql,
-			 const std::string &table);
+             const std::string &table);
     bool createTable(const std::string &sql,
-			 const std::string &table,
-			 const std::string &constraint = std::string("")) const;
+             const std::string &table,
+             const std::string &constraint = std::string("")) const;
     void addTempGeometry( const std::string &table,
                          const std::string &geometry_type) const;
     void addGeometry( const std::string &schema, const std::string &table,
@@ -118,33 +118,33 @@ public:
     void create_gindex(const std::string &index, const std::string &table) const;
     void create_idindex(const std::string &colname, const std::string &table) const;
     inline std::string full_table_name(const std::string &table) const {
-		return tables_prefix + table + tables_suffix;
+        return tables_prefix + table + tables_suffix;
         }
     inline std::string addSchema(const std::string &table) const {
         return  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + table;
         }
     inline std::string default_tables_schema() const {
-		return tables_schema;
+        return tables_schema;
         }
-	void fill_vertices_table(const std::string &table, const std::string &vertices_tab) const;
-	void fill_source_target(const std::string &table, const std::string &vertices_tab) const;
+    void fill_vertices_table(const std::string &table, const std::string &vertices_tab) const;
+    void fill_source_target(const std::string &table, const std::string &vertices_tab) const;
 
 private:
-	PGconn *mycon;
-	std::string conninf;
-	std::string tables_schema;
-	std::string tables_prefix;
-	std::string tables_suffix;
+    PGconn *mycon;
+    std::string conninf;
+    std::string tables_schema;
+    std::string tables_prefix;
+    std::string tables_suffix;
 
         // create table query constants
-	std::string create_classes;
-	std::string create_nodes;
-	std::string create_ways;
-	std::string create_relations;
-	std::string create_relations_ways;
-	std::string create_way_tag;
-	std::string create_types;
-	std::string create_vertices;
+    std::string create_classes;
+    std::string create_nodes;
+    std::string create_ways;
+    std::string create_relations;
+    std::string create_relations_ways;
+    std::string create_way_tag;
+    std::string create_types;
+    std::string create_vertices;
 };
 
 #endif

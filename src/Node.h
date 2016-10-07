@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt       							   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,9 +27,9 @@ namespace osm2pgr {
 /**
 \code
   <node id="122603925" 
-		lat="53.0780875" 
-		lon="8.1351704" 
-		user="artus70" visible="true" timestamp="2007-11-18T22:18:59+00:00"/>
+        lat="53.0780875" 
+        lon="8.1351704" 
+        user="artus70" visible="true" timestamp="2007-11-18T22:18:59+00:00"/>
 \endcode
 */
 class Node {

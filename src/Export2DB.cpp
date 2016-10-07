@@ -164,7 +164,7 @@ int Export2DB::connect() {
 bool Export2DB::createTempTable (const std::string &table_description,
                             const std::string &table) const {
     std::string sql = 
-	"CREATE TEMP TABLE " + table + "("    // + schema + "." + prefix etc
+    "CREATE TEMP TABLE " + table + "("    // + schema + "." + prefix etc
         + table_description + ")";
 
     PGresult *result = PQexec(mycon, sql.c_str());
@@ -196,7 +196,7 @@ bool Export2DB::createTable(const std::string &table_description,
                              const std::string &table,
                             const std::string &constraint) const {
     std::string sql = 
-	"CREATE TABLE " + table + "("    
+    "CREATE TABLE " + table + "("    
         + table_description + constraint + ");";
 
     PGresult *result = PQexec(mycon, sql.c_str());
@@ -387,7 +387,7 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
              " union "
              "(select target_osm as osm_id, x2 as lon, y2 as lat FROM " + table + " where target is NULL)"
           ") , "
-	  " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * from osm_vertex) a "
+      " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * from osm_vertex) a "
           ") "
           " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, the_geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
 
@@ -439,7 +439,7 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
         "           WHEN one_way = 1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
         "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
         "             END "
-	" WHERE length_m IS NULL;");
+    " WHERE length_m IS NULL;");
     q_result = PQexec(mycon, sql3.c_str());
 //    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
@@ -652,7 +652,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = *it;
 #endif
-	if ((++count % 100000) == 0) {
+    if ((++count % 100000) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
             process_section(count, ways_columns);
@@ -894,7 +894,7 @@ void Export2DB::createFKeys() {
     */
 
     std::string fk_classes(
-		"ALTER TABLE " + addSchema( "osm_way_classes" )  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema( "osm_way_types" )  + "(type_id)");
+        "ALTER TABLE " + addSchema( "osm_way_classes" )  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema( "osm_way_types" )  + "(type_id)");
     PGresult *result = PQexec(mycon, fk_classes.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -908,8 +908,8 @@ void Export2DB::createFKeys() {
     }
 
     std::string fk_way_tag(
-		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
-		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(gid); ");
+        "ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
+        "ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(gid); ");
     result = PQexec(mycon, fk_way_tag.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
@@ -939,7 +939,7 @@ void Export2DB::createFKeys() {
 
    std::string fk_ways(
         "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id);" + 
-		"ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id); " +
+        "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id); " +
         "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (target) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id);");
     result = PQexec(mycon, fk_ways.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
@@ -959,14 +959,14 @@ void Export2DB::createFKeys() {
         "ALTER TABLE " + tables_prefix + "relation_ways ADD CONSTRAINT fk_relations_ways_ways FOREIGN KEY (way_id) REFERENCES " + tables_prefix + "ways(gid);");
     result = PQexec(mycon, fk_relations_ways.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
-	{
-		std::cerr << PQresultStatus(result);
-		std::cerr << "foreign keys for relations_ways failed (Ways): "
-		<< PQerrorMessage(mycon)
-		<< std::endl;
-		PQclear(result);
-	} else {
-		std::cout << "Foreign keys for Relations_ways table created (Ways)" << std::endl;
-	}
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "foreign keys for relations_ways failed (Ways): "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Foreign keys for Relations_ways table created (Ways)" << std::endl;
+    }
 #endif
 }

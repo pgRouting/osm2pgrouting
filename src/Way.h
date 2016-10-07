@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,9 +24,9 @@
 #include <map>
 #include <string>
 namespace osm2pgr {
-	class Node;
+    class Node;
 
-	enum OneWayType{ UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
+    enum OneWayType{ UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
 
 /**
 \code
@@ -51,51 +51,51 @@ namespace osm2pgr {
 class Way
 {
 public:
-	//! Do not delete nodes in this container!
-	std::vector<Node*> m_NodeRefs;
-	std::map<std::string, std::string> m_Tags;
-	//! ID of the way
-	int64_t id;
-	bool visible;
-	//! name of the street
-	std::string name;
-	//! type of the street, for example "motorway"
-	//std::string highway;
-	
-	std::string type;
-	std::string clss;
+    //! Do not delete nodes in this container!
+    std::vector<Node*> m_NodeRefs;
+    std::map<std::string, std::string> m_Tags;
+    //! ID of the way
+    int64_t id;
+    bool visible;
+    //! name of the street
+    std::string name;
+    //! type of the street, for example "motorway"
+    //std::string highway;
+    
+    std::string type;
+    std::string clss;
 
-	//int64_t type;
-	//int64_t clss;
-	
-	//! geometry of the street
-	std::string geom;
-	//! length of the street
-	double length;
+    //int64_t type;
+    //int64_t clss;
+    
+    //! geometry of the street
+    std::string geom;
+    //! length of the street
+    double length;
 
-	int maxspeed_forward;
-	int maxspeed_backward;
+    int maxspeed_forward;
+    int maxspeed_backward;
 
-	OneWayType oneWayType;
-	
-	int64_t osm_id;
+    OneWayType oneWayType;
+    
+    int64_t osm_id;
 
 
 public:
-	/** 
-	 *	Constructor
-	 *	@param id ID of the way
-	 */
-	Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward);
-	//! Destructor
-	// ~Way();
-	/**
-	 *	saves the nodes of the way  
-	 *	@param pNode node
-	 */
-	void AddNodeRef( Node* pNode );
-	void AddTag( std::string key, std::string value);
-	bool HasTag(std::string key);
+    /** 
+     *  Constructor
+     *  @param id ID of the way
+     */
+    Way(int64_t id, bool visible, int64_t osm_id,  int maxspeed_forward, int maxspeed_backward);
+    //! Destructor
+    // ~Way();
+    /**
+     *  saves the nodes of the way  
+     *  @param pNode node
+     */
+    void AddNodeRef( Node* pNode );
+    void AddTag( std::string key, std::string value);
+    bool HasTag(std::string key);
 };
 
 

@@ -28,20 +28,20 @@ namespace osm2pgr {
 
 template< class Map >
 void ez_mapdelete( Map& c ) {
-	auto it(c.begin());
-	auto last(c.end());
-	while(it!=last) {
-		delete (*it++).second;
-	}
+    auto it(c.begin());
+    auto last(c.end());
+    while(it!=last) {
+        delete (*it++).second;
+    }
 }
 
 template< class Vector >
 void ez_vectordelete( Vector& c ) {
-	auto it( c.begin() );
-	auto last( c.end() );
-	while( it!=last ) {
-		delete (*it++);
-	}
+    auto it( c.begin() );
+    auto last( c.end() );
+    while( it!=last ) {
+        delete (*it++);
+    }
 }
           
 
@@ -51,18 +51,18 @@ A configuration document.
 class Configuration
 {
 public:
-	//! Map, which saves the parsed types
-	std::map<std::string, Type*> m_Types;
+    //! Map, which saves the parsed types
+    std::map<std::string, Type*> m_Types;
 public:
 
-	//! Constructor
-	Configuration();
-	//! Destructor
-	virtual ~Configuration();
-	//! add node to the map
-	void AddType( Type* t );
-	Type* FindType( std::string typeName );
-	Class* FindClass( std::string typeName, std::string className );
+    //! Constructor
+    Configuration();
+    //! Destructor
+    virtual ~Configuration();
+    //! add node to the map
+    void AddType( Type* t );
+    Type* FindType( std::string typeName );
+    Class* FindClass( std::string typeName, std::string className );
 };
 
 

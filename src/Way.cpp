@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,13 +26,13 @@ namespace osm2pgr {
 
 Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward)
 :
-	id(id),
-	visible(visible),
-	length(0),
-	maxspeed_forward(maxspeed_forward),
-	maxspeed_backward(maxspeed_backward),
-	oneWayType(UNKNOWN),
-	osm_id(osm_id) {
+    id(id),
+    visible(visible),
+    length(0),
+    maxspeed_forward(maxspeed_forward),
+    maxspeed_backward(maxspeed_backward),
+    oneWayType(UNKNOWN),
+    osm_id(osm_id) {
 }
 
 #if 0
@@ -43,17 +43,17 @@ Way::~Way()
 
 void Way::AddNodeRef( Node* pNode )
 {
-	if( pNode ) m_NodeRefs.push_back(pNode);
+    if( pNode ) m_NodeRefs.push_back(pNode);
 }
 
 void Way::AddTag( std::string key , std::string value)
 {
-	m_Tags[key] = value;
+    m_Tags[key] = value;
 }
 
 bool Way::HasTag(std::string key)
 {
-	return (m_Tags.count(key)>0);
+    return (m_Tags.count(key)>0);
 }
 
 

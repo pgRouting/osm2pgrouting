@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                    *
+ *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,23 +25,23 @@
 
 namespace osm2pgr {
 
-	Configuration::Configuration() {
-	}
+    Configuration::Configuration() {
+    }
 
-	Configuration::~Configuration() {
-		ez_mapdelete( m_Types );
-	}
+    Configuration::~Configuration() {
+        ez_mapdelete( m_Types );
+    }
 
-	void Configuration::AddType( Type* t ) {
-		m_Types[t->name] = t;
-	}
+    void Configuration::AddType( Type* t ) {
+        m_Types[t->name] = t;
+    }
 
-	Type* Configuration::FindType( std::string name ) {
-		return m_Types[name];
-	}
+    Type* Configuration::FindType( std::string name ) {
+        return m_Types[name];
+    }
 
-	Class* Configuration::FindClass( std::string typeName, std::string className ) {
-		return m_Types[typeName]->m_Classes[className];
-	}
+    Class* Configuration::FindClass( std::string typeName, std::string className ) {
+        return m_Types[typeName]->m_Classes[className];
+    }
 
 } // end namespace osm
