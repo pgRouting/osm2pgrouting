@@ -1,0 +1,50 @@
+
+osm2pgRouting 2.1.0-alpha
+
+   New "ways" table structure:
+      Column       |           Type            |  Modifications
+-------------------+---------------------------+----------------
+ gid               | bigint                    | 
+ class_id          | integer                   | 
+ length            | double precision          |
+ length_m          | double precision          | new column
+ name              | text                      |
+ source            | bigint                    |
+ target            | bigint                    |
+ x1                | double precision          | 
+ y1                | double precision          | 
+ x2                | double precision          | 
+ y2                | double precision          | 
+ cost              | double precision          | name changed from 'to_cost'
+ reverse_cost      | double precision          |  
+ cost_s            | double precision          | new column
+ reverse_cost_s    | double precision          | new column 
+ rule              | text                      | 
+ one_way           | integer                   | new column
+ maxspeed_forward  | integer                   | 
+ maxspeed_backward | integer                   | 
+ osm_id            | bigint                    | 
+ source_osm        | bigint                    | new column
+ target_osm        | bigint                    | new column
+ priority          | double precision          | 
+ the_geom          | geometry(LineString,4326) | 
+
+     New "ways_vertices_pgr" table structure
+  Column  |         Type         |  Modifications
+----------+----------------------+----------------------------------------------------------------
+ id       | bigint               | 
+ osm_id   | bigint               | new column
+ cnt      | integer              | 
+ chk      | integer              | 
+ ein      | integer              | 
+ eout     | integer              | 
+ lon      | numeric(11,8)        | new column
+ lat      | numeric(11,8)        | new column
+ the_geom | geometry(Point,4326) | 
+Indexes:
+    "ways_vertices_pgr_pkey" PRIMARY KEY, btree (id)
+    "vertex_id" UNIQUE CONSTRAINT, btree (osm_id)
+    "ways_vertices_pgr_gdx" gist (the_geom)
+    "ways_vertices_pgr_osm_id_idx" btree (osm_id)
+
+

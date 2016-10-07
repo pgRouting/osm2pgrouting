@@ -16,25 +16,25 @@
 *   along with this program; if not, write to the                         *
 *   Free Software Foundation, Inc.,                                       *
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
-***************************************************************************/
-                  
-#include "stdafx.h"
-#include "Class.h"
+***************************************************************************/                  
+#include <string>
+#include "./Class.h"
 
-namespace osm
-{
 
-Class::Class(long long id, std::string name, double priority, int default_maxspeed)
+namespace osm2pgr {
+
+Class::Class(
+    int64_t id,
+    std::string name,
+    double priority,
+    int default_maxspeed
+    )
 :
   id(id),
   name(name),
   priority(priority),
-  default_maxspeed(default_maxspeed)
-{
+  default_maxspeed(default_maxspeed) {
 }
 
-Class::~Class()
-{
-}
 
-} // end namespace osm
+}  // end namespace osm2pgr

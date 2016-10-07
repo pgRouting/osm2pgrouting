@@ -24,27 +24,22 @@
 #include "Type.h"
 #include "Class.h"
 
-namespace osm
-{
+namespace osm2pgr {
 
 template< class Map >
-inline void ez_mapdelete( Map& c )
-{
-	typename Map::iterator it( c.begin() );
-	typename Map::iterator last( c.end() );
-	while( it!=last )
-	{
+void ez_mapdelete( Map& c ) {
+	auto it(c.begin());
+	auto last(c.end());
+	while(it!=last) {
 		delete (*it++).second;
 	}
 }
 
 template< class Vector >
-inline void ez_vectordelete( Vector& c )
-{
-	typename Vector::iterator it( c.begin() );
-	typename Vector::iterator last( c.end() );
-	while( it!=last )
-	{
+void ez_vectordelete( Vector& c ) {
+	auto it( c.begin() );
+	auto last( c.end() );
+	while( it!=last ) {
 		delete (*it++);
 	}
 }
@@ -58,7 +53,6 @@ class Configuration
 public:
 	//! Map, which saves the parsed types
 	std::map<std::string, Type*> m_Types;
-	//std::map<long long, Type*> m_Types;
 public:
 
 	//! Constructor
@@ -72,5 +66,5 @@ public:
 };
 
 
-} // end namespace osm
+} // end namespace osm2pgr
 #endif

@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2008 by Daniel Wendt                                      *
+ *   gentoo.murray@gmail.com                                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,59 +18,51 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef CONFIGURATIONPARSERCALLBACK_H
-#define CONFIGURATIONPARSERCALLBACK_H
+#ifndef SRC_CONFIGURATIONPARSERCALLBACK_H_
+#define SRC_CONFIGURATIONPARSERCALLBACK_H_
 
 #include <string.h>
 #include "XMLParser.h"
 
 
-namespace osm
-{
+namespace osm2pgr {
 
-class Configuration;
-class Type;
+    class Configuration;
+    class Type;
 
-/**
-	Parser callback for configuration files
-*/
-class ConfigurationParserCallback : public xml::XMLParserCallback
-{	
-	//! reference to a Configuration object
-	Configuration& m_rDocument;
-	//! current type, which will be parsed
-	Type* m_pActType;
+    /**
+      Parser callback for configuration files
+      */
+    class ConfigurationParserCallback : public xml::XMLParserCallback{
+        //! reference to a Configuration object
+        Configuration& m_rDocument;
 
-	virtual void StartElement( const char *name, const char** atts );
+        //! current type, which will be parsed
+        Type* m_pActType;
 
-	virtual void EndElement( const char* name );
+        virtual void StartElement(const char *name, const char** atts);
 
-	virtual void SetContent( const char* ch, int len)
-	{
-	}
+        virtual void EndElement(const char* name);
 
-	virtual void ProcessingInstruction( const char* target, const char* data )
-	{
-	}
+#if 0
+        virtual void SetContent(const char* ch, int len)=0;
 
-	virtual void CDataBlockInternal(const char *value, int len)
-	{
-	}
+        virtual void ProcessingInstruction(const char* target, const char* data)=0;
 
-
-public:
-	/**
-	 *	Constructor
-	 */
-	ConfigurationParserCallback( Configuration& doc )
-	:
-		m_rDocument( doc ),
-		m_pActType( 0 )
-	{
-	}
-
-}; // class
-
-}; // end namespace osm
-
+        virtual void CDataBlockInternal(const char *value, int len)=0;
 #endif
+
+        public:
+        /**
+         *    Constructor
+         */
+        ConfigurationParserCallback(Configuration& doc)
+            :
+                m_rDocument(doc),
+                m_pActType(0) {
+                }
+    };  // class
+
+}  // end namespace osm
+
+#endif  // SRC_CONFIGURATIONPARSERCALLBACK_H_

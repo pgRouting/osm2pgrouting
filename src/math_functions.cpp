@@ -1,3 +1,4 @@
+
 /***************************************************************************
  *   Copyright (C) 2008 by Daniel Wendt   								   *
  *   gentoo.murray@gmail.com   											   *
@@ -18,10 +19,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h"
-#include "math_functions.h"
 #include <math.h>
+#include "math_functions.h"
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+
+#if 0
 // calculation of the lenght is correct???
 double getLength(Node* a, Node* b)
 {
@@ -38,4 +42,16 @@ double getLength(Node* a, Node* b)
 	return R*d;
 
 }
+#endif
 
+//boost fucntion to calculate the distance
+double getLength(Node* a, Node *b)
+{
+	typedef boost::geometry::model::d2::point_xy<double> point_type;
+    
+    //converted point to fit boost.geomtery (`p` and `q` are same as `a ` and `b`)
+    point_type p(a->lat , a->lon);
+    point_type q(b->lat , b->lon);
+
+    return boost::geometry::distance(p, q);
+}

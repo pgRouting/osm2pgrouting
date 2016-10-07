@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
+ *   Copyright (C) 2008 by Daniel Wendt       							   *
  *   gentoo.murray@gmail.com   											   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -18,11 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef SRC_NODE_H_
+#define SRC_NODE_H_
+#include <cstdint>
 
-namespace osm
-{
+namespace osm2pgr {
 
 /**
 \code
@@ -32,31 +32,28 @@ namespace osm
 		user="artus70" visible="true" timestamp="2007-11-18T22:18:59+00:00"/>
 \endcode
 */
-class Node
-{
-public:
-	//! ID of the node
-	long long id;
-	//! latitude coordinate
-	double lat;
-	//! longitude coordinate
-	double lon;
-	/**
-	 *	counts the rate, how much this node is used in different ways
-	 */
-	unsigned short numsOfUse;
-public:
-	/**
-	 *	Construktor
-	 * 	@param id ID of the node
-	 *	@param lat latitude
-	 *	@param lon longitude
-	 */
-	Node( long long id=-1, double lat=0, double lon=0 );
-	//! Destructor
-	virtual ~Node();
+class Node {
+ public:
+    // ! ID of the node
+    int64_t id;
+    // ! latitude coordinate
+    double lat;
+    // ! longitude coordinate
+    double lon;
+    /**
+     *    counts the rate, how much this node is used in different ways
+     */
+    unsigned short numsOfUse;
+ public:
+    /**
+     *    Construktor
+     *     @param id ID of the node
+     *    @param lat latitude
+     *    @param lon longitude
+     */
+    Node(int64_t id = -1, double lat = 0, double lon = 0);
 };
 
 
-} // end namespace osm
-#endif
+}  // end namespace osm2pgr
+#endif  // SRC_NODE_H_

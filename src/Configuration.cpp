@@ -18,36 +18,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "stdafx.h"
 #include "Configuration.h"
 #include "Type.h"
 #include "Class.h"
 
 
-namespace osm
-{
+namespace osm2pgr {
 
-Configuration::Configuration()
-{
-}
+	Configuration::Configuration() {
+	}
 
-Configuration::~Configuration()
-{
-	ez_mapdelete( m_Types );
-}
-void Configuration::AddType( Type* t )
-{
-	m_Types[t->name] = t;
-}
+	Configuration::~Configuration() {
+		ez_mapdelete( m_Types );
+	}
 
-Type* Configuration::FindType( std::string name ) 
-{
-	return m_Types[name];
-}
+	void Configuration::AddType( Type* t ) {
+		m_Types[t->name] = t;
+	}
 
-Class* Configuration::FindClass( std::string typeName, std::string className ) 
-{
-	return m_Types[typeName]->m_Classes[className];
-}
+	Type* Configuration::FindType( std::string name ) {
+		return m_Types[name];
+	}
+
+	Class* Configuration::FindClass( std::string typeName, std::string className ) {
+		return m_Types[typeName]->m_Classes[className];
+	}
 
 } // end namespace osm
