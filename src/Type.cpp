@@ -23,7 +23,7 @@
 
 namespace osm2pgr {
 
-Type::Type(long long id, std::string name)
+Type::Type(int64_t id, std::string name)
 :
   id(id),
   name(name) {

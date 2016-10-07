@@ -31,15 +31,15 @@ class Type {
  public:
     //  std::vector<Class*> m_ClassRefs;
     std::map<std::string, Class*> m_Classes;
-    //  std::map<long long, Class*> m_Classes;
-    long long id;
+    //  std::map<int64_t, Class*> m_Classes;
+    int64_t id;
     std::string name;
  public:
     /** 
      *    Constructor
      *    @param name name of the type
      */
-    Type(long long id, std::string);
+    Type(int64_t id, std::string);
     //! Destructor
     ~Type();
     /**
@@ -49,5 +49,5 @@ class Type {
     void AddClass(Class* pClass);
 };
 
-}  // end namespace osm2pgr
-#endif
+}  // namespace osm2pgr
+#endif  // SRC_TYPE_H_
