@@ -19,8 +19,6 @@
  ***************************************************************************/
 #include <string>
 #include "./Relation.h"
-//#include "./Way.h"
-
 
 namespace osm2pgr {
 
