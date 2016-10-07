@@ -26,6 +26,12 @@
 #include <unistd.h>
 #include <iostream>
 
+#if __GNUC__ > 5 || \
+        (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
+#define WITH_RANGE_LOOP
+#endif
+
+
 #define TO_STR(x)    boost::lexical_cast<std::string>(x)
 
 
@@ -331,8 +337,12 @@ void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
 
     if ( PQresultStatus(q_result) == PGRES_COPY_IN) {
-        for (const auto &n : nodes)
-        {
+#ifdef WITH_RANGE_LOOP
+        for (const auto &n : nodes) {
+#else
+        for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+            auto n = *it;
+#endif
             Node* node = n.second;
             std::string row_data = TO_STR(node->id);
             row_data += "\t";
@@ -447,11 +457,20 @@ void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configu
 
     
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
-    for (const auto &relation : relations)
-    {
-std::cout << relation->m_Tags.size();
-        for (const auto &tag : relation->m_Tags)
-        {
+#ifdef WITH_RANGE_LOOP
+    for (const auto &relation : relations) {
+#else
+    for (auto it = relations.begin(); it != relations.end(); ++it) {
+        auto relation = *it;
+#endif
+        std::cout << relation->m_Tags.size();
+
+#ifdef WITH_RANGE_LOOP
+        for (const auto &tag : relation->m_Tags) {
+#else
+        for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
+            auto tag = *it_tag;
+#endif
             // std::pair<std::string, std::string> pair = *it_tag++;
             std::string row_data = TO_STR(relation->id);
             row_data += "\t";
@@ -465,7 +484,7 @@ std::cout << relation->m_Tags.size();
                 row_data += escaped_name;
             }
             row_data += "\n";
-std::cout << row_data << "\n";
+            std::cout << row_data << "\n";
             PQputline(mycon, row_data.c_str());
         }
     }
@@ -499,8 +518,15 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, C
     PGresult* q_result = PQexec(mycon, copy_relations_ways.c_str());
 
 
+#ifdef WITH_RANGE_LOOP
     for (const auto &relation : relations) {
         for (const auto &way_id : relation->m_WayRefs) {
+#else
+    for (auto it = relations.begin(); it != relations.end(); ++it) {
+        auto relation = *it;
+        for (auto it_ref = relation->m_WayRefs.begin(); it_ref != relation->m_WayRefs.end(); ++it_ref) {
+            auto way_id = *it;
+#endif
             std::string row_data = TO_STR(relation->id);
             row_data += "\t";
             row_data += TO_STR(way_id);
@@ -554,8 +580,15 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
     std::string copy_way_tag( "COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
     
+#ifdef WITH_RANGE_LOOP
     for (const auto &way : ways) {
         for (const auto &tag : way->m_Tags) {
+#else
+    for (auto it = ways.begin(); it != ways.end(); ++it) {
+        auto way = *it;
+        for (auto it_tag = way->m_Tags.begin(); it_tag != way->m_Tags.end(); ++it_tag) {
+            auto tag = *it_tag;
+#endif
             std::string row_data = TO_STR(config->FindClass(tag.first, tag.second)->id);
             row_data += "\t";
             row_data += TO_STR(way->id);
@@ -613,7 +646,12 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
     prepare_table(ways_columns);
 
     int64_t count = 0;
+#ifdef WITH_RANGE_LOOP
     for (const auto &way : ways) {
+#else
+    for (auto it = ways.begin(); it != ways.end(); ++it) {
+        auto way = *it;
+#endif
 	if ((++count % 100000) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
@@ -744,8 +782,12 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const
 
     PGresult* q_result = PQexec(mycon, copy_types.c_str());
 
-    for ( const auto &e : types)
-    {
+#ifdef WITH_RANGE_LOOP
+    for ( const auto &e : types) {
+#else
+    for (auto it = types.begin(); it != types.end(); ++it) {
+        auto e = *it;
+#endif
         Type* type = e.second;
         std::string row_data = TO_STR(type->id);
         row_data += "\t";
@@ -789,10 +831,20 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
     createTempTable( create_classes, "__classes_temp" );
     PGresult *q_result = PQexec(mycon, copy_classes.c_str());
 
-    for ( const auto &t : types) {
+#ifdef WITH_RANGE_LOOP
+    for (const auto &t : types) {
+#else
+    for (auto it = types.begin(); it != types.end(); ++it) {
+        auto t = *it;
+#endif
         Type type(*t.second);
 
+#ifdef WITH_RANGE_LOOP
         for (const auto &c : type.m_Classes ) {
+#else
+        for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
+            auto c = *it_c;
+#endif
             Class clss(*c.second);
             std::string row_data = TO_STR(clss.id);
             row_data += "\t";

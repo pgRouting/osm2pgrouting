@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 namespace osm2pgr {
 	class Node;
 
