@@ -17,27 +17,32 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#if __GNUC__ > 5 || \
+    (__GNUC__ == 4 && (__GNUC_MINOR__ >= 7))
+#define WITH_TIME
+#endif
+
 #include <unistd.h>
 #include <string>
 #include <iostream>
+
+#ifdef WITH_TIME
 #include <ctime>
 #include <chrono>
+#endif
+
 #include "./ConfigurationParserCallback.h"
 #include "./OSMDocument.h"
 #include "./OSMDocumentParserCallback.h"
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
-#if __GNUC__ > 5 || \
-    (__GNUC__ == 4 && (__GNUC_MINOR__ >= 7))
-#define WITH_TIME
-#endif
 
 int main(int argc, char* argv[]) {
 #ifdef WITH_TIME
     /*
      *   Start Timers
-     *      version prior to 4.7.0 std::chrono::steady_clock was not implemented. 
+     *      version prior to 4.7.0 std::chrono::steady_clock was not implemented.
      *      so using timers work on g++4.7 up
      */
     clock_t begin = clock();
@@ -45,13 +50,12 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
 #endif
     try {
-
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
         po::variables_map vm;
         po::store(po::command_line_parser(argc, argv).
-            options(od_desc).run(), vm);
+                options(od_desc).run(), vm);
 
         if (vm.count("help")) {
             std::cout << od_desc << "\n";
@@ -85,32 +89,32 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Connecting to the database"  << endl;
-            Export2DB dbConnection(vm);
-            if (dbConnection.connect() == 1)
-                return 1;
-            if (!dbConnection.has_postGIS()) {
-                std::cout << "ERROR: postGIS not found\n";
-                return 1;
-            }
+        Export2DB dbConnection(vm);
+        if (dbConnection.connect() == 1)
+            return 1;
+        if (!dbConnection.has_postGIS()) {
+            std::cout << "ERROR: postGIS not found\n";
+            return 1;
+        }
 
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
-            Configuration* config = new Configuration();
-            ConfigurationParserCallback cCallback(*config);
+        Configuration* config = new Configuration();
+        ConfigurationParserCallback cCallback(*config);
 
 
         std::cout << "    Parsing configuration\n" << endl;
-            xml::XMLParser parser;
-            int ret = parser.Parse(cCallback, confFile.c_str());
-            if (ret != 0) {
-                cout << "Failed to open / parse config file " << confFile.c_str() << endl;
-                return 1;
-            }
+        xml::XMLParser parser;
+        int ret = parser.Parse(cCallback, confFile.c_str());
+        if (ret != 0) {
+            cout << "Failed to open / parse config file " << confFile.c_str() << endl;
+            return 1;
+        }
 
 
         std::cout << "Opening data file: " << dataFile.c_str() << endl;
-            OSMDocument *document = new OSMDocument(*config);
-            OSMDocumentParserCallback callback(*document);
+        OSMDocument *document = new OSMDocument(*config);
+        OSMDocumentParserCallback callback(*document);
 
         std::cout << "    Parsing data\n" << endl;
         ret = parser.Parse(callback, dataFile.c_str());
@@ -120,25 +124,25 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Spliting ways\n" << endl;
-            document->SplitWays();
+        document->SplitWays();
 
         //############# Export2DB
-        { 
-        if (clean) {
-            std::cout << "Dropping tables..." << endl;
-            dbConnection.dropTables();
-        }
+        {
+            if (clean) {
+                std::cout << "Dropping tables..." << endl;
+                dbConnection.dropTables();
+            }
 
-        std::cout << "Creating tables..." << endl;
+            std::cout << "Creating tables..." << endl;
             dbConnection.createTables();
 
-        std::cout << "Adding auxiliary tables to database..." << endl;
+            std::cout << "Adding auxiliary tables to database..." << endl;
             if (!skipnodes) {
                 dbConnection.exportNodes(document->m_Nodes);
             }
             dbConnection.exportTypes(config->m_Types);
             dbConnection.exportClasses(config->m_Types);
-            //dbConnection.exportRelations(document->m_Relations, config);
+            // dbConnection.exportRelations(document->m_Relations, config);
             dbConnection.exportRelationsWays(document->m_Relations);
             dbConnection.exportTags(document->m_SplitWays, config);
             dbConnection.exportWays(document->m_SplitWays, config);
@@ -152,25 +156,25 @@ int main(int argc, char* argv[]) {
 
         std::cout << "#########################" << endl;
 
-        std::cout << "size of streets: " << document->m_Ways.size() <<    endl;
-        std::cout << "size of split ways : " << document->m_SplitWays.size() <<    endl;
+        std::cout << "size of streets: " << document->m_Ways.size() << endl;
+        std::cout << "size of split ways : " << document->m_SplitWays.size() << endl;
 
 #ifdef WITH_TIME
         clock_t end = clock();
-        double elapsed_secs = double(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
+        double elapsed_secs = static_cast<double>(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
 
         std::time_t end_t = std::time(NULL);
         std::chrono::steady_clock::time_point end_elapsed = std::chrono::steady_clock::now();
 
-        typedef std::chrono::duration<int,std::milli> millisecs_t ;
+        typedef std::chrono::duration<int, std::milli> millisecs_t;
         millisecs_t duration = std::chrono::duration_cast<millisecs_t>(end_elapsed - begin_elapsed);
 
         std::cout << "Execution started at: " << std::ctime(&start_t);
         std::cout << "Execution ended at:   " << std::ctime(&end_t);
-        std::cout << "Elapsed time: " << (double)duration.count()/(double)1000 << " Seconds.\n" ;
+        std::cout << "Elapsed time: " << static_cast<double>(duration.count())/static_cast<double>(1000) << " Seconds.\n";
         std::cout << "User CPU time: -> " << elapsed_secs << " seconds\n";
 #endif
-        
+
         std::cout << "#########################" << endl;
         //  string n;
         //  getline(cin, n);
@@ -179,13 +183,13 @@ int main(int argc, char* argv[]) {
     catch (exception &e) {
         std::cout << e.what() << endl;
         return 1;
-    } 
+    }
     catch (string &e) {
         std::cout << e << endl;
         return 1;
-    } 
+    }
     catch (...) {
         std::cout << "Terminating" << endl;
         return 1;
-    } 
+    }
 }
