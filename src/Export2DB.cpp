@@ -48,7 +48,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
     );
 
     create_way_tag = std::string(
-           " class_id integer,"
+           " class_id integer PRIMARY KEY,"
            " way_id bigint"
     );
 
@@ -100,7 +100,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " priority double precision DEFAULT 1"
         );
         create_relations =std::string(
-           "relation_id bigint,"
+           "relation_id bigint PRIMARY KEY,"
            " type_id integer,"
            " class_id integer,"
            " name text"
@@ -832,4 +832,89 @@ void Export2DB::createTopology() const
     //fill_source_target( full_table_name( "ways" ), full_table_name("ways") + "_vertices_pgr");
     //fill_vertices_table( full_table_name( "ways" ), full_table_name( "nodes" ) );
     //fill_source_target( full_table_name( "ways" ) );
+}
+
+void Export2DB::createFKeys() {
+    
+    /*
+    ALTER TABLE osm_way_classes
+    ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
+    */
+
+    std::string fk_classes(
+		"ALTER TABLE " + addSchema( "osm_way_classes" )  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema( "osm_way_types" )  + "(type_id)");
+    PGresult *result = PQexec(mycon, fk_classes.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "foreign keys for " + addSchema( "osm_way_classes" )  + " failed:"
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Foreign keys for " + addSchema( "osm_way_classes" )  + " table created" << std::endl;
+    }
+
+    std::string fk_way_tag(
+		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
+		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(gid); ");
+    result = PQexec(mycon, fk_way_tag.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "foreign keys for " + addSchema( "osm_way_tags" ) + " failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Foreign keys for " + addSchema( "osm_way_tags" ) + " table created" << std::endl;
+    }
+
+    std::string fk_relations(
+        "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); " +
+        "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(gid);");
+    result = PQexec(mycon, fk_relations.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "foreign keys for " + addSchema(full_table_name("relations_ways"))  + " failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Foreign keys for " + addSchema(full_table_name("relations_ways"))  + " table created" << std::endl;
+    }
+
+   std::string fk_ways(
+        "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id);" + 
+		"ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id); " +
+        "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (target) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id);");
+    result = PQexec(mycon, fk_ways.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+    {
+        std::cerr << PQresultStatus(result);
+        std::cerr << "foreign keys for ways failed: "
+        << PQerrorMessage(mycon)
+        << std::endl;
+        PQclear(result);
+    } else {
+        std::cout << "Foreign keys for Ways table created" << std::endl;
+    }
+
+    /* Not clear what the way_id column is referencing */
+#if 0
+    std::string fk_relations_ways(
+        "ALTER TABLE " + tables_prefix + "relation_ways ADD CONSTRAINT fk_relations_ways_ways FOREIGN KEY (way_id) REFERENCES " + tables_prefix + "ways(gid);");
+    result = PQexec(mycon, fk_relations_ways.c_str());
+    if (PQresultStatus(result) != PGRES_COMMAND_OK)
+	{
+		std::cerr << PQresultStatus(result);
+		std::cerr << "foreign keys for relations_ways failed (Ways): "
+		<< PQerrorMessage(mycon)
+		<< std::endl;
+		PQclear(result);
+	} else {
+		std::cout << "Foreign keys for Relations_ways table created (Ways)" << std::endl;
+	}
+#endif
 }
