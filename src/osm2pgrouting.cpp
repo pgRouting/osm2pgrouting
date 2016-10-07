@@ -28,13 +28,22 @@
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
-
+#if __GNUC__ > 5 || \
+    (__GNUC__ == 4 && (__GNUC_MINOR__ >= 7))
+#define WITH_TIME
+#endif
 
 int main(int argc, char* argv[]) {
-    //  Start Timers
+#ifdef WITH_TIME
+    /*
+     *   Start Timers
+     *      version prior to 4.7.0 std::chrono::steady_clock was not implemented. 
+     *      so using timers work on g++4.7 up
+     */
     clock_t begin = clock();
     std::time_t start_t = std::time(NULL);
     std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
+#endif
     try {
 
         po::options_description od_desc("Allowed options");
@@ -64,7 +73,9 @@ int main(int argc, char* argv[]) {
             return 0;
         }
 
+#ifdef WITH_TIME
         std::cout << "Execution starts at: " << std::ctime(&start_t) << "\n";
+#endif
         process_command_line(vm);
 
         auto dataFile(vm["file"].as<string>());
@@ -144,6 +155,7 @@ int main(int argc, char* argv[]) {
         std::cout << "size of streets: " << document->m_Ways.size() <<    endl;
         std::cout << "size of split ways : " << document->m_SplitWays.size() <<    endl;
 
+#ifdef WITH_TIME
         clock_t end = clock();
         double elapsed_secs = double(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
 
@@ -157,6 +169,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Execution ended at:   " << std::ctime(&end_t);
         std::cout << "Elapsed time: " << (double)duration.count()/(double)1000 << " Seconds.\n" ;
         std::cout << "User CPU time: -> " << elapsed_secs << " seconds\n";
+#endif
         
         std::cout << "#########################" << endl;
         //  string n;
