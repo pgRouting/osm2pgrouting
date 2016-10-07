@@ -48,7 +48,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
     );
 
     create_way_tag = std::string(
-           " class_id integer,"
+           " class_id integer PRIMARY KEY,"
            " way_id bigint"
     );
 
@@ -100,7 +100,7 @@ Export2DB::Export2DB(const  po::variables_map &vm)
             " priority double precision DEFAULT 1"
         );
         create_relations =std::string(
-           "relation_id bigint,"
+           "relation_id bigint PRIMARY KEY,"
            " type_id integer,"
            " class_id integer,"
            " name text"
@@ -834,71 +834,61 @@ void Export2DB::createTopology() const
     //fill_source_target( full_table_name( "ways" ) );
 }
 
-void Export2DB::createFKeys()
-{
-    std::string pk_ways(
-        "ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT pk_ways PRIMARY KEY (gid);");
-    PGresult *result = PQexec(mycon, pk_ways.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK)
-    {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "primary keys for ways failed: "
-        << PQerrorMessage(mycon)
-        << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Primary key for Ways table created" << std::endl;
-    }
+void Export2DB::createFKeys() {
+    
+    /*
+    ALTER TABLE osm_way_classes
+    ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
+    */
 
     std::string fk_classes(
-		"ALTER TABLE " + tables_prefix + "classes ADD CONSTRAINT fk_classes_types FOREIGN KEY (type_id) REFERENCES " + tables_prefix + "types(id);");
-    result = PQexec(mycon, fk_classes.c_str());
+		"ALTER TABLE " + addSchema( "osm_way_classes" )  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema( "osm_way_types" )  + "(type_id)");
+    PGresult *result = PQexec(mycon, fk_classes.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
         std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for classes failed:"
+        std::cerr << "foreign keys for " + addSchema( "osm_way_classes" )  + " failed:"
         << PQerrorMessage(mycon)
         << std::endl;
         PQclear(result);
     } else {
-        std::cout << "Foreign keys for Classes table created" << std::endl;
+        std::cout << "Foreign keys for " + addSchema( "osm_way_classes" )  + " table created" << std::endl;
     }
 
     std::string fk_way_tag(
-		"ALTER TABLE " + tables_prefix + "way_tag ADD CONSTRAINT fk_way_tag_classes FOREIGN KEY (class_id) REFERENCES " + tables_prefix + "classes(id); " +
-		"ALTER TABLE " + tables_prefix + "way_tag ADD CONSTRAINT fk_way_tag_types FOREIGN KEY (type_id) REFERENCES " + tables_prefix + "types(id);" + 
-		"ALTER TABLE " + tables_prefix + "way_tag ADD CONSTRAINT fk_way_tag_ways FOREIGN KEY (way_id) REFERENCES " + tables_prefix + "ways(gid);");
+		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
+		"ALTER TABLE " + addSchema( "osm_way_tags" )  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(gid); ");
     result = PQexec(mycon, fk_way_tag.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
         std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for way_tag failed: "
+        std::cerr << "foreign keys for " + addSchema( "osm_way_tags" ) + " failed: "
         << PQerrorMessage(mycon)
         << std::endl;
         PQclear(result);
     } else {
-        std::cout << "Foreign keys for Way_tag table created" << std::endl;
+        std::cout << "Foreign keys for " + addSchema( "osm_way_tags" ) + " table created" << std::endl;
     }
 
     std::string fk_relations(
-        "ALTER TABLE " + tables_prefix + "relations ADD CONSTRAINT fk_relations_classes FOREIGN KEY (class_id) REFERENCES " + tables_prefix + "classes(id); " +
-        "ALTER TABLE " + tables_prefix + "relations ADD CONSTRAINT fk_relations_types FOREIGN KEY (type_id) REFERENCES " + tables_prefix + "types(id);");
+        "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); " +
+        "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(gid);");
     result = PQexec(mycon, fk_relations.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
         std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for relations failed: "
+        std::cerr << "foreign keys for " + addSchema(full_table_name("relations_ways"))  + " failed: "
         << PQerrorMessage(mycon)
         << std::endl;
         PQclear(result);
     } else {
-        std::cout << "Foreign keys for Relations table created" << std::endl;
+        std::cout << "Foreign keys for " + addSchema(full_table_name("relations_ways"))  + " table created" << std::endl;
     }
 
    std::string fk_ways(
-        "ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_classes FOREIGN KEY (class_id) REFERENCES " + tables_prefix + "classes(id);" + 
-		"ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_node_source FOREIGN KEY (source) REFERENCES " + tables_prefix + "ways_vertices_pgr(id); " +
-        "ALTER TABLE " + tables_prefix + "ways ADD CONSTRAINT fk_ways_node_target FOREIGN KEY (target) REFERENCES " + tables_prefix + "ways_vertices_pgr(id);");
+        "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id);" + 
+		"ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id); " +
+        "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (target) REFERENCES " + addSchema( full_table_name("ways_vertices_pgr") ) + "(id);");
     result = PQexec(mycon, fk_ways.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK)
     {
