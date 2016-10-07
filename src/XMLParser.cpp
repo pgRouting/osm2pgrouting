@@ -18,12 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <cstdio> 
+#include "./XMLParser.h"
+
 #include <errno.h>
 #include <string.h>
+#include <iostream>
+#include <cstdio>
 
-// #include "./stdafx.h"
-#include "./XMLParser.h"
 
 
 namespace xml {
@@ -31,12 +32,14 @@ namespace xml {
 //------------------------------------- global Expat Callbacks:
 
 static void startElement(void *userData, const char *name, const char **atts) {
-    XMLParserCallback* pCallback = (XMLParserCallback*) userData;
+    XMLParserCallback* pCallback =
+        reinterpret_cast<XMLParserCallback*>(userData);
     if (pCallback) pCallback->StartElement(name, atts);
 }
 
 static void endElement(void *userData, const char *name) {
-    XMLParserCallback* pCallback = (XMLParserCallback*) userData;
+    XMLParserCallback* pCallback =
+        reinterpret_cast<XMLParserCallback*>(userData);
     if (pCallback) pCallback->EndElement(name);
 }
 
@@ -50,7 +53,7 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
   if (fp) {
     XML_Parser parser = XML_ParserCreate(NULL);
 
-    XML_SetUserData(parser, (void*)&rCallback);
+    XML_SetUserData(parser, static_cast<void*>(&rCallback));
 
     // register Callbacks for start- and end-element events of the parser:
     XML_SetElementHandler(parser, startElement, endElement);
@@ -59,14 +62,15 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
     do {  // loop over whole file content
       char buf[BUFSIZ];
       size_t len = fread(buf, 1, sizeof(buf), fp);    // read chunk of data
-      done = len < sizeof(buf);    // end of file reached if buffer not completely filled
-      if (!XML_Parse(parser, buf, (int)len, done)) {
+      // end of file reached if buffer not completely filled
+      done = len < sizeof(buf);
+      if (!XML_Parse(parser, buf, static_cast<int>(len), done)) {
         // a parse error occured:
-        fprintf(stderr,
-            "%s at line %d\n",
-            XML_ErrorString(XML_GetErrorCode(parser)), (int)
-            XML_GetCurrentLineNumber(parser));
-             fclose(fp);
+          std::cerr <<
+            XML_ErrorString(XML_GetErrorCode(parser))
+            << " at line "
+            << static_cast<int>(XML_GetCurrentLineNumber(parser));
+        fclose(fp);
         ret = 2;    // quit, return = 2 indicating parsing error
         done = 1;
       }
@@ -76,7 +80,7 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
     fclose(fp);
     ret = 0;
   } else {
-    fprintf(stderr, "Error opening %s: %s\n", chFileName, strerror(errno));
+      std::cerr <<  "Error opening " << chFileName << ":" << strerror(errno);
   }
   return ret;  // return = 0 indicating success
 }
