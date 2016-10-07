@@ -72,7 +72,7 @@ public:
     void createTables() const;
     void createTempTables() const;
     //! exports nodes to the database
-    void exportNodes(const std::map<long long, Node*>& nodes) const;
+    void exportNodes(const std::map<int64_t, Node*>& nodes) const;
     //! exports ways to the database
     void exportTags(const std::vector<Way*> &ways, Configuration *config) const;
     void exportRelations(const std::vector<Relation*> &relations, Configuration *config) const;

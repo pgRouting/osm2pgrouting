@@ -326,7 +326,7 @@ Inserts the data to the final table only if
 doesnt exist already
 
 */
-void Export2DB::exportNodes(const std::map<long long, Node*> &nodes) const {
+void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
     std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ": ";
 
     if (createTempTable( create_nodes, "__nodes_temp" ))

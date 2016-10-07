@@ -38,7 +38,7 @@ class Relation;
 class OSMDocument {
  public:
     // ! Map, which saves the parsed nodes
-    std::map<long long, Node*> m_Nodes;
+    std::map<int64_t, Node*> m_Nodes;
     //! parsed ways
     std::vector<Way*> m_Ways;
     //! split ways
@@ -51,7 +51,7 @@ class OSMDocument {
 
  public:
     //! Constructor
-    OSMDocument(Configuration& config);
+    explicit OSMDocument(Configuration& config);
     //! Destructor
     virtual ~OSMDocument();
     //! add node to the map
@@ -59,10 +59,10 @@ class OSMDocument {
     //! add way to the map
     void AddWay(Way* w);
     //! find node by using an ID
-    Node* FindNode(long long nodeRefId) const;
+    Node* FindNode(int64_t nodeRefId) const;
     //! split the ways
     void SplitWays();
-    //  Node* getNode(long long nodeRefId);
+    //  Node* getNode(int64_t nodeRefId);
     void AddRelation(Relation* r);
 };
 

@@ -53,9 +53,9 @@ void OSMDocument::AddRelation(Relation* r) {
     m_Relations.push_back(r);
 }
 
-Node* OSMDocument::FindNode(long long nodeRefId)
+Node* OSMDocument::FindNode(int64_t nodeRefId)
 const {
-    std::map<long long, Node*>::const_iterator  it = m_Nodes.find(nodeRefId);
+    std::map<int64_t, Node*>::const_iterator  it = m_Nodes.find(nodeRefId);
     return (it != m_Nodes.end()) ? it->second : 0;
 }
 
@@ -64,7 +64,7 @@ void OSMDocument::SplitWays() {
     std::vector<Way*>::const_iterator last(m_Ways.end());
 
     //  split ways get a new ID
-    long long id = 0;
+    int64_t id = 0;
 
     while (it != last) {
         Way* currentWay = *it++;
@@ -123,7 +123,7 @@ void OSMDocument::SplitWays() {
                         split_way->length+=length;
                         split_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
                     } else if (backNode == (*it_node)) {
-                        lastNode =*it_node++;
+                        lastNode = *it_node++;
                         split_way->AddNodeRef(lastNode);
                         double length = getLength(node, lastNode);
                         if (length < 0)
@@ -132,7 +132,8 @@ void OSMDocument::SplitWays() {
                         split_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
                     } else {
                         split_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
-                        *it_node++;
+                        // *it_node++;
+                        ++it_node;
                     }
                 }
             }
