@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <iostream>
 
-#if __GNUC__ > 5 || \
+#if __GNUC__ > 4 || \
         (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
 #define WITH_RANGE_LOOP
 #endif
