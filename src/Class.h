@@ -26,11 +26,6 @@ namespace osm2pgr {
 
 class Class {
  public:
-    int64_t id;
-    std::string name;
-    double priority;
-    int default_maxspeed;
- public:
     /** 
      *    Constructor
      *    @param id ID of the class
@@ -41,8 +36,14 @@ class Class {
         std::string name,
         double priority,
         int default_maxspeed);
+
+ public:
+    int64_t id;
+    std::string name;
+    double priority;
+    int default_maxspeed;
 };
 
 
-}  // end namespace osm
+}  // end namespace osm2pgr
 #endif  // SRC_CLASS_H_
