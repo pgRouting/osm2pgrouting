@@ -24,8 +24,11 @@
 
 namespace osm2pgr {
 
-Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int maxspeed_backward)
-:
+Way::Way(int64_t id,
+        bool visible,
+        int64_t osm_id,
+        int maxspeed_forward,
+        int maxspeed_backward) :
     id(id),
     visible(visible),
     length(0),
@@ -33,30 +36,26 @@ Way::Way(int64_t id, bool visible, int64_t osm_id, int maxspeed_forward, int max
     maxspeed_backward(maxspeed_backward),
     oneWayType(UNKNOWN),
     osm_id(osm_id) {
-}
+    }
 
 #if 0
-Way::~Way()
-{
+Way::~Way() {
 }
 #endif
 
-void Way::AddNodeRef( Node* pNode )
-{
-    if( pNode ) m_NodeRefs.push_back(pNode);
+void Way::AddNodeRef(Node* pNode) {
+    if (pNode) m_NodeRefs.push_back(pNode);
 }
 
-void Way::AddTag( std::string key , std::string value)
-{
+void Way::AddTag(std::string key, std::string value) {
     m_Tags[key] = value;
 }
 
-bool Way::HasTag(std::string key)
-{
-    return (m_Tags.count(key)>0);
+bool Way::HasTag(std::string key) {
+    return (m_Tags.count(key) > 0);
 }
 
 
 
-} // end namespace osm2pgr
+}  // end namespace osm2pgr
 
