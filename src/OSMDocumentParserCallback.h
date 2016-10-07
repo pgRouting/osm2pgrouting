@@ -45,24 +45,15 @@ class OSMDocumentParserCallback :
 
     virtual void EndElement(const char* name);
 
-#if 0
-    virtual void SetContent(const char* ch, int len)=0;
-
-    virtual void ProcessingInstruction(const char* target, const char* data)=0;
-
-    virtual void CDataBlockInternal(const char *value, int len)=0;
-#endif
  public:
     /**
      *    Constructor
      */
-    OSMDocumentParserCallback(OSMDocument& doc)
+    explicit OSMDocumentParserCallback(OSMDocument& doc)
     :
         m_rDocument(doc),
         m_pActWay(0),
-        m_pActRelation(0)
-
-    {
+        m_pActRelation(0) {
     }
 };  // class OSMDocumentParserCallback
 

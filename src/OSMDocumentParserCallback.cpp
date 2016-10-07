@@ -17,11 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
+
+#include "./OSMDocumentParserCallback.h"
+#include <math.h>
 #include <string>
 #include <iostream>
 #include <sstream>
-#include "math.h"
-#include "./OSMDocumentParserCallback.h"
 #include "./OSMDocument.h"
 #include "./Relation.h"
 #include "./Way.h"
@@ -66,7 +68,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 const char* name = *attribut++;
                 const char* value = *attribut++;
                 if (strcmp(name, "ref") == 0) {
-                    long long wayRefId = atoll(value);
+                    int64_t wayRefId = atoll(value);
                     m_pActRelation->AddWayRef(wayRefId);
                 }
             }
@@ -80,20 +82,20 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
             const char* name = *atts++;
             const char* value = *atts++;
             if (strcmp(name, "ref") == 0) {
-                long long nodeRefId = atoll(value);
+                int64_t nodeRefId = atoll(value);
                 m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
                 Node * node = m_rDocument.FindNode(nodeRefId);
                 if (node != 0) {
                     ++node->numsOfUse;
                 } else {
                     std::cout << "Reference nd=" << nodeRefId
-                            << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+                        << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
                 }
             }
         }
     } else if (strcmp(name, "node") == 0) {
         if (atts != NULL) {
-            long long id =-1;
+            int64_t id =-1;
             double lat =-1;
             double lon =-1;
             const char** attribut = (const char**)atts;
@@ -112,7 +114,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
         }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
         if (atts != NULL) {
-            long long id =-1;
+            int64_t id =-1;
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
                 const char* name = *attribut++;
@@ -125,7 +127,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
             // std::cout<<"Starting relation: "<<id<<std::endl;
         }
     } else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
-        // <tag k="name" v="Pf�nderweg"/>
+        // <tag k="name" v="Pfnderweg"/>
         if (atts != NULL) {
             std::string k;
             std::string v;
@@ -167,12 +169,11 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         m_pActWay->oneWayType = REVERSED;
                     }
 
-                  // in case roundabout, if there is not additional oneway tag, set default oneway to YES
+                    // in case roundabout, if there is not additional oneway tag, set default oneway to YES
                 } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
                     if (m_pActWay->oneWayType == UNKNOWN) m_pActWay->oneWayType= YES;
-                }
+                } else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
                 // handle 3 cases if the key contains maxspeed
-                else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
                     // If the value contains mph, strip unit, convert to kph.
                     if (v.find("mph") != std::string::npos) {
                         // Assume format is /[0-9]{1,3} ?mph/
@@ -188,19 +189,18 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         if (my_utils::is_number(v)) {
                             mspeed_fwd = atoi(v.c_str());
                         } else {
-                            // TODO: handle non-numeric values, ex.: RO:urban
+                            // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed1 value: " << v << std::endl;
                         }
                         m_pActWay->maxspeed_forward = mspeed_fwd;
-                    }
+                    } else if (k.compare("maxspeed:backward") == 0) {
                     // handler maxspeed:backward
-                    else if (k.compare("maxspeed:backward") == 0) {
                         int mspeed_backwd = 50;
 
                         if (my_utils::is_number(v)) {
                             mspeed_backwd = atoi(v.c_str());
                         } else {
-                            // TODO: handle non-numeric values, ex.: RO:urban
+                            // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed2 value: " << v << std::endl;
                         }
                         m_pActWay->maxspeed_backward = mspeed_backwd;
@@ -212,29 +212,29 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                             mspeed_fwd = atoi(v.c_str());
                             mspeed_backwd = atoi(v.c_str());
                         } else {
-                            // TODO: handle non-numeric values, ex.: RO:urban
+                            // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed3 value: " << v << std::endl;
                         }
                         m_pActWay->maxspeed_backward = mspeed_backwd;
                         m_pActWay->maxspeed_forward = mspeed_fwd;
                     }
-                }
+                } else if (m_pActWay && m_rDocument.m_rConfig.m_Types.count(k)) {
                 // else if (m_pActWay && k.compare("highway") == 0)
-                else if (m_pActWay && m_rDocument.m_rConfig.m_Types.count(k)) {
-                    if(
-                        (m_pActWay->type.compare("") == 0 && m_pActWay->clss.compare("") == 0)
-                        || (
-                            m_rDocument.m_rConfig.m_Types.count(k)
-                            && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)
-                            && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type)
-                            && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)
-                            && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v]->priority < m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->priority
-                        )
-                    ) {
+                    if ((m_pActWay->type.compare("") == 0 && m_pActWay->clss.compare("") == 0)
+                            || (
+                                m_rDocument.m_rConfig.m_Types.count(k)
+                                && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)
+                                && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type)
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)
+                                && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v]->priority
+                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->priority
+                               )
+                      ) {
                         m_pActWay->type = k;
                         m_pActWay->clss = v;
 
-                        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)) {
+                        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type)
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)) {
                             m_pActWay->AddTag(k, v);
 
                             // std::cout<<"Added tag: "<<k<<" "<<v<<std::endl;
@@ -250,9 +250,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                             }
                         }
                     }
-                }
+                } else if (m_pActRelation && m_rDocument.m_rConfig.m_Types.count(k))  {
                 // START TAG FOR RELATION
-                else if (m_pActRelation && m_rDocument.m_rConfig.m_Types.count(k))  {
                     if (m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)) {
                         m_pActRelation->AddTag(k, v);
                         // std::cout<<"Added Relation tag: "<<k<<" "<<v<<std::endl;
@@ -267,7 +266,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
         }
     } else if (strcmp(name, "way") == 0) {
         if (atts != NULL) {
-            long long id =-1;
+            int64_t id =-1;
             bool visibility = false;
             const char** attribut = (const char**)atts;
             while (*attribut != NULL) {
@@ -293,26 +292,25 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         // _FILTER
 
         if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)) {
-        // #endif
+            // #endif
 
-        // Comment out the following to get more log output
-        // std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
+            // Comment out the following to get more log output
+            // std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
 
             m_rDocument.AddWay(m_pActWay);
             // std::cout << "First tag: " << m_pActWay->m_Tags.back()->key << ":" << m_pActWay->m_Tags.back()->value << std::endl;
 
 
-        // #ifdef RESTRICT
+            // #ifdef RESTRICT
         } else {
-        // std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
+            // std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
             // delete m_pActWay;
         }
         // #endif
 
         m_pActWay = 0;
-    }
-    // THIS IS THE RELATION CODE...
-    else if (strcmp(name, "relation") == 0) {
+    } else if (strcmp(name, "relation") == 0) {
+        // THIS IS THE RELATION CODE...
         m_rDocument.AddRelation(m_pActRelation);
         m_pActRelation = 0;
 
