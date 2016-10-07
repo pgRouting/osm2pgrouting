@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <type name="cycleway" id="1">
+    <class name="track" priority="1.0" id="101" />
+    <class name="lane" priority="1.5" id="102" />
+    <class name="opposite_lane" priority="1.5" id="103" />
+    <class name="opposite" priority="1.5" id="104" />
+    <class name="shared_lane" priority="1.6" id="105" />
+    <class name="shared" priority="1.6" id="106" />
+    <class name="share_busway" priority="1.6" id="107" />
+  </type>
+  <type name="cycleway:right" id="2">
+    <class name="track" priority="1.0" id="201" />
+    <class name="lane" priority="1.5" id="202" />
+    <class name="opposite_lane" priority="1.5" id="203" />
+    <class name="opposite" priority="1.5" id="204" />
+    <class name="shared_lane" priority="1.6" id="205" />
+    <class name="shared" priority="1.6" id="206" />
+    <class name="share_busway" priority="1.6" id="207" />
+  </type>
+  <type name="cycleway:left" id="3">
+    <class name="track" priority="1.0" id="301" />
+    <class name="lane" priority="1.5" id="302" />
+    <class name="opposite_lane" priority="1.5" id="303" />
+    <class name="opposite" priority="1.5" id="304" />
+    <class name="shared_lane" priority="1.6" id="305" />
+    <class name="shared" priority="1.6" id="306" />
+    <class name="share_busway" priority="1.6" id="307" />
+  </type>
+  <type name="tracktype" id="4">
+    <class name="grade1" priority="1.0" id="401" />
+    <class name="grade2" priority="1.1" id="402" />
+    <class name="grade3" priority="1.2" id="403" />
+    <class name="grade4" priority="1.3" id="404" />
+    <class name="grade5" priority="1.4" id="405" />
+  </type>
+  <type name="highway" id="5">
+    <class name="cycleway" priority="1.0" id="501" />
+    <class name="path" priority="1.1" id="502" />
+    <class name="pedestrian" priority="1.1" id="503" />
+    <class name="footway" priority="1.1" id="504" />
+    <class name="bridleway" priority="1.3" id="505" />
+    <class name="track" priority="1.0" id="506" />
+    <class name="living_street" priority="2.0" id="507" />
+    <class name="service" priority="2.0" id="508" />
+    <class name="residential" priority="2.2" id="509" />
+    <class name="unclassified" priority="2.3" id="510" />
+    <class name="tertiary_link" priority="2.5" id="511" />
+    <class name="tertiary" priority="2.5" id="512" />
+    <class name="services" priority="2.7" id="513" />
+    <class name="secondary_link" priority="3.0" id="514" />
+    <class name="secondary" priority="3.0" id="515" />
+    <class name="primary_link" priority="3.5" id="516" />
+    <class name="primary" priority="3.5" id="517" />
+    <class name="road" priority="4.0" id="500" />
+  </type>
+  <type name="junction" id="6">
+    <class name="roundabout" priority="2.5" id="601" />
+  </type>  
+</configuration>
