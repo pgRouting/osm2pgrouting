@@ -27,42 +27,34 @@
 
 namespace osm2pgr {
 
-    class Configuration;
-    class Type;
+class Configuration;
+class Type;
 
+/**
+  Parser callback for configuration files
+  */
+class ConfigurationParserCallback : public xml::XMLParserCallback {
+    //! reference to a Configuration object
+    Configuration& m_rDocument;
+
+    //! current type, which will be parsed
+    Type* m_pActType;
+
+    virtual void StartElement(const char *name, const char** atts);
+
+    virtual void EndElement(const char* name);
+
+
+ public:
     /**
-      Parser callback for configuration files
-      */
-    class ConfigurationParserCallback : public xml::XMLParserCallback{
-        //! reference to a Configuration object
-        Configuration& m_rDocument;
+     *    Constructor
+     */
+    explicit ConfigurationParserCallback(Configuration& doc) :
+        m_rDocument(doc),
+        m_pActType(0) {
+        }
+};  // class
 
-        //! current type, which will be parsed
-        Type* m_pActType;
-
-        virtual void StartElement(const char *name, const char** atts);
-
-        virtual void EndElement(const char* name);
-
-#if 0
-        virtual void SetContent(const char* ch, int len)=0;
-
-        virtual void ProcessingInstruction(const char* target, const char* data)=0;
-
-        virtual void CDataBlockInternal(const char *value, int len)=0;
-#endif
-
-        public:
-        /**
-         *    Constructor
-         */
-        ConfigurationParserCallback(Configuration& doc)
-            :
-                m_rDocument(doc),
-                m_pActType(0) {
-                }
-    };  // class
-
-}  // end namespace osm
+}  // namespace osm2pgr
 
 #endif  // SRC_CONFIGURATIONPARSERCALLBACK_H_

@@ -17,9 +17,12 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <string>
-#include <boost/lexical_cast.hpp>
+
 #include "./ConfigurationParserCallback.h"
+
+#include <boost/lexical_cast.hpp>
+
+#include <string>
 #include "./OSMDocument.h"
 #include "./Configuration.h"
 #include "./Type.h"
@@ -27,12 +30,12 @@
 
 namespace osm2pgr {
 
-/**
+/*!
     Parser callback for configuration files
 */
 void ConfigurationParserCallback::StartElement(
-    const char *name,
-    const char** atts) {
+        const char *name,
+        const char** atts) {
     // std::cout << "SE for <" << name << ">" << std::endl;
     if (strcmp(name, "class") == 0) {
         if (atts != NULL) {
@@ -91,4 +94,4 @@ void ConfigurationParserCallback::EndElement(const char* name) {
     }
 }
 
-}  // end namespace osm2pgr
+}  // namespace osm2pgr
