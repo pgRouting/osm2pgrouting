@@ -135,7 +135,9 @@ int main(int argc, char* argv[]) {
 
             std::cout << "Creating topology..." << endl;
             dbConnection.createTopology();
+#if 1
             dbConnection.createFKeys();
+#endif
         }
 
 
