@@ -17,54 +17,55 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
- 
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
 
+#ifndef SRC_CONFIGURATION_H_
+#define SRC_CONFIGURATION_H_
+
+#include <string>
+#include <map>
 #include "Type.h"
 #include "Class.h"
 
 namespace osm2pgr {
 
 template< class Map >
-void ez_mapdelete( Map& c ) {
+void ez_mapdelete(Map &c) {
     auto it(c.begin());
     auto last(c.end());
-    while(it!=last) {
+    while (it != last) {
         delete (*it++).second;
     }
 }
 
 template< class Vector >
-void ez_vectordelete( Vector& c ) {
-    auto it( c.begin() );
-    auto last( c.end() );
-    while( it!=last ) {
+void ez_vectordelete(Vector &c) {
+    auto it(c.begin());
+    auto last(c.end());
+    while (it != last) {
         delete (*it++);
     }
 }
-          
+
 
 /**
 A configuration document.
 */
-class Configuration
-{
-public:
-    //! Map, which saves the parsed types
-    std::map<std::string, Type*> m_Types;
-public:
+class Configuration {
+ public:
+     //! Constructor
+     Configuration();
+     //! Destructor
+     virtual ~Configuration();
+     //! add node to the map
+     void AddType(Type* t);
+     Type* FindType(std::string typeName);
+     Class* FindClass(std::string typeName, std::string className);
 
-    //! Constructor
-    Configuration();
-    //! Destructor
-    virtual ~Configuration();
-    //! add node to the map
-    void AddType( Type* t );
-    Type* FindType( std::string typeName );
-    Class* FindClass( std::string typeName, std::string className );
+ public:
+     //! Map, which saves the parsed types
+     std::map<std::string, Type*> m_Types;
 };
 
 
-} // end namespace osm2pgr
-#endif
+}  // end namespace osm2pgr
+#endif  // SRC_CONFIGURATION_H_
