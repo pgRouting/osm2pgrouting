@@ -1,4 +1,7 @@
 /***************************************************************************
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
+ *                                                                         *
  *   Copyright (C) 2008 by Daniel Wendt                                    *
  *   gentoo.murray@gmail.com                                               *
  *                                                                         *
