@@ -1,4 +1,7 @@
 /***************************************************************************
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
+ *                                                                         *
  *   Copyright (C) 2008 by Daniel Wendt                                    *
  *   gentoo.murray@gmail.com                                               *
  *                                                                         *
@@ -10,7 +13,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -34,6 +37,17 @@ namespace osm2pgr {
 */
 class Node {
  public:
+    Node() = delete;
+    Node(const Node&) = default;
+    /**
+     *    Construktor
+     *    @param id ID of the node
+     *    @param lat latitude
+     *    @param lon longitude
+     */
+    Node(int64_t id, double lat, double lon);
+
+ public:
     // ! ID of the node
     int64_t id;
     // ! latitude coordinate
@@ -43,15 +57,7 @@ class Node {
     /**
      *    counts the rate, how much this node is used in different ways
      */
-    unsigned short numsOfUse;
- public:
-    /**
-     *    Construktor
-     *     @param id ID of the node
-     *    @param lat latitude
-     *    @param lon longitude
-     */
-    Node(int64_t id = -1, double lat = 0, double lon = 0);
+     uint16_t numsOfUse;
 };
 
 
