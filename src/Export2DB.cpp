@@ -343,15 +343,15 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
                 auto n = *it;
 #endif
                 Node* node = n.second;
-                std::string row_data = TO_STR(node->id);
+                std::string row_data = TO_STR(node->id());
                 row_data += "\t";
-                row_data += TO_STR(node->lon);
+                row_data += TO_STR(node->lon());
                 row_data += "\t";
-                row_data += TO_STR(node->lat);
+                row_data += TO_STR(node->lat());
                 row_data += "\t";
-                row_data += TO_STR(node->numsOfUse);
+                row_data += TO_STR(node->numsOfUse());
                 row_data += "\t";
-                row_data += "srid=4326; POINT(" + TO_STR(node->lon) + " " + TO_STR(node->lat) + ")";
+                row_data += "srid=4326; POINT(" + node->geom_str() + ")";
                 row_data += "\n";
                 PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
@@ -686,19 +686,19 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
             row_data += "\t";
             row_data += TO_STR(way->length);
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->lon);
+            row_data += TO_STR(way->m_NodeRefs.front()->lon());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->lat);
+            row_data += TO_STR(way->m_NodeRefs.front()->lat());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->lon);
+            row_data += TO_STR(way->m_NodeRefs.back()->lon());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->lat);
+            row_data += TO_STR(way->m_NodeRefs.back()->lat());
             row_data += "\t";
             row_data += TO_STR(way->osm_id);
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->id);
+            row_data += TO_STR(way->m_NodeRefs.front()->id());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->id);
+            row_data += TO_STR(way->m_NodeRefs.back()->id());
             row_data += "\t";
             row_data += "srid=4326;" + way->geom;
             row_data += "\t";

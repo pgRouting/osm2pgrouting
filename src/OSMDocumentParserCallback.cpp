@@ -86,7 +86,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
                 Node * node = m_rDocument.FindNode(nodeRefId);
                 if (node != 0) {
-                    ++node->numsOfUse;
+                    node->incrementUse();
                 } else {
                     std::cout << "Reference nd=" << nodeRefId
                         << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
