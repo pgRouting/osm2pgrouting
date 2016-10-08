@@ -22,11 +22,11 @@
 
 namespace osm2pgr {
 
-Node::Node(int64_t id, double lat, double lon) :
-    id(id),
-    lat(lat),
-    lon(lon) {
-    this->numsOfUse = 0;
+Node::Node(int64_t p_id, double p_lat, double p_lon) :
+    m_id(p_id),
+    m_lat(p_lat),
+    m_lon(p_lon),
+    m_numsOfUse(0) {
 }
 
 
