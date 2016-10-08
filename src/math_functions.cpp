@@ -27,14 +27,14 @@
 
 
 // boost fucntion to calculate the distance
-double getLength(Node* a, Node *b) {
+double getLength(const Node &a, const Node &b) {
     typedef boost::geometry::model::d2::point_xy<double> point_type;
 
     /* converted point to fit boost.geomtery
      * (`p` and `q` are same as `a ` and `b`)
      */
-    point_type p(a->lat , a->lon);
-    point_type q(b->lat , b->lon);
+    point_type p(a.lat(), a.lon());
+    point_type q(b.lat(), b.lon());
 
     return boost::geometry::distance(p, q);
 }

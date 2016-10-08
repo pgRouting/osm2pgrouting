@@ -25,7 +25,7 @@
 
 using osm2pgr::Node;
 
-double getLength(Node* a, Node* b);
+double getLength(const Node &a, const Node &b);
 
 
 #endif  // SRC_MATH_FUNCTIONS_H_
