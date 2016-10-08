@@ -20,6 +20,7 @@
 #ifndef SRC_WAY_H_
 #define SRC_WAY_H_
 
+#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <map>
 #include <string>
@@ -94,6 +95,21 @@ class Way {
      inline OneWayType oneWayType() const {return m_oneWayType;}
      inline double maxspeed_forward() const {return m_maxspeed_forward;}
      inline double maxspeed_backward() const { return m_maxspeed_backward;}
+
+
+     inline std::string& geom_str() {return m_geom;}
+     inline std::string maxspeed_forward_str() const {
+         return boost::lexical_cast<std::string>(m_maxspeed_forward);
+     }
+     inline std::string maxspeed_backward_str() const {
+         return boost::lexical_cast<std::string>(m_maxspeed_backward);
+     }
+     inline std::string length_str() const {
+         return boost::lexical_cast<std::string>(m_length);
+     }
+     inline std::string oneWayType_str() const {
+         return boost::lexical_cast<std::string>(m_oneWayType);
+     }
 
  private:
      //! Do not delete nodes in this container!

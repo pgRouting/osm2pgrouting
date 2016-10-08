@@ -20,6 +20,7 @@
 
 
 #include "./OSMDocumentParserCallback.h"
+
 #include <math.h>
 #include <string>
 #include <iostream>
@@ -226,8 +227,8 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                                 && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)
                                 && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
                                 && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes.count(m_pActWay->clss())
-                                && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v]->priority
-                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->priority
+                                && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v].priority
+                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()].priority
                                )
                       ) {
                         m_pActWay->type(k);
@@ -241,11 +242,11 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
 
                             // set default maxspeed values from classes, if not set previously (default: -1)
                             if (m_pActWay->maxspeed_forward() <= 0) {
-                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->default_maxspeed;
+                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()].default_maxspeed;
                                 m_pActWay->maxspeed_forward(newValue);
                             }
                             if (m_pActWay->maxspeed_backward() <= 0) {
-                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->default_maxspeed;
+                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()].default_maxspeed;
                                 m_pActWay->maxspeed_backward(newValue);
                             }
                         }

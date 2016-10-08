@@ -26,6 +26,8 @@ namespace osm2pgr {
 
 class Class {
  public:
+     Class() = default;
+     Class(const Class &) = default;
     /** 
      *    Constructor
      *    @param id ID of the class

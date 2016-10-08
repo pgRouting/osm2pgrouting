@@ -61,7 +61,8 @@ class Configuration {
      //! add node to the map
      void AddType(Type* t);
      Type* FindType(std::string typeName) const;
-     Class* FindClass(std::string typeName, std::string className) const;
+     Class FindClass(const std::string &typeName, const std::string &className) const;
+     std::string priority_str(const std::string &typeName, const std::string &className) const;
 
  public:
      //! Map, which saves the parsed types

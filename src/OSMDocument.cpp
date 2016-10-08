@@ -62,6 +62,7 @@ const {
 void OSMDocument::SplitWays() {
     std::vector<Way*>::const_iterator it(m_Ways.begin());
     std::vector<Way*>::const_iterator last(m_Ways.end());
+    std::string separator(" ");
 
     //  split ways get a new ID
     int64_t id = 0;
@@ -104,7 +105,7 @@ void OSMDocument::SplitWays() {
 
     // GeometryFromText('LINESTRING('||x1||' '||y1||','||x2||' '||y2||')',4326);
 
-            split_way->geom() = "LINESTRING(" + node->geom_str() + ", ";
+            split_way->geom() = "LINESTRING(" + node->geom_str(separator) + ", ";
 
             split_way->AddNodeRef(node);
 
@@ -121,8 +122,7 @@ void OSMDocument::SplitWays() {
                         if (length < 0)
                             length*=-1;
                         split_way->add_length(length);
-                        split_way->geom() += secondNode->geom_str() + ")";
-                        // split_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
+                        split_way->geom() += secondNode->geom_str(separator) + ")";
                     } else if (backNode == (*it_node)) {
                         lastNode = *it_node++;
                         split_way->AddNodeRef(lastNode);
@@ -130,12 +130,9 @@ void OSMDocument::SplitWays() {
                         if (length < 0)
                             length*=-1;
                         split_way->add_length(length);
-                        split_way->geom() += lastNode->geom_str() + ")";
-                        // split_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
+                        split_way->geom() += lastNode->geom_str(separator) + ")";
                     } else {
-                        split_way->geom() += (*it_node)->geom_str()  + ", ";
-                        // split_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
-                        // *it_node++;
+                        split_way->geom() += (*it_node)->geom_str(separator)  + ", ";
                         ++it_node;
                     }
                 }

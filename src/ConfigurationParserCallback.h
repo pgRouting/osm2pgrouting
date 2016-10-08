@@ -38,7 +38,7 @@ class ConfigurationParserCallback : public xml::XMLParserCallback {
     Configuration& m_rDocument;
 
     //! current type, which will be parsed
-    Type* m_pActType;
+    Type *m_pActType;
 
     virtual void StartElement(const char *name, const char** atts);
 

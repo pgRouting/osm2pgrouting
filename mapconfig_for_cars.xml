@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
   <type name="highway" id="1">
     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
     <class name="motorway_link" id="102" priority="1.0" maxspeed="130" />
@@ -19,4 +18,3 @@
     <class name="unclassified" id="117" priority="3" maxspeed="90"/>
     <class name="road" id="100" priority="5" maxspeed="50" />
   </type> 
-</configuration>

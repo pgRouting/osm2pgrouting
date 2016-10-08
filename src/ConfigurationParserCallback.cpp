@@ -60,7 +60,7 @@ void ConfigurationParserCallback::StartElement(
                 }
             }
             if (id > 0 && !name.empty()) {
-                m_pActType->AddClass(new Class(id, name, priority, maxspeed));
+                m_pActType->AddClass(Class(id, name, priority, maxspeed));
             }
         }
     } else if (strcmp(name, "type") == 0) {

@@ -29,9 +29,7 @@ namespace osm2pgr {
 
 class Type {
  public:
-    //  std::vector<Class*> m_ClassRefs;
-    std::map<std::string, Class*> m_Classes;
-    //  std::map<int64_t, Class*> m_Classes;
+    std::map<std::string, Class> m_Classes;
     int64_t id;
     std::string name;
  public:
@@ -46,7 +44,7 @@ class Type {
      *    saves the classes of the type
      *    @param pClass class
      */
-    void AddClass(Class* pClass);
+    void AddClass(const Class &pClass);
 };
 
 }  // namespace osm2pgr

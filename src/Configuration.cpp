@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <string>
+#include <boost/lexical_cast.hpp>
 #include "Configuration.h"
 #include "Type.h"
 #include "Class.h"
@@ -41,8 +42,12 @@ Type* Configuration::FindType(std::string name) const {
     return m_Types.at(name);
 }
 
-Class* Configuration::FindClass(std::string typeName, std::string className) const {
+Class Configuration::FindClass(const std::string &typeName, const std::string &className) const {
     return m_Types.at(typeName)->m_Classes[className];
+}
+
+std::string Configuration::priority_str(const std::string &typeName, const std::string &className) const {
+    return  boost::lexical_cast<std::string>(FindClass(typeName, className).priority);
 }
 
 }  // end namespace osm2pgr

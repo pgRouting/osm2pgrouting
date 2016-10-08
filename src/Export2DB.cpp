@@ -351,7 +351,7 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
                 row_data += "\t";
                 row_data += TO_STR(node->numsOfUse());
                 row_data += "\t";
-                row_data += "srid=4326; POINT(" + node->geom_str() + ")";
+                row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
                 row_data += "\n";
                 PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
@@ -479,7 +479,7 @@ void Export2DB::exportRelations(
                     row_data += "\t";
                     row_data += TO_STR(config.FindType(tag.first)->id);
                     row_data += "\t";
-                    row_data += TO_STR(config.FindClass(tag.first, tag.second)->id);
+                    row_data += TO_STR(config.FindClass(tag.first, tag.second).id);
                     row_data += "\t";
                     if (!relation->name.empty()) {
                         std::string escaped_name = relation->name;
@@ -608,7 +608,7 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, const Configuration &c
                 for (auto it_tag = way->tags().begin(); it_tag != way->tags().end(); ++it_tag) {
                     auto tag = *it_tag;
 #endif
-                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second)->id);
+                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id);
                     row_data += "\t";
                     row_data += TO_STR(way->id());
                     row_data += "\n";
@@ -658,6 +658,7 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
 void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
 
+    std::string separator("\t");
     std::string ways_columns(
             " class_id, length,"
             " x1, y1,"
@@ -684,17 +685,13 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
                 process_section(count, ways_columns);
                 prepare_table(ways_columns);
             }
-            std::string row_data = TO_STR(config.FindClass(way->type(), way->clss())->id);
+            std::string row_data = TO_STR(config.FindClass(way->type(), way->clss()).id);
             row_data += "\t";
-            row_data += TO_STR(way->length());
+            row_data += way->length_str();
             row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().front()->lon());
+            row_data += TO_STR(way->nodeRefs().front()->geom_str(separator));
             row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().front()->lat());
-            row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().back()->lon());
-            row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().back()->lat());
+            row_data += way->nodeRefs().back()->geom_str(separator);
             row_data += "\t";
             row_data += TO_STR(way->osm_id());
             row_data += "\t";
@@ -702,33 +699,33 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
             row_data += "\t";
             row_data += TO_STR(way->nodeRefs().back()->id());
             row_data += "\t";
-            row_data += "srid=4326;" + way->geom();
+            row_data += "srid=4326;" + way->geom_str();
             row_data += "\t";
 
             // cost based on oneway
             if (way->oneWayType() == REVERSED)
-                row_data += TO_STR(-way->length());
+                row_data += "-" + way->length_str();
             else
-                row_data += TO_STR(way->length());
+                row_data += way->length_str();
             // reverse_cost
             row_data += "\t";
             if (way->oneWayType() == YES)
-                row_data += TO_STR(- way->length());
+                row_data += "-" + way->length_str();
             else
-                row_data += TO_STR(way->length());
+                row_data += way->length_str();
 
             row_data += "\t";
-            row_data += TO_STR(way->oneWayType());
+            row_data += way->oneWayType_str();
             row_data += "\t";
 
             // maxspeed
-            row_data += TO_STR(way->maxspeed_forward());
+            row_data += way->maxspeed_forward_str();
             row_data += "\t";
-            row_data += TO_STR(way->maxspeed_backward());
+            row_data += way->maxspeed_backward_str();
             row_data += "\t";
 
             // priority
-            row_data += TO_STR(config.FindClass(way->type(), way->clss())->priority);
+            row_data += config.priority_str(way->type(), way->clss());
             row_data += "\t";
 
             // name
@@ -875,7 +872,7 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
                 for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
                     auto c = *it_c;
 #endif
-                    Class clss(*c.second);
+                    Class clss(c.second);
                     std::string row_data = TO_STR(clss.id);
                     row_data += "\t";
                     row_data += TO_STR(type.id);

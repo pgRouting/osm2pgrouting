@@ -113,8 +113,8 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Opening data file: " << dataFile.c_str() << endl;
-        OSMDocument *document = new OSMDocument(config);
-        OSMDocumentParserCallback callback(*document);
+        OSMDocument document = OSMDocument(config);
+        OSMDocumentParserCallback callback(document);
 
         std::cout << "    Parsing data\n" << endl;
         ret = parser.Parse(callback, dataFile.c_str());
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Spliting ways\n" << endl;
-        document->SplitWays();
+        document.SplitWays();
 
         //############# Export2DB
         {
@@ -138,14 +138,14 @@ int main(int argc, char* argv[]) {
 
             std::cout << "Adding auxiliary tables to database..." << endl;
             if (!skipnodes) {
-                dbConnection.exportNodes(document->m_Nodes);
+                dbConnection.exportNodes(document.m_Nodes);
             }
             dbConnection.exportTypes(config.m_Types);
             dbConnection.exportClasses(config.m_Types);
-            // dbConnection.exportRelations(document->m_Relations, config);
-            dbConnection.exportRelationsWays(document->m_Relations);
-            dbConnection.exportTags(document->m_SplitWays, config);
-            dbConnection.exportWays(document->m_SplitWays, config);
+            // dbConnection.exportRelations(document.m_Relations, config);
+            dbConnection.exportRelationsWays(document.m_Relations);
+            dbConnection.exportTags(document.m_SplitWays, config);
+            dbConnection.exportWays(document.m_SplitWays, config);
 
 
             std::cout << "Creating topology..." << endl;
@@ -156,8 +156,8 @@ int main(int argc, char* argv[]) {
 
         std::cout << "#########################" << endl;
 
-        std::cout << "size of streets: " << document->m_Ways.size() << endl;
-        std::cout << "size of split ways : " << document->m_SplitWays.size() << endl;
+        std::cout << "size of streets: " << document.m_Ways.size() << endl;
+        std::cout << "size of split ways : " << document.m_SplitWays.size() << endl;
 
 #ifdef WITH_TIME
         clock_t end = clock();

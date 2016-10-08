@@ -32,8 +32,8 @@ Type::Type(int64_t id, std::string name)
 Type::~Type() {
 }
 
-void Type::AddClass(Class* pClass ) {
-  if (pClass) m_Classes[pClass->name] = pClass;
+void Type::AddClass(const Class &pClass) {
+   m_Classes[pClass.name] = pClass;
 }
 
 

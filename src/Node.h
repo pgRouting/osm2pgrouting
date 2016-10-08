@@ -75,9 +75,9 @@ class Node {
 
         inline double lat() const {return m_lat;}
         inline double lon() const {return m_lon;}
-        inline std::string geom_str() {
+        inline std::string geom_str(const std::string &separator) {
             return boost::lexical_cast<std::string>(m_lon)
-                + " " +
+                + separator +
                 boost::lexical_cast<std::string>(m_lat);
         }
 
