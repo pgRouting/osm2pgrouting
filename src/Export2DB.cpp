@@ -599,16 +599,16 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
 
 #ifdef WITH_RANGE_LOOP
     for (const auto &way : ways) {
-        for (const auto &tag : way->m_Tags) {
+        for (const auto &tag : way->tags()) {
 #else
             for (auto it = ways.begin(); it != ways.end(); ++it) {
                 auto way = *it;
-                for (auto it_tag = way->m_Tags.begin(); it_tag != way->m_Tags.end(); ++it_tag) {
+                for (auto it_tag = way->tags().begin(); it_tag != way->tags().end(); ++it_tag) {
                     auto tag = *it_tag;
 #endif
                     std::string row_data = TO_STR(config->FindClass(tag.first, tag.second)->id);
                     row_data += "\t";
-                    row_data += TO_STR(way->id);
+                    row_data += TO_STR(way->id());
                     row_data += "\n";
                     PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
@@ -682,56 +682,56 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                 process_section(count, ways_columns);
                 prepare_table(ways_columns);
             }
-            std::string row_data = TO_STR(config->FindClass(way->type, way->clss)->id);
+            std::string row_data = TO_STR(config->FindClass(way->type(), way->clss())->id);
             row_data += "\t";
-            row_data += TO_STR(way->length);
+            row_data += TO_STR(way->length());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->lon());
+            row_data += TO_STR(way->nodeRefs().front()->lon());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->lat());
+            row_data += TO_STR(way->nodeRefs().front()->lat());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->lon());
+            row_data += TO_STR(way->nodeRefs().back()->lon());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->lat());
+            row_data += TO_STR(way->nodeRefs().back()->lat());
             row_data += "\t";
-            row_data += TO_STR(way->osm_id);
+            row_data += TO_STR(way->osm_id());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.front()->id());
+            row_data += TO_STR(way->nodeRefs().front()->id());
             row_data += "\t";
-            row_data += TO_STR(way->m_NodeRefs.back()->id());
+            row_data += TO_STR(way->nodeRefs().back()->id());
             row_data += "\t";
-            row_data += "srid=4326;" + way->geom;
+            row_data += "srid=4326;" + way->geom();
             row_data += "\t";
 
             // cost based on oneway
-            if (way->oneWayType == REVERSED)
-                row_data += TO_STR(- way->length);
+            if (way->oneWayType() == REVERSED)
+                row_data += TO_STR(-way->length());
             else
-                row_data += TO_STR(way->length);
+                row_data += TO_STR(way->length());
             // reverse_cost
             row_data += "\t";
-            if (way->oneWayType == YES)
-                row_data += TO_STR(- way->length);
+            if (way->oneWayType() == YES)
+                row_data += TO_STR(- way->length());
             else
-                row_data += TO_STR(way->length);
+                row_data += TO_STR(way->length());
 
             row_data += "\t";
-            row_data += TO_STR(way->oneWayType);
+            row_data += TO_STR(way->oneWayType());
             row_data += "\t";
 
             // maxspeed
-            row_data += TO_STR(way->maxspeed_forward);
+            row_data += TO_STR(way->maxspeed_forward());
             row_data += "\t";
-            row_data += TO_STR(way->maxspeed_backward);
+            row_data += TO_STR(way->maxspeed_backward());
             row_data += "\t";
 
             // priority
-            row_data += TO_STR(config->FindClass(way->type, way->clss)->priority);
+            row_data += TO_STR(config->FindClass(way->type(), way->clss())->priority);
             row_data += "\t";
 
             // name
-            if (!way->name.empty()) {
-                std::string escaped_name = way->name;
+            if (!way->name().empty()) {
+                std::string escaped_name = way->name();
                 boost::replace_all(escaped_name, "\\", "");
                 boost::replace_all(escaped_name, "\t", "\\\t");
                 boost::replace_all(escaped_name, "\n", "");

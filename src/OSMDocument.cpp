@@ -70,27 +70,27 @@ void OSMDocument::SplitWays() {
         Way* currentWay = *it++;
 
         // ITERATE THROUGH THE NODES
-        std::vector<Node*>::const_iterator it_node(currentWay->m_NodeRefs.begin());
-        std::vector<Node*>::const_iterator last_node(currentWay->m_NodeRefs.end());
+        auto it_node(currentWay->nodeRefs().begin());
+        auto last_node(currentWay->nodeRefs().end());
 
-        Node* backNode = currentWay->m_NodeRefs.back();
+        Node* backNode = currentWay->nodeRefs().back();
 
         while (it_node != last_node) {
             Node* node = *it_node++;
             Node* secondNode = 0;
             Node* lastNode = 0;
 
-            Way* split_way = new Way(++id, currentWay->visible,
-                currentWay->osm_id,
-                currentWay->maxspeed_forward,
-                currentWay->maxspeed_backward);
-            split_way->name = currentWay->name;
-            split_way->type = currentWay->type;
-            split_way->clss = currentWay->clss;
-            split_way->oneWayType = currentWay->oneWayType;
+            Way* split_way = new Way(++id, currentWay->visible(),
+                currentWay->osm_id(),
+                currentWay->maxspeed_forward(),
+                currentWay->maxspeed_backward());
+            split_way->name(currentWay->name());
+            split_way->type(currentWay->type());
+            split_way->clss(currentWay->clss());
+            split_way->oneWayType(currentWay->oneWayType());
 
-            std::map<std::string, std::string>::iterator it_tag(currentWay->m_Tags.begin());
-            std::map<std::string, std::string>::iterator last_tag(currentWay->m_Tags.end());
+            auto it_tag(currentWay->tags().begin());
+            auto last_tag(currentWay->tags().end());
 //            std::cout << "Number of tags: " << currentWay->m_Tags.size() << std::endl;
 //            std::cout << "First tag: " << currentWay->m_Tags.front()->key << ":" << currentWay->m_Tags.front()->value << std::endl;
 
@@ -104,7 +104,7 @@ void OSMDocument::SplitWays() {
 
     // GeometryFromText('LINESTRING('||x1||' '||y1||','||x2||' '||y2||')',4326);
 
-            split_way->geom = "LINESTRING(" + node->geom_str() + ", ";
+            split_way->geom() = "LINESTRING(" + node->geom_str() + ", ";
 
             split_way->AddNodeRef(node);
 
@@ -120,8 +120,8 @@ void OSMDocument::SplitWays() {
                         double length = getLength(*node, *secondNode);
                         if (length < 0)
                             length*=-1;
-                        split_way->length+=length;
-                        split_way->geom += secondNode->geom_str() + ")";
+                        split_way->add_length(length);
+                        split_way->geom() += secondNode->geom_str() + ")";
                         // split_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
                     } else if (backNode == (*it_node)) {
                         lastNode = *it_node++;
@@ -129,11 +129,11 @@ void OSMDocument::SplitWays() {
                         double length = getLength(*node, *lastNode);
                         if (length < 0)
                             length*=-1;
-                        split_way->length+=length;
-                        split_way->geom += lastNode->geom_str() + ")";
+                        split_way->add_length(length);
+                        split_way->geom() += lastNode->geom_str() + ")";
                         // split_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
                     } else {
-                        split_way->geom += (*it_node)->geom_str()  + ", ";
+                        split_way->geom() += (*it_node)->geom_str()  + ", ";
                         // split_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
                         // *it_node++;
                         ++it_node;
@@ -141,7 +141,7 @@ void OSMDocument::SplitWays() {
                 }
             }
 
-            if (split_way->m_NodeRefs.front() != split_way->m_NodeRefs.back()) {
+            if (split_way->nodeRefs().front() != split_way->nodeRefs().back()) {
                 m_SplitWays.push_back(split_way);
             } else {
                 delete split_way;

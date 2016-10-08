@@ -27,15 +27,15 @@ namespace osm2pgr {
 Way::Way(int64_t id,
         bool visible,
         int64_t osm_id,
-        int maxspeed_forward,
-        int maxspeed_backward) :
-    id(id),
-    visible(visible),
-    length(0),
-    maxspeed_forward(maxspeed_forward),
-    maxspeed_backward(maxspeed_backward),
-    oneWayType(UNKNOWN),
-    osm_id(osm_id) {
+        double maxspeed_forward,
+        double maxspeed_backward) :
+    m_id(id),
+    m_visible(visible),
+    m_length(0),
+    m_maxspeed_forward(maxspeed_forward),
+    m_maxspeed_backward(maxspeed_backward),
+    m_oneWayType(UNKNOWN),
+    m_osm_id(osm_id) {
     }
 
 #if 0

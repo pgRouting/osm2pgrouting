@@ -147,31 +147,31 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 // std::cout<<"m_pActWay: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
                 // std::cout<<"thecount: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
                 if (m_pActWay && k.compare("name") == 0) {
-                    m_pActWay->name = v;
+                    m_pActWay->name(v);
                 } else if (m_pActWay && k.compare("oneway") == 0) {  // checks ONEWAY tag
                     // one way tag
                     if ((v.compare("yes") == 0) || (v.compare("true") == 0) || (v.compare("1") == 0)) {
-                        m_pActWay->oneWayType = YES;
+                        m_pActWay->oneWayType(YES);
                     } else {}
 
                     // check false conditions: 0, no, false
                     if ((v.compare("no") == 0) || (v.compare("false") == 0) || (v.compare("0") == 0)) {
-                        m_pActWay->oneWayType = NO;
+                        m_pActWay->oneWayType(NO);
                     } else {}
 
                     // check reversible condition
                     if (v.compare("reversible") == 0) {
-                        m_pActWay->oneWayType = REVERSIBLE;
+                        m_pActWay->oneWayType(REVERSIBLE);
                     } else {}
 
                     // check revers conditions: -1
                     if ((v.compare("-1") == 0)) {
-                        m_pActWay->oneWayType = REVERSED;
+                        m_pActWay->oneWayType(REVERSED);
                     }
 
                     // in case roundabout, if there is not additional oneway tag, set default oneway to YES
                 } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
-                    if (m_pActWay->oneWayType == UNKNOWN) m_pActWay->oneWayType= YES;
+                    if (m_pActWay->oneWayType() == UNKNOWN) m_pActWay->oneWayType(YES);
                 } else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
                 // handle 3 cases if the key contains maxspeed
                     // If the value contains mph, strip unit, convert to kph.
@@ -184,7 +184,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                     }
                     // handle maxspeed:forward tag
                     if (k.compare("maxspeed:forward") == 0) {
-                        int mspeed_fwd = 50;
+                        double mspeed_fwd = 50;
 
                         if (my_utils::is_number(v)) {
                             mspeed_fwd = atoi(v.c_str());
@@ -192,7 +192,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                             // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed1 value: " << v << std::endl;
                         }
-                        m_pActWay->maxspeed_forward = mspeed_fwd;
+                        m_pActWay->maxspeed_forward(mspeed_fwd);
                     } else if (k.compare("maxspeed:backward") == 0) {
                     // handler maxspeed:backward
                         int mspeed_backwd = 50;
@@ -203,10 +203,10 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                             // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed2 value: " << v << std::endl;
                         }
-                        m_pActWay->maxspeed_backward = mspeed_backwd;
+                        m_pActWay->maxspeed_backward(mspeed_backwd);
                     } else if (k.compare("maxspeed") == 0) {
-                        int mspeed_fwd = 50;
-                        int mspeed_backwd = 50;
+                        double mspeed_fwd = 50;
+                        double mspeed_backwd = 50;
 
                         if (my_utils::is_number(v)) {
                             mspeed_fwd = atoi(v.c_str());
@@ -215,38 +215,38 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                             // TODO(who): handle non-numeric values, ex.: RO:urban
                             std::cout << "unknown maxspeed3 value: " << v << std::endl;
                         }
-                        m_pActWay->maxspeed_backward = mspeed_backwd;
-                        m_pActWay->maxspeed_forward = mspeed_fwd;
+                        m_pActWay->maxspeed_backward(mspeed_backwd);
+                        m_pActWay->maxspeed_forward(mspeed_fwd);
                     }
                 } else if (m_pActWay && m_rDocument.m_rConfig.m_Types.count(k)) {
                 // else if (m_pActWay && k.compare("highway") == 0)
-                    if ((m_pActWay->type.compare("") == 0 && m_pActWay->clss.compare("") == 0)
+                    if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.m_Types.count(k)
                                 && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)
-                                && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type)
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)
+                                && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes.count(m_pActWay->clss())
                                 && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v]->priority
-                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->priority
+                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->priority
                                )
                       ) {
-                        m_pActWay->type = k;
-                        m_pActWay->clss = v;
+                        m_pActWay->type(k);
+                        m_pActWay->clss(v);
 
-                        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type)
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)) {
+                        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes.count(m_pActWay->clss())) {
                             m_pActWay->AddTag(k, v);
 
                             // std::cout<<"Added tag: "<<k<<" "<<v<<std::endl;
 
                             // set default maxspeed values from classes, if not set previously (default: -1)
-                            if (m_pActWay->maxspeed_forward <= 0) {
-                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->default_maxspeed;
-                                m_pActWay->maxspeed_forward = newValue;
+                            if (m_pActWay->maxspeed_forward() <= 0) {
+                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->default_maxspeed;
+                                m_pActWay->maxspeed_forward(newValue);
                             }
-                            if (m_pActWay->maxspeed_backward <= 0) {
-                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes[m_pActWay->clss]->default_maxspeed;
-                                m_pActWay->maxspeed_backward = newValue;
+                            if (m_pActWay->maxspeed_backward() <= 0) {
+                                int newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()]->default_maxspeed;
+                                m_pActWay->maxspeed_backward(newValue);
                             }
                         }
                     }
@@ -291,7 +291,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         //  #ifdef RESTRICT
         // _FILTER
 
-        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type) && m_rDocument.m_rConfig.m_Types[m_pActWay->type]->m_Classes.count(m_pActWay->clss)) {
+        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type()) && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes.count(m_pActWay->clss())) {
             // #endif
 
             // Comment out the following to get more log output
