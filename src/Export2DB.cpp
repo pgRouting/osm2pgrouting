@@ -449,7 +449,9 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
 }
 
 
-void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configuration *config) const {
+void Export2DB::exportRelations(
+        const std::vector<Relation*> &relations,
+        const Configuration &config) const {
     std::cout << "    Processing " << relations.size() << " relations\n";
     createTempTable(create_relations, "__relations_temp");
 
@@ -475,9 +477,9 @@ void Export2DB::exportRelations(const std::vector<Relation*> &relations, Configu
                     //  std::pair<std::string, std::string> pair = *it_tag++;
                     std::string row_data = TO_STR(relation->id);
                     row_data += "\t";
-                    row_data += TO_STR(config->FindType(tag.first)->id);
+                    row_data += TO_STR(config.FindType(tag.first)->id);
                     row_data += "\t";
-                    row_data += TO_STR(config->FindClass(tag.first, tag.second)->id);
+                    row_data += TO_STR(config.FindClass(tag.first, tag.second)->id);
                     row_data += "\t";
                     if (!relation->name.empty()) {
                         std::string escaped_name = relation->name;
@@ -590,7 +592,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, C
    </relation>
    */
 
-void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config) const {
+void Export2DB::exportTags(const std::vector<Way*> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
 
     createTempTable(create_way_tag, "__way_tag_temp");
@@ -606,7 +608,7 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, Configuration *config)
                 for (auto it_tag = way->tags().begin(); it_tag != way->tags().end(); ++it_tag) {
                     auto tag = *it_tag;
 #endif
-                    std::string row_data = TO_STR(config->FindClass(tag.first, tag.second)->id);
+                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second)->id);
                     row_data += "\t";
                     row_data += TO_STR(way->id());
                     row_data += "\n";
@@ -653,7 +655,7 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
     PQclear(q_result);
 }
 
-void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config) const {
+void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
 
     std::string ways_columns(
@@ -682,7 +684,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
                 process_section(count, ways_columns);
                 prepare_table(ways_columns);
             }
-            std::string row_data = TO_STR(config->FindClass(way->type(), way->clss())->id);
+            std::string row_data = TO_STR(config.FindClass(way->type(), way->clss())->id);
             row_data += "\t";
             row_data += TO_STR(way->length());
             row_data += "\t";
@@ -726,7 +728,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, Configuration *config)
             row_data += "\t";
 
             // priority
-            row_data += TO_STR(config->FindClass(way->type(), way->clss())->priority);
+            row_data += TO_STR(config.FindClass(way->type(), way->clss())->priority);
             row_data += "\t";
 
             // name

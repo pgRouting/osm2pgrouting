@@ -52,17 +52,21 @@ class OSMDocument {
  public:
     //! Constructor
     explicit OSMDocument(Configuration& config);
+
     //! Destructor
     virtual ~OSMDocument();
+
     //! add node to the map
     void AddNode(Node* n);
+
     //! add way to the map
     void AddWay(Way* w);
+
     //! find node by using an ID
     Node* FindNode(int64_t nodeRefId) const;
+
     //! split the ways
     void SplitWays();
-    //  Node* getNode(int64_t nodeRefId);
     void AddRelation(Relation* r);
 };
 

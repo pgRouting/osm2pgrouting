@@ -54,12 +54,14 @@ class Configuration {
  public:
      //! Constructor
      Configuration();
+
      //! Destructor
      virtual ~Configuration();
+
      //! add node to the map
      void AddType(Type* t);
-     Type* FindType(std::string typeName);
-     Class* FindClass(std::string typeName, std::string className);
+     Type* FindType(std::string typeName) const;
+     Class* FindClass(std::string typeName, std::string className) const;
 
  public:
      //! Map, which saves the parsed types

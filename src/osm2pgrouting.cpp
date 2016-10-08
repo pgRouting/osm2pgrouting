@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.1\n";
+            std::cout << "This is osm2pgrouting Version 2.2\n";
             return 0;
         }
 
@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
-        Configuration* config = new Configuration();
-        ConfigurationParserCallback cCallback(*config);
+        Configuration config;
+        ConfigurationParserCallback cCallback(config);
 
 
         std::cout << "    Parsing configuration\n" << endl;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Opening data file: " << dataFile.c_str() << endl;
-        OSMDocument *document = new OSMDocument(*config);
+        OSMDocument *document = new OSMDocument(config);
         OSMDocumentParserCallback callback(*document);
 
         std::cout << "    Parsing data\n" << endl;
@@ -140,8 +140,8 @@ int main(int argc, char* argv[]) {
             if (!skipnodes) {
                 dbConnection.exportNodes(document->m_Nodes);
             }
-            dbConnection.exportTypes(config->m_Types);
-            dbConnection.exportClasses(config->m_Types);
+            dbConnection.exportTypes(config.m_Types);
+            dbConnection.exportClasses(config.m_Types);
             // dbConnection.exportRelations(document->m_Relations, config);
             dbConnection.exportRelationsWays(document->m_Relations);
             dbConnection.exportTags(document->m_SplitWays, config);

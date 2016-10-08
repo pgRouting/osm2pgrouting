@@ -37,12 +37,12 @@ void Configuration::AddType(Type* t) {
     m_Types[t->name] = t;
 }
 
-Type* Configuration::FindType(std::string name) {
-    return m_Types[name];
+Type* Configuration::FindType(std::string name) const {
+    return m_Types.at(name);
 }
 
-Class* Configuration::FindClass(std::string typeName, std::string className) {
-    return m_Types[typeName]->m_Classes[className];
+Class* Configuration::FindClass(std::string typeName, std::string className) const {
+    return m_Types.at(typeName)->m_Classes[className];
 }
 
 }  // end namespace osm2pgr
