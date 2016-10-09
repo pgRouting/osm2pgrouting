@@ -24,8 +24,8 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <Node.h>
 namespace osm2pgr {
-class Node;
 
 enum OneWayType{ UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
 
@@ -75,10 +75,7 @@ class Way {
      std::map<std::string, std::string>& tags() {return m_Tags;}
      const std::map<std::string, std::string> tags() const {return m_Tags;}
 
-     inline int64_t osm_id() {return m_osm_id;}
-     inline std::string& geom() {return m_geom;}
-     inline double length() {return m_length;}
-     inline double add_length(double p_length) {return m_length += p_length;}
+     inline int64_t osm_id() const {return m_osm_id;}
      inline bool visible() const {return m_visible;}
      inline int64_t id() const {return m_id;}
 
@@ -96,25 +93,72 @@ class Way {
      inline double maxspeed_forward() const {return m_maxspeed_forward;}
      inline double maxspeed_backward() const { return m_maxspeed_backward;}
 
+     std::string geometry_str() const;
+     std::string length_str() const;
 
-     inline std::string& geom_str() {return m_geom;}
+     std::string geometry_str(size_t i) const;
+     std::string length_str(size_t i) const;
+
+
+     inline std::string source_osm_id(size_t i) const {
+         return m_split_ways[i].front()->osm_id_str();
+     }
+     inline std::string target_osm_id(size_t i) const {
+         return m_split_ways[i].back()->osm_id_str();
+     }
+
+     inline std::string first_node_str() const {
+         return nodeRefs().front()->geom_str(std::string("\t"));
+     }
+     inline std::string last_node_str() const {
+         return nodeRefs().back()->geom_str("\t");
+     }
+
+     inline std::string first_node_str(size_t i) const {
+         return m_split_ways[i].front()->geom_str(std::string("\t"));
+     }
+     inline std::string last_node_str(size_t i) const {
+         return m_split_ways[i].back()->geom_str(std::string("\t"));
+     }
+
      inline std::string maxspeed_forward_str() const {
          return boost::lexical_cast<std::string>(m_maxspeed_forward);
      }
      inline std::string maxspeed_backward_str() const {
          return boost::lexical_cast<std::string>(m_maxspeed_backward);
      }
-     inline std::string length_str() const {
-         return boost::lexical_cast<std::string>(m_length);
-     }
+
      inline std::string oneWayType_str() const {
          return boost::lexical_cast<std::string>(m_oneWayType);
      }
 
+     //! splits the way
+     void split_me();
+
+     //! @brief splits the way
+     inline size_t splits() {return m_split_ways.size();}
+
+
+
+
  private:
+     std::string geometry_str(const std::vector<Node*> &) const;
+     std::string length_str(const std::vector<Node*> &) const;
+
      //! Do not delete nodes in this container!
      std::vector<Node*> m_NodeRefs;
      std::map<std::string, std::string> m_Tags;
+
+     /*! the splited ways are a subset of the original way
+      *  all split_ways share the information of the original way
+      *  - name
+      *  - osm id
+      *  - type
+      *  - class
+      *  - max speeds
+      *  - one_way_type
+      */
+     std::vector<std::vector<Node*>> m_split_ways;
 
      //! ID of the way
      int64_t m_id;
@@ -125,11 +169,6 @@ class Way {
 
      std::string m_type;
      std::string m_clss;
-
-     //! geometry of the street
-     std::string m_geom;
-     //! length of the street in degrees
-     double m_length;
 
      double m_maxspeed_forward;
      double m_maxspeed_backward;

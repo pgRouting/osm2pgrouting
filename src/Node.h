@@ -75,10 +75,13 @@ class Node {
 
         inline double lat() const {return m_lat;}
         inline double lon() const {return m_lon;}
-        inline std::string geom_str(const std::string &separator) {
+        inline std::string geom_str(std::string separator) {
             return boost::lexical_cast<std::string>(m_lon)
                 + separator +
                 boost::lexical_cast<std::string>(m_lat);
+        }
+        inline std::string osm_id_str() {
+            return boost::lexical_cast<std::string>(m_id); 
         }
 
         inline uint16_t incrementUse() {return ++m_numsOfUse;}

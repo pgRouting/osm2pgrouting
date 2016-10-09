@@ -166,6 +166,7 @@ bool Export2DB::createTempTable(const std::string &table_description,
         "CREATE TEMP TABLE " + table + "("    //  + schema + "." + prefix etc
         + table_description + ")";
 
+
     PGresult *result = PQexec(mycon, sql.c_str());
     bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
 
@@ -218,6 +219,7 @@ void Export2DB::addGeometry(
         + table + "',"
         + "'the_geom', 4326, '" + geometry_type + "',2);";
 
+
     PGresult *result = PQexec(mycon, sql.c_str());
 
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {
@@ -234,6 +236,7 @@ void Export2DB::addTempGeometry(
         " SELECT AddGeometryColumn('"
         + table + "',"
         + "'the_geom', 4326, '" + geometry_type + "',2);";
+
 
     PGresult *result = PQexec(mycon, sql.c_str());
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {
@@ -592,7 +595,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, C
    </relation>
    */
 
-void Export2DB::exportTags(const std::vector<Way*> &ways, const Configuration &config) const {
+void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
 
     createTempTable(create_way_tag, "__way_tag_temp");
@@ -601,16 +604,16 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, const Configuration &c
 
 #ifdef WITH_RANGE_LOOP
     for (const auto &way : ways) {
-        for (const auto &tag : way->tags()) {
+        for (const auto &tag : way.tags()) {
 #else
             for (auto it = ways.begin(); it != ways.end(); ++it) {
                 auto way = *it;
-                for (auto it_tag = way->tags().begin(); it_tag != way->tags().end(); ++it_tag) {
+                for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
                     auto tag = *it_tag;
 #endif
                     std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id);
                     row_data += "\t";
-                    row_data += TO_STR(way->id());
+                    row_data += TO_STR(way.id());
                     row_data += "\n";
                     PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
@@ -645,12 +648,16 @@ void Export2DB::exportTags(const std::vector<Way*> &ways, const Configuration &c
 
 
 void Export2DB::prepare_table(const std::string &ways_columns) const {
-    if (createTempTable(create_ways, "__ways_temp"))
+    if (createTempTable(create_ways, "__ways_temp")) {
         addTempGeometry("__ways_temp", "LINESTRING");
+    } else { 
+        std::cerr << "could not createTempTable\n";
+    }
 
     std::string copy_ways("COPY __ways_temp  ("
             + ways_columns
             + ") FROM STDIN");
+
     PGresult* q_result = PQexec(mycon, copy_ways.c_str());
     PQclear(q_result);
 }
@@ -660,105 +667,113 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
     std::string separator("\t");
     std::string ways_columns(
-            " class_id, length,"
+            " class_id, "
+            " osm_id, "
+            " maxspeed_forward, maxspeed_backward, "
+            " one_way, "
+            " priority, "
+
+            " length,"
             " x1, y1,"
             " x2, y2,"
-            " osm_id, source_osm," " target_osm,"
+            " source_osm,"
+            " target_osm,"
             " the_geom,"
-            " cost, reverse_cost,"
-            " one_way,"
-            " maxspeed_forward, maxspeed_backward,"
-            " priority,"
-            " name");
+            " cost, "
+            " reverse_cost,"
+
+            " name ");
+
     prepare_table(ways_columns);
 
     int64_t count = 0;
-#ifdef WITH_RANGE_LOOP
-    for (const auto &way : ways) {
-#else
-        for (auto it = ways.begin(); it != ways.end(); ++it) {
-            auto way = *it;
-#endif
-            if ((++count % 100000) == 0) {
-                PQputline(mycon, "\\.\n");
-                PQendcopy(mycon);
-                process_section(count, ways_columns);
-                prepare_table(ways_columns);
-            }
-            std::string row_data = TO_STR(config.FindClass(way->type(), way->clss()).id);
-            row_data += "\t";
-            row_data += way->length_str();
-            row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().front()->geom_str(separator));
-            row_data += "\t";
-            row_data += way->nodeRefs().back()->geom_str(separator);
-            row_data += "\t";
-            row_data += TO_STR(way->osm_id());
-            row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().front()->id());
-            row_data += "\t";
-            row_data += TO_STR(way->nodeRefs().back()->id());
-            row_data += "\t";
-            row_data += "srid=4326;" + way->geom_str();
-            row_data += "\t";
+    int64_t split_count = 0;
+    for (auto it = ways.begin(); it != ways.end(); ++it) {
+        auto way = *it;
+        way->split_me();
+
+        if ((++count % 20000) == 0) {
+            PQputline(mycon, "\\.\n");
+            PQendcopy(mycon);
+            std::cout << "    Ways Processed: " << count << "\t";
+            std::cout << "    Split Ways generated: " << split_count << "\t";
+            process_section(ways_columns);
+            split_count = 0;
+            prepare_table(ways_columns);
+        }
+
+        // common information of the split ways
+        auto way_data =
+            TO_STR(config.FindClass(way->type(), way->clss()).id)  + "\t"
+            + TO_STR(way->osm_id()) + "\t"
+            // maxspeed
+            + way->maxspeed_forward_str() + "\t"
+            + way->maxspeed_backward_str() + "\t"
+            // one_way
+            + way->oneWayType_str() + "\t"
+            // priority
+            + config.priority_str(way->type(), way->clss()) + "\t";
+
+        // name
+        std::string name_data;
+        if (!way->name().empty()) {
+            std::string escaped_name = way->name();
+            boost::replace_all(escaped_name, "\\", "");
+            boost::replace_all(escaped_name, "\t", "\\\t");
+            boost::replace_all(escaped_name, "\n", "");
+            boost::replace_all(escaped_name, "\r", "");
+            name_data = escaped_name.substr(0, 199);
+        };
+
+        split_count +=  way->splits();
+
+        for (size_t i = 0; i < way->splits() ; ++i){
+            auto length = way->length_str(i);
+
+            // length (degrees)
+            auto split_data = length + "\t"
+                // x1, y1
+                + way->first_node_str(i) + "\t"
+                // x2, y2
+                + way->last_node_str(i) + "\t"
+                // source_osm
+                + way->source_osm_id(i) + "\t"
+                // target_osm
+                + way->target_osm_id(i) + "\t"
+                //geometry
+                + "srid=4326;" + way->geometry_str(i) + "\t";
 
             // cost based on oneway
             if (way->oneWayType() == REVERSED)
-                row_data += "-" + way->length_str();
+                split_data += "-" + length;
             else
-                row_data += way->length_str();
+                split_data += length;
+            split_data += "\t";
+
             // reverse_cost
-            row_data += "\t";
             if (way->oneWayType() == YES)
-                row_data += "-" + way->length_str();
+                split_data += "-" + length;
             else
-                row_data += way->length_str();
+                split_data += length;
+            split_data += "\t";
 
-            row_data += "\t";
-            row_data += way->oneWayType_str();
-            row_data += "\t";
 
-            // maxspeed
-            row_data += way->maxspeed_forward_str();
-            row_data += "\t";
-            row_data += way->maxspeed_backward_str();
-            row_data += "\t";
-
-            // priority
-            row_data += config.priority_str(way->type(), way->clss());
-            row_data += "\t";
-
-            // name
-            if (!way->name().empty()) {
-                std::string escaped_name = way->name();
-                boost::replace_all(escaped_name, "\\", "");
-                boost::replace_all(escaped_name, "\t", "\\\t");
-                boost::replace_all(escaped_name, "\n", "");
-                boost::replace_all(escaped_name, "\r", "");
-                row_data += escaped_name.substr(0, 199);
-            }
-            row_data += "\n";
-
-            PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
+            split_data =  way_data + split_data + name_data + "\n";
+            PQputline(mycon, split_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
-    process_section(count, ways_columns);
+    std::cout << "    Ways Processed: " << count << "\t";
+    std::cout << "    Split Ways generated: " << split_count << "\t";
+    process_section(ways_columns);
 }
 
-void Export2DB::process_section(int64_t count, const std::string &ways_columns) const {
+void Export2DB::process_section(const std::string &ways_columns) const {
     //  std::cout << "Creating indices in temporary table\n";
     create_gindex("__ways_temp", "__ways_temp");
     create_idindex("source_osm", "__ways_temp");
     create_idindex("target_osm", "__ways_temp");
-#if 0
-    create_idindex("source", "__ways_temp");
-    create_idindex("target", "__ways_temp");
-#endif
 
     //  std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
@@ -785,8 +800,7 @@ void Export2DB::process_section(int64_t count, const std::string &ways_columns) 
             "(" + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s) "
             " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
     q_result = PQexec(mycon, insert_into_ways.c_str());
-    //  std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
-    std::cout << "    Ways inserted: " << count << "\n";
+    std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
     PQclear(q_result);
     dropTable("__ways_temp");
 }
@@ -805,23 +819,15 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const {
 
     PGresult* q_result = PQexec(mycon, copy_types.c_str());
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &e : types) {
-#else
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            auto e = *it;
-#endif
-            Type* type = e.second;
-            std::string row_data = TO_STR(type->id);
-            row_data += "\t";
-            row_data += type->name;
-            row_data += "\n";
-            PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-        }
-#else
+    for (auto it = types.begin(); it != types.end(); ++it) {
+        auto e = *it;
+        Type* type = e.second;
+        std::string row_data = TO_STR(type->id);
+        row_data += "\t";
+        row_data += type->name;
+        row_data += "\n";
+        PQputline(mycon, row_data.c_str());
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
@@ -858,42 +864,26 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
     createTempTable(create_classes, "__classes_temp");
     PGresult *q_result = PQexec(mycon, copy_classes.c_str());
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &t : types) {
-#else
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            auto t = *it;
-#endif
-            Type type(*t.second);
+    for (auto it = types.begin(); it != types.end(); ++it) {
+        auto t = *it;
+        Type type(*t.second);
 
-#ifdef WITH_RANGE_LOOP
-            for (const auto &c : type.m_Classes) {
-#else
-                for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
-                    auto c = *it_c;
-#endif
-                    Class clss(c.second);
-                    std::string row_data = TO_STR(clss.id);
-                    row_data += "\t";
-                    row_data += TO_STR(type.id);
-                    row_data += "\t";
-                    row_data += clss.name;
-                    row_data += "\t";
-                    row_data += TO_STR(clss.priority);
-                    row_data += "\t";
-                    row_data += TO_STR(clss.default_maxspeed);
-                    row_data += "\n";
-                    PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-                }
-#else
-            }
-#endif
-#ifdef WITH_RANGE_LOOP
+        for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
+            auto c = *it_c;
+            Class clss(c.second);
+            std::string row_data = TO_STR(clss.id);
+            row_data += "\t";
+            row_data += TO_STR(type.id);
+            row_data += "\t";
+            row_data += clss.name;
+            row_data += "\t";
+            row_data += TO_STR(clss.priority);
+            row_data += "\t";
+            row_data += TO_STR(clss.default_maxspeed);
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);

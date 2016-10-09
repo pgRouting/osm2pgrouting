@@ -42,7 +42,7 @@ class OSMDocument {
     //! parsed ways
     std::vector<Way*> m_Ways;
     //! split ways
-    std::vector<Way*> m_SplitWays;
+    std::vector<Way> m_SplitWays;
 
     std::vector<Relation*> m_Relations;
 

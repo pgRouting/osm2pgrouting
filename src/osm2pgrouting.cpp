@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Spliting ways\n" << endl;
-        document.SplitWays();
+        // document.SplitWays();
 
         //############# Export2DB
         {
@@ -145,7 +145,8 @@ int main(int argc, char* argv[]) {
             // dbConnection.exportRelations(document.m_Relations, config);
             dbConnection.exportRelationsWays(document.m_Relations);
             dbConnection.exportTags(document.m_SplitWays, config);
-            dbConnection.exportWays(document.m_SplitWays, config);
+            // dbConnection.exportWays(document.m_SplitWays, config);
+            dbConnection.exportWays(document.m_Ways, config);
 
 
             std::cout << "Creating topology..." << endl;

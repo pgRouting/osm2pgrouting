@@ -68,7 +68,7 @@ class Export2DB {
      //! exports nodes to the database
      void exportNodes(const std::map<int64_t, Node*>& nodes) const;
      //! exports ways to the database
-     void exportTags(const std::vector<Way*> &ways, const Configuration &config) const;
+     void exportTags(const std::vector<Way> &ways, const Configuration &config) const;
      void exportRelations(const std::vector<Relation*> &relations, const Configuration &config) const;
      void exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const;
      void exportTypes(const std::map<std::string, Type*>& types) const;
@@ -94,7 +94,7 @@ class Export2DB {
  private:
      //! to use with creating the ways
      void prepare_table(const std::string &ways_columns) const;
-     void process_section(int64_t count, const std::string &ways_columns) const;
+     void process_section(const std::string &ways_columns) const;
 
      void dropTempTable(const std::string &table) const;
      bool createTempTable(const std::string &sql,
