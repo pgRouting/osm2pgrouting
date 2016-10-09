@@ -65,8 +65,6 @@ class OSMDocument {
     //! find node by using an ID
     Node* FindNode(int64_t nodeRefId) const;
 
-    //! split the ways
-    void SplitWays();
     void AddRelation(Relation* r);
 };
 

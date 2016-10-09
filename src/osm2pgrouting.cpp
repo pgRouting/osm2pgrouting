@@ -123,9 +123,6 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        std::cout << "Spliting ways\n" << endl;
-        // document.SplitWays();
-
         //############# Export2DB
         {
             if (clean) {
