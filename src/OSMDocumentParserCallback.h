@@ -27,6 +27,7 @@
 namespace osm2pgr {
 
 class OSMDocument;
+class Node;
 class Way;
 class Relation;
 
@@ -53,8 +54,15 @@ class OSMDocumentParserCallback :
     :
         m_rDocument(doc),
         m_pActWay(0),
-        m_pActRelation(0) {
+        m_pActRelation(0),
+        m_line(0){
     }
+ private:
+    void show_progress();
+
+ private:   
+    Node *last_node;
+    size_t m_line;
 };  // class OSMDocumentParserCallback
 
 }  // end namespace osm2pgr

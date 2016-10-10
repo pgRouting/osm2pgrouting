@@ -37,21 +37,8 @@ class Relation;
 */
 class OSMDocument {
  public:
-    // ! Map, which saves the parsed nodes
-    std::map<int64_t, Node*> m_Nodes;
-    //! parsed ways
-    std::vector<Way*> m_Ways;
-    //! split ways
-    std::vector<Way> m_SplitWays;
-
-    std::vector<Relation*> m_Relations;
-
-
-    Configuration& m_rConfig;
-
- public:
     //! Constructor
-    explicit OSMDocument(Configuration& config);
+    explicit OSMDocument(Configuration& config, size_t lines);
 
     //! Destructor
     virtual ~OSMDocument();
@@ -66,8 +53,21 @@ class OSMDocument {
     Node* FindNode(int64_t nodeRefId) const;
 
     void AddRelation(Relation* r);
-};
 
+ public:
+    // ! Map, which saves the parsed nodes
+    std::map<int64_t, Node*> m_Nodes;
+    //! parsed ways
+    std::vector<Way*> m_Ways;
+    //! split ways
+    std::vector<Way> m_SplitWays;
+
+    std::vector<Relation*> m_Relations;
+
+
+    Configuration& m_rConfig;
+    size_t m_lines;
+};
 
 }  // end namespace osm2pgr
 #endif  // SRC_OSMDOCUMENT_H_

@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <map>
 #include <boost/lexical_cast.hpp>
 
 namespace osm2pgr {
@@ -70,8 +71,10 @@ class Node {
          *    @param lon longitude
          */
         Node(int64_t p_id, double p_lat, double p_lon);
+        explicit Node(const char **attributes);
+        void add_tag(const char **attributes);
 
-        inline int64_t id() const {return m_id;}
+        inline int64_t osm_id() const {return m_id;}
 
         inline double lat() const {return m_lat;}
         inline double lon() const {return m_lon;}
@@ -95,6 +98,7 @@ class Node {
         double m_lat;
         // ! longitude coordinate
         double m_lon;
+        std::map<std::string, std::string> tags;
         /**
          *    counts the rate, how much this node is used in different ways
          */

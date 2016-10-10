@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "./print_progress.h"
 #include "boost/algorithm/string/replace.hpp"
 
 
@@ -328,45 +329,63 @@ void Export2DB::dropTables() const {
  doesnt exist already
 
 */
-void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
-    std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ": ";
-
+void  Export2DB::prepareExportNodes(const std::string nodes_columns) const {
     if (createTempTable(create_nodes, "__nodes_temp"))
         addTempGeometry("__nodes_temp", "POINT");
 
-    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
     std::string copy_nodes("COPY __nodes_temp (" + nodes_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
-
-    if (PQresultStatus(q_result) == PGRES_COPY_IN) {
-#ifdef WITH_RANGE_LOOP
-        for (const auto &n : nodes) {
-#else
-            for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-                auto n = *it;
-#endif
-                Node* node = n.second;
-                std::string row_data = TO_STR(node->id());
-                row_data += "\t";
-                row_data += TO_STR(node->lon());
-                row_data += "\t";
-                row_data += TO_STR(node->lat());
-                row_data += "\t";
-                row_data += TO_STR(node->numsOfUse());
-                row_data += "\t";
-                row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
-                row_data += "\n";
-                PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-            }
-#else
-        }
-#endif
-        PQputline(mycon, "\\.\n");
-        PQendcopy(mycon);
-    }
     PQclear(q_result);
+}
 
+
+
+void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
+    std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
+    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
+
+    prepareExportNodes(nodes_columns);
+    uint32_t chunck_size = 20000;
+
+
+    int64_t count = 0;
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+        auto n = *it;
+
+        if ((count % (chunck_size / 100)) == 0) {
+            print_progress(nodes.size(), count);
+            std::cout << " Total Processed: " << count;
+        }
+
+        if ((++count % chunck_size) == 0) {
+            PQputline(mycon, "\\.\n");
+            PQendcopy(mycon);
+            processSectionExportNodes(nodes_columns);
+            prepareExportNodes(nodes_columns);
+        }
+
+        Node* node = n.second;
+        std::string row_data = TO_STR(node->osm_id());
+        row_data += "\t";
+        row_data += TO_STR(node->lon());
+        row_data += "\t";
+        row_data += TO_STR(node->lat());
+        row_data += "\t";
+        row_data += TO_STR(node->numsOfUse());
+        row_data += "\t";
+        row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
+        row_data += "\n";
+        PQputline(mycon, row_data.c_str());
+    }
+
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
+    processSectionExportNodes(nodes_columns);
+    std::cout << "\n";
+}
+
+
+void  Export2DB::processSectionExportNodes(const std::string nodes_columns) const {
     std::string insert_into_nodes(
             " WITH data AS ("
             " SELECT a.* "
@@ -375,12 +394,11 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
             " INSERT INTO "  + addSchema("osm_nodes") +
             "(" + nodes_columns + ") "
             " (SELECT " + nodes_columns + " FROM data); ");
-    q_result = PQexec(mycon, insert_into_nodes.c_str());
+    PGresult* q_result = PQexec(mycon, insert_into_nodes.c_str());
     PQclear(q_result);
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
-
     dropTable("__nodes_temp");
 }
+
 
 /*!
 
@@ -493,15 +511,15 @@ void Export2DB::exportRelations(
                     std::cout << row_data << "\n";
                     PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
-            }
+                }
 #else
-        }
+            }
 #endif
 
 #ifdef WITH_RANGE_LOOP
-            }
-#else
         }
+#else
+    }
 #endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
@@ -686,13 +704,18 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
     prepare_table(ways_columns);
 
+    uint32_t chunck_size = 20000;
     int64_t count = 0;
     int64_t split_count = 0;
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = *it;
         way->split_me();
 
-        if ((++count % 20000) == 0) {
+        if ((count % (chunck_size / 100)) == 0) {
+            print_progress(ways.size(), count);
+        }
+
+        if ((++count % chunck_size) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
             std::cout << "    Ways Processed: " << count << "\t";

@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <map>
 #include "./Node.h"
 
 namespace osm2pgr {
@@ -29,5 +30,39 @@ Node::Node(int64_t p_id, double p_lat, double p_lon) :
     m_numsOfUse(0) {
 }
 
+Node::Node(const char **atts) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        const char* name = *attribut++;
+        const char* value = *attribut++;
+        if (strcmp(name, "id") == 0) {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (strcmp(name, "lat") == 0) {
+            m_lat = boost::lexical_cast<double>(value);
+        } else if (strcmp(name, "lon") == 0) {
+            m_lon = boost::lexical_cast<double>(value);
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            tags[tag_key] = tag_value;
+        }
+    }
+}
 
-}  // end namespace osm2pgr
+void
+Node::add_tag(const char **atts) {
+    auto **attribut = atts;
+    std::string tag_key, tag_value;
+    while (*attribut != NULL) {
+        const char* name = *attribut++;
+        const char* value = *attribut++;
+        if (strcmp(name, "k") == 0) {
+            tag_key = boost::lexical_cast<std::string>(value);
+        } else if (strcmp(name, "v") == 0) {
+            tag_value = boost::lexical_cast<std::string>(value);
+        }
+    }
+    tags[tag_key] = tag_value;
+}
+
+}  // namespace osm2pgr

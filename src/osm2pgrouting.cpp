@@ -37,6 +37,28 @@
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
+static
+size_t lines_in_file(const std::string file_name) { 
+    FILE *in;
+    char buff[512];
+    std::string command = "wc -l  " + file_name;
+
+    if(!(in = popen(command.c_str(), "r"))){
+        exit(1);
+    }
+
+    std::string word;
+    if (fgets(buff, 512, in) != NULL) {
+        word = buff;
+    }
+    pclose(in);
+    std::istringstream iss(word);
+    std::string number;
+    iss >> number;
+
+    return boost::lexical_cast<size_t>(number);
+}
+
 
 int main(int argc, char* argv[]) {
 #ifdef WITH_TIME
@@ -111,15 +133,16 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        auto total_lines = lines_in_file(dataFile);
 
-        std::cout << "Opening data file: " << dataFile.c_str() << endl;
-        OSMDocument document = OSMDocument(config);
+        std::cout << "Opening data file: " << dataFile << " total lines " << total_lines << endl;
+        OSMDocument document = OSMDocument(config, total_lines);
         OSMDocumentParserCallback callback(document);
 
         std::cout << "    Parsing data\n" << endl;
         ret = parser.Parse(callback, dataFile.c_str());
         if (ret != 0) {
-            cerr << "Failed to open / parse data file " << dataFile.c_str() << endl;
+            cerr << "Failed to open / parse data file " << dataFile << endl;
             return 1;
         }
 
