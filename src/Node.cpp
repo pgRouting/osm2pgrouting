@@ -40,7 +40,7 @@ Node::Node(const char **atts) {
         } else {
             auto tag_key = boost::lexical_cast<std::string>(name);
             auto tag_value = boost::lexical_cast<std::string>(value);
-            tags[tag_key] = tag_value;
+            m_tags[tag_key] = tag_value;
         }
     }
 }
@@ -58,7 +58,7 @@ Node::add_tag(const char **atts) {
             tag_value = boost::lexical_cast<std::string>(value);
         }
     }
-    tags[tag_key] = tag_value;
+    m_tags[tag_key] = tag_value;
 }
 
 double 

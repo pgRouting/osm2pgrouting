@@ -34,25 +34,26 @@ class Type;
   Parser callback for configuration files
   */
 class ConfigurationParserCallback : public xml::XMLParserCallback {
+ public:
+    /**
+     *    Constructor
+     */
+    explicit ConfigurationParserCallback(Configuration& doc) :
+        m_config(doc),
+        m_current(nullptr) {
+        }
+ private:
     //! reference to a Configuration object
-    Configuration& m_rDocument;
+    Configuration& m_config;
 
     //! current type, which will be parsed
-    Type *m_pActType;
+    Type *m_current;
 
     virtual void StartElement(const char *name, const char** atts);
 
     virtual void EndElement(const char* name);
 
 
- public:
-    /**
-     *    Constructor
-     */
-    explicit ConfigurationParserCallback(Configuration& doc) :
-        m_rDocument(doc),
-        m_pActType(0) {
-        }
 };  // class
 
 }  // namespace osm2pgr

@@ -497,7 +497,7 @@ void Export2DB::exportRelations(
                     //  std::pair<std::string, std::string> pair = *it_tag++;
                     std::string row_data = TO_STR(relation->id);
                     row_data += "\t";
-                    row_data += TO_STR(config.FindType(tag.first)->id);
+                    row_data += TO_STR(config.FindType(tag.first)->id());
                     row_data += "\t";
                     row_data += TO_STR(config.FindClass(tag.first, tag.second).id);
                     row_data += "\t";
@@ -844,9 +844,9 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const {
     for (auto it = types.begin(); it != types.end(); ++it) {
         auto e = *it;
         Type* type = e.second;
-        std::string row_data = TO_STR(type->id);
+        std::string row_data = TO_STR(type->id());
         row_data += "\t";
-        row_data += type->name;
+        row_data += type->name();
         row_data += "\n";
         PQputline(mycon, row_data.c_str());
     }
@@ -890,12 +890,12 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
         auto t = *it;
         Type type(*t.second);
 
-        for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
+        for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
             auto c = *it_c;
             Class clss(c.second);
             std::string row_data = TO_STR(clss.id);
             row_data += "\t";
-            row_data += TO_STR(type.id);
+            row_data += TO_STR(type.id());
             row_data += "\t";
             row_data += clss.name;
             row_data += "\t";

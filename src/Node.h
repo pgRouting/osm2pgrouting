@@ -24,7 +24,6 @@
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
 #include <cstdint>
-#include <stdexcept>
 #include <string>
 #include <map>
 #include <boost/lexical_cast.hpp>
@@ -102,7 +101,7 @@ class Node {
         std::string m_lat;
         // ! longitude coordinate
         std::string m_lon;
-        std::map<std::string, std::string> tags;
+        std::map<std::string, std::string> m_tags;
         /**
          *    counts the rate, how much this node is used in different ways
          */

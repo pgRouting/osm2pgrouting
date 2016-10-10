@@ -35,7 +35,7 @@ Configuration::~Configuration() {
 }
 
 void Configuration::AddType(Type* t) {
-    m_Types[t->name] = t;
+    m_Types[t->name()] = t;
 }
 
 Type* Configuration::FindType(std::string name) const {
@@ -43,7 +43,7 @@ Type* Configuration::FindType(std::string name) const {
 }
 
 Class Configuration::FindClass(const std::string &typeName, const std::string &className) const {
-    return m_Types.at(typeName)->m_Classes[className];
+    return m_Types.at(typeName)->classes()[className];
 }
 
 std::string Configuration::priority_str(const std::string &typeName, const std::string &className) const {

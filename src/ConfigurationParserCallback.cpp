@@ -36,61 +36,22 @@ namespace osm2pgr {
 void ConfigurationParserCallback::StartElement(
         const char *name,
         const char** atts) {
-    // std::cout << "SE for <" << name << ">" << std::endl;
-    if (strcmp(name, "class") == 0) {
-        if (atts != NULL) {
-            int64_t id = -1;
-            std::string name;
-            double priority  =  1;
-            int maxspeed = 50;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* key = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(key, "id") == 0) {
-                    id = atoll(value);
-                    // std::cout << "class id = " << id << std::endl;
-                } else if (strcmp(key, "name") == 0) {
-                    name = value;
-                    // std::cout << "class name = " << name << std::endl;
-                } else if (strcmp(key, "priority") == 0) {
-                    priority = boost::lexical_cast<double>(value);
-                } else if (strcmp(key, "maxspeed") == 0) {
-                    maxspeed = boost::lexical_cast<int>(value);
-                }
-            }
-            if (id > 0 && !name.empty()) {
-                m_pActType->AddClass(Class(id, name, priority, maxspeed));
-            }
-        }
-    } else if (strcmp(name, "type") == 0) {
-        if (atts != NULL) {
-            int64_t id(0);
-            std::string name;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* key = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(key, "id") == 0) {
-                    id = atoll(value);
 
-                } else if (strcmp(key, "name") == 0) {
-                    name = value;
-                }
-            }
-            if (!name.empty()) {
-                m_pActType = new Type(id, name);
-            }
-        }
-    } else if (strcmp(name, "configuration") == 0) {
+    if (strcmp(name, "class") == 0) {
+         m_current->add_class(atts);
+    } else if (strcmp(name, "type") == 0) {
+        m_current = new Type(atts);
+    }
+    else if (strcmp(name, "configuration") == 0) {
     }
 }
 
 
 void ConfigurationParserCallback::EndElement(const char* name) {
     if (strcmp(name, "type") == 0) {
-        m_rDocument.AddType(m_pActType);
-        m_pActType = 0;
+        m_config.AddType(m_current);
+        m_current = nullptr;
+        // delete m_current;
     }
 }
 

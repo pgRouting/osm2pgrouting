@@ -22,29 +22,41 @@
 #define SRC_TYPE_H_
 
 #include <map>
+#include <cstdint>
 #include <string>
 #include "./Class.h"
 
 namespace osm2pgr {
 
 class Type {
- public:
+ private:
     std::map<std::string, Class> m_Classes;
-    int64_t id;
-    std::string name;
+    int64_t m_id;
+    std::string m_name;
+    std::map<std::string, std::string> m_tags;
  public:
     /** 
      *    Constructor
      *    @param name name of the type
      */
+    explicit Type(const char **atts);
     Type(int64_t id, std::string);
     //! Destructor
     ~Type();
+    inline int64_t id() const {return m_id;}
+    inline std::string name() const {return m_name;}
     /**
      *    saves the classes of the type
      *    @param pClass class
      */
     void AddClass(const Class &pClass);
+    void add_class(const char **atts);
+    std::map<std::string, Class> classes() const {
+        return m_Classes;
+    }
+    std::map<std::string, Class>& classes() {
+        return m_Classes;
+    }
 };
 
 }  // namespace osm2pgr

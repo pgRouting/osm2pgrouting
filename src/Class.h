@@ -37,13 +37,13 @@ class Class {
         int64_t id,
         std::string name,
         double priority,
-        int default_maxspeed);
+        double default_maxspeed);
 
  public:
     int64_t id;
     std::string name;
     double priority;
-    int default_maxspeed;
+    double default_maxspeed;
 };
 
 

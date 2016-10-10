@@ -7,7 +7,7 @@ template < typename T1 , typename T2>
 void
 print_progress(T1 wantProgress, T2 currentProgress) {
     int length = 50;
-    double percent = static_cast <double> (currentProgress) / wantProgress;
+    double percent = static_cast <double> (currentProgress) /  static_cast <double>(wantProgress);
     int fillerLenght = static_cast<int>(percent * length);
 
     std::string bar = "[";
