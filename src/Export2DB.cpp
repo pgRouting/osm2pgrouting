@@ -32,6 +32,7 @@
 #include "boost/algorithm/string/replace.hpp"
 
 
+#include "./print_progress.h"
 #include "./prog_options.h"
 
 #if __GNUC__ > 4 || \
@@ -40,7 +41,10 @@
 #endif
 
 
-#define TO_STR(x)    boost::lexical_cast<std::string>(x)
+template <typename T>
+std::string to_str(const T x) {
+    return boost::lexical_cast<std::string>(x);
+}
 
 
 Export2DB::Export2DB(const  po::variables_map &vm) :
@@ -328,45 +332,56 @@ void Export2DB::dropTables() const {
  doesnt exist already
 
 */
-void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
-    std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ": ";
 
+void  Export2DB::prepareExportNodes(const std::string nodes_columns) const {
     if (createTempTable(create_nodes, "__nodes_temp"))
         addTempGeometry("__nodes_temp", "POINT");
 
-    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
     std::string copy_nodes("COPY __nodes_temp (" + nodes_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
-
-    if (PQresultStatus(q_result) == PGRES_COPY_IN) {
-#ifdef WITH_RANGE_LOOP
-        for (const auto &n : nodes) {
-#else
-            for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-                auto n = *it;
-#endif
-                Node* node = n.second;
-                std::string row_data = TO_STR(node->id());
-                row_data += "\t";
-                row_data += TO_STR(node->lon());
-                row_data += "\t";
-                row_data += TO_STR(node->lat());
-                row_data += "\t";
-                row_data += TO_STR(node->numsOfUse());
-                row_data += "\t";
-                row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
-                row_data += "\n";
-                PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-            }
-#else
-        }
-#endif
-        PQputline(mycon, "\\.\n");
-        PQendcopy(mycon);
-    }
     PQclear(q_result);
+}
 
+void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
+    std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
+    std::string node_columns(" osm_id, lon, lat, numofuse, the_geom ");
+
+    prepareExportNodes(node_columns);
+    uint32_t chunck_size = 20000;
+    int64_t count = 0;
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+        auto n = *it;
+
+        if ((count % (chunck_size / 100)) == 0) {
+            print_progress(nodes.size(), count);
+            std::cout << " Total Processed: " << count;
+        }
+
+        if ((++count % chunck_size) == 0) {
+            PQputline(mycon, "\\.\n");
+            PQendcopy(mycon);
+            processSectionExportNodes(node_columns);
+            prepareExportNodes(node_columns);
+        }
+        Node* node = n.second;
+        std::string row_data = to_str(node->osm_id());
+        row_data += "\t";
+        row_data += node->geom_str("\t");
+        row_data += "\t";
+        row_data += to_str(node->numsOfUse());
+        row_data += "\t";
+        row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
+        row_data += "\n";
+        PQputline(mycon, row_data.c_str());
+    }
+    PQputline(mycon, "\\.\n");
+    PQendcopy(mycon);
+    processSectionExportNodes(node_columns);
+    std::cout << "\n";
+}
+
+
+void  Export2DB::processSectionExportNodes(const std::string nodes_columns) const {
     std::string insert_into_nodes(
             " WITH data AS ("
             " SELECT a.* "
@@ -375,10 +390,8 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
             " INSERT INTO "  + addSchema("osm_nodes") +
             "(" + nodes_columns + ") "
             " (SELECT " + nodes_columns + " FROM data); ");
-    q_result = PQexec(mycon, insert_into_nodes.c_str());
+    PGresult* q_result = PQexec(mycon, insert_into_nodes.c_str());
     PQclear(q_result);
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
-
     dropTable("__nodes_temp");
 }
 
@@ -478,11 +491,11 @@ void Export2DB::exportRelations(
                     auto tag = *it_tag;
 #endif
                     //  std::pair<std::string, std::string> pair = *it_tag++;
-                    std::string row_data = TO_STR(relation->id);
+                    std::string row_data = to_str(relation->id);
                     row_data += "\t";
-                    row_data += TO_STR(config.FindType(tag.first)->id);
+                    row_data += to_str(config.FindType(tag.first)->id);
                     row_data += "\t";
-                    row_data += TO_STR(config.FindClass(tag.first, tag.second).id);
+                    row_data += to_str(config.FindClass(tag.first, tag.second).id);
                     row_data += "\t";
                     if (!relation->name.empty()) {
                         std::string escaped_name = relation->name;
@@ -493,15 +506,15 @@ void Export2DB::exportRelations(
                     std::cout << row_data << "\n";
                     PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
-            }
+                }
 #else
-        }
+            }
 #endif
 
 #ifdef WITH_RANGE_LOOP
-            }
-#else
         }
+#else
+    }
 #endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
@@ -542,9 +555,9 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, C
                 for (auto it_ref = relation->m_WayRefs.begin(); it_ref != relation->m_WayRefs.end(); ++it_ref) {
                     auto way_id = *it;
 #endif
-                    std::string row_data = TO_STR(relation->id);
+                    std::string row_data = to_str(relation->id);
                     row_data += "\t";
-                    row_data += TO_STR(way_id);
+                    row_data += to_str(way_id);
                     row_data += "\n";
                     PQputline(mycon, row_data.c_str());
 #ifdef WITH_RANGE_LOOP
@@ -602,30 +615,17 @@ void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &co
     std::string copy_way_tag("COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &way : ways) {
-        for (const auto &tag : way.tags()) {
-#else
-            for (auto it = ways.begin(); it != ways.end(); ++it) {
-                auto way = *it;
-                for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
-                    auto tag = *it_tag;
-#endif
-                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id);
-                    row_data += "\t";
-                    row_data += TO_STR(way.id());
-                    row_data += "\n";
-                    PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-                }
-#else
-            }
-#endif
-#ifdef WITH_RANGE_LOOP
+    for (auto it = ways.begin(); it != ways.end(); ++it) {
+        auto way = *it;
+        for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
+            auto tag = *it_tag;
+            std::string row_data = to_str(config.FindClass(tag.first, tag.second).id);
+            row_data += "\t";
+            row_data += to_str(way.id());
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
@@ -686,13 +686,19 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
     prepare_table(ways_columns);
 
+    uint32_t chunck_size = 20000;
     int64_t count = 0;
     int64_t split_count = 0;
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = *it;
         way->split_me();
 
-        if ((++count % 20000) == 0) {
+
+        if ((count % (chunck_size / 100)) == 0) {
+            print_progress(ways.size(), count);
+        }
+
+        if ((++count % chunck_size) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
             std::cout << "    Ways Processed: " << count << "\t";
@@ -704,15 +710,15 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
         // common information of the split ways
         auto way_data =
-            TO_STR(config.FindClass(way->type(), way->clss()).id)  + "\t"
-            + TO_STR(way->osm_id()) + "\t"
+            to_str(config.FindClass(way->type(), way->clss()).id)  + "\t"
+            + to_str(way->osm_id()) + "\t"
             // maxspeed
-            + way->maxspeed_forward_str() + "\t"
-            + way->maxspeed_backward_str() + "\t"
+            + to_str(way->maxspeed_forward()) + "\t"
+            + to_str(way->maxspeed_backward()) + "\t"
             // one_way
-            + way->oneWayType_str() + "\t"
+            + to_str(way->oneWayType()) + "\t"
             // priority
-            + config.priority_str(way->type(), way->clss()) + "\t";
+            + to_str(config.priority(way->type(), way->clss())) + "\t";
 
         // name
         std::string name_data;
@@ -728,7 +734,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
         split_count +=  way->splits();
 
         for (size_t i = 0; i < way->splits() ; ++i){
-            auto length = way->length_str(i);
+            auto length = to_str(way->length(i));
 
             // length (degrees)
             auto split_data = length + "\t"
@@ -737,9 +743,9 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
                 // x2, y2
                 + way->last_node_str(i) + "\t"
                 // source_osm
-                + way->source_osm_id(i) + "\t"
+                + to_str(way->source_osm_id(i)) + "\t"
                 // target_osm
-                + way->target_osm_id(i) + "\t"
+                + to_str(way->target_osm_id(i)) + "\t"
                 //geometry
                 + "srid=4326;" + way->geometry_str(i) + "\t";
 
@@ -822,7 +828,7 @@ void Export2DB::exportTypes(const std::map<std::string, Type*> &types)  const {
     for (auto it = types.begin(); it != types.end(); ++it) {
         auto e = *it;
         Type* type = e.second;
-        std::string row_data = TO_STR(type->id);
+        std::string row_data = to_str(type->id);
         row_data += "\t";
         row_data += type->name;
         row_data += "\n";
@@ -871,15 +877,15 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
         for (auto it_c = type.m_Classes.begin(); it_c != type.m_Classes.end(); ++it_c) {
             auto c = *it_c;
             Class clss(c.second);
-            std::string row_data = TO_STR(clss.id);
+            std::string row_data = to_str(clss.id);
             row_data += "\t";
-            row_data += TO_STR(type.id);
+            row_data += to_str(type.id);
             row_data += "\t";
             row_data += clss.name;
             row_data += "\t";
-            row_data += TO_STR(clss.priority);
+            row_data += to_str(clss.priority);
             row_data += "\t";
-            row_data += TO_STR(clss.default_maxspeed);
+            row_data += to_str(clss.default_maxspeed);
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }

@@ -20,12 +20,14 @@
 
 
 #include "./OSMDocumentParserCallback.h"
+#include "boost/lexical_cast.hpp"
 
 #include <math.h>
 #include <string>
 #include <iostream>
 #include <sstream>
 #include "./OSMDocument.h"
+#include "./print_progress.h"
 #include "./Relation.h"
 #include "./Way.h"
 #include "./Node.h"
@@ -53,12 +55,43 @@ namespace osm2pgr {
     <tag k="type" v="route"/>
   </relation>
  */
+void
+OSMDocumentParserCallback::show_progress() {
+    if ((++m_line % (m_rDocument.m_lines / 100)) == 0) {
+        print_progress(m_rDocument.m_lines, m_line);
+        std::cout << " Total Processed: " << m_line;
+    }
+}
 
 
 /**
-    Parser callback for OSMDocument files
-*/
-void OSMDocumentParserCallback::StartElement(const char *name, const char** atts) {
+  Parser callback for OSMDocument files
+  */
+void
+OSMDocumentParserCallback::StartElement(
+        const char *name,
+        const char** atts) {
+
+    show_progress();
+    auto section = 1;
+    if ((section == 1 && (strcmp(name, "way") == 0))
+            || (section == 2 && (strcmp(name, "relation") == 0))) {
+        ++section;
+    }
+
+
+    if (section == 1) {
+        if (strcmp(name, "node") == 0) {
+            last_node = new Node(atts);
+            m_rDocument.AddNode(last_node);
+        };
+        if (strcmp(name, "tag") == 0) {
+            last_node->add_tag(atts);
+        }
+        return;
+    }
+
+
     // START RELATIONS CODE
     if (strcmp(name, "member") == 0) {
         // std::cout << "In member..." << std::endl;
@@ -93,25 +126,6 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
                 }
             }
-        }
-    } else if (strcmp(name, "node") == 0) {
-        if (atts != NULL) {
-            int64_t id =-1;
-            double lat =-1;
-            double lon =-1;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "id") == 0) {
-                    id = atoll(value);
-                } else if (strcmp(name, "lat") == 0) {
-                    lat = atof(value);
-                } else if (strcmp(name, "lon") == 0) {
-                    lon = atof(value);
-                }
-            }
-            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
         }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
         if (atts != NULL) {
@@ -174,7 +188,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
                     if (m_pActWay->oneWayType() == UNKNOWN) m_pActWay->oneWayType(YES);
                 } else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
-                // handle 3 cases if the key contains maxspeed
+                    // handle 3 cases if the key contains maxspeed
                     // If the value contains mph, strip unit, convert to kph.
                     if (v.find("mph") != std::string::npos) {
                         // Assume format is /[0-9]{1,3} ?mph/
@@ -195,7 +209,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         }
                         m_pActWay->maxspeed_forward(mspeed_fwd);
                     } else if (k.compare("maxspeed:backward") == 0) {
-                    // handler maxspeed:backward
+                        // handler maxspeed:backward
                         int mspeed_backwd = 50;
 
                         if (my_utils::is_number(v)) {
@@ -220,7 +234,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         m_pActWay->maxspeed_forward(mspeed_fwd);
                     }
                 } else if (m_pActWay && m_rDocument.m_rConfig.m_Types.count(k)) {
-                // else if (m_pActWay && k.compare("highway") == 0)
+                    // else if (m_pActWay && k.compare("highway") == 0)
                     if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.m_Types.count(k)
@@ -230,7 +244,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                                 && m_rDocument.m_rConfig.m_Types[k]->m_Classes[v].priority
                                 < m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->m_Classes[m_pActWay->clss()].priority
                                )
-                      ) {
+                       ) {
                         m_pActWay->type(k);
                         m_pActWay->clss(v);
 
@@ -252,7 +266,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                         }
                     }
                 } else if (m_pActRelation && m_rDocument.m_rConfig.m_Types.count(k))  {
-                // START TAG FOR RELATION
+                    // START TAG FOR RELATION
                     if (m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k]->m_Classes.count(v)) {
                         m_pActRelation->AddTag(k, v);
                         // std::cout<<"Added Relation tag: "<<k<<" "<<v<<std::endl;
@@ -288,7 +302,9 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
 }
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
-    if (strcmp(name, "way") == 0) {
+    if (strcmp(name, "node") == 0) {
+
+    } else if (strcmp(name, "way") == 0) {
         //  #ifdef RESTRICT
         // _FILTER
 

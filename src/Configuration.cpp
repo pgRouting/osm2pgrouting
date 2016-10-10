@@ -34,20 +34,24 @@ Configuration::~Configuration() {
     ez_mapdelete(m_Types);
 }
 
-void Configuration::AddType(Type* t) {
+void
+Configuration::AddType(Type* t) {
     m_Types[t->name] = t;
 }
 
-Type* Configuration::FindType(std::string name) const {
+Type*
+Configuration::FindType(std::string name) const {
     return m_Types.at(name);
 }
 
-Class Configuration::FindClass(const std::string &typeName, const std::string &className) const {
+Class
+Configuration::FindClass(const std::string &typeName, const std::string &className) const {
     return m_Types.at(typeName)->m_Classes[className];
 }
 
-std::string Configuration::priority_str(const std::string &typeName, const std::string &className) const {
-    return  boost::lexical_cast<std::string>(FindClass(typeName, className).priority);
+double
+Configuration::priority(const std::string &typeName, const std::string &className) const {
+    return  FindClass(typeName, className).priority;
 }
 
 }  // end namespace osm2pgr

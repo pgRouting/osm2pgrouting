@@ -94,17 +94,17 @@ class Way {
      inline double maxspeed_backward() const { return m_maxspeed_backward;}
 
      std::string geometry_str() const;
-     std::string length_str() const;
+     double length() const;
 
      std::string geometry_str(size_t i) const;
-     std::string length_str(size_t i) const;
+     double length(size_t i) const;
 
 
-     inline std::string source_osm_id(size_t i) const {
-         return m_split_ways[i].front()->osm_id_str();
+     inline int64_t source_osm_id(size_t i) const {
+         return m_split_ways[i].front()->osm_id();
      }
-     inline std::string target_osm_id(size_t i) const {
-         return m_split_ways[i].back()->osm_id_str();
+     inline int64_t target_osm_id(size_t i) const {
+         return m_split_ways[i].back()->osm_id();
      }
 
      inline std::string first_node_str() const {
@@ -143,7 +143,7 @@ class Way {
 
  private:
      std::string geometry_str(const std::vector<Node*> &) const;
-     std::string length_str(const std::vector<Node*> &) const;
+     double length(const std::vector<Node*> &) const;
 
      //! Do not delete nodes in this container!
      std::vector<Node*> m_NodeRefs;

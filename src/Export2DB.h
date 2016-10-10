@@ -65,8 +65,13 @@ class Export2DB {
      //! creates needed tables and geometries
      void createTables() const;
      void createTempTables() const;
+
+
      //! exports nodes to the database
+     void prepareExportNodes(const std::string nodes_columns) const;
      void exportNodes(const std::map<int64_t, Node*>& nodes) const;
+     void processSectionExportNodes(const std::string nodes_columns) const;
+
      //! exports ways to the database
      void exportTags(const std::vector<Way> &ways, const Configuration &config) const;
      void exportRelations(const std::vector<Relation*> &relations, const Configuration &config) const;

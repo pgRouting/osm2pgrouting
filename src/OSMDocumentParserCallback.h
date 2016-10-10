@@ -27,34 +27,41 @@
 namespace osm2pgr {
 
 class OSMDocument;
+class Node;
 class Way;
 class Relation;
 
 /**
     Parser callback for OSMDocument files
 */
-class OSMDocumentParserCallback :
-  public xml::XMLParserCallback {
-    //! reference to a OSMDocument object
-    OSMDocument& m_rDocument;
-    //! current way, which will be parsed
-    Way* m_pActWay;
-    Relation* m_pActRelation;
-
+class OSMDocumentParserCallback : public xml::XMLParserCallback {
+ public:
+    /**
+     *    Constructor
+     */
+    explicit OSMDocumentParserCallback(OSMDocument& doc) :
+        m_rDocument(doc),
+        m_line(0),
+        m_pActWay(0),
+        m_pActRelation(0) {
+    }
     virtual void StartElement(const char *name, const char** atts);
 
     virtual void EndElement(const char* name);
 
  public:
-    /**
-     *    Constructor
-     */
-    explicit OSMDocumentParserCallback(OSMDocument& doc)
-    :
-        m_rDocument(doc),
-        m_pActWay(0),
-        m_pActRelation(0) {
-    }
+    void show_progress();
+    //! reference to a OSMDocument object
+    OSMDocument& m_rDocument;
+    //! current line number
+    size_t m_line;
+    //! current way, which will be parsed
+    Way* m_pActWay;
+    Relation* m_pActRelation;
+
+ private:
+    Node *last_node;
+
 };  // class OSMDocumentParserCallback
 
 }  // end namespace osm2pgr

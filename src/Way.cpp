@@ -65,14 +65,14 @@ Way::geometry_str() const {
     return geometry_str(m_NodeRefs);
 }
 
-std::string
-Way::length_str() const {
-    return length_str(m_NodeRefs);
+double
+Way::length() const {
+    return length(m_NodeRefs);
 }
 
-std::string
-Way::length_str(size_t i) const {
-    return length_str(m_split_ways[i]);
+double
+Way::length(size_t i) const {
+    return length(m_split_ways[i]);
 }
 
 std::string
@@ -84,52 +84,35 @@ std::string
 Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
     std::string geometry("LINESTRING(");
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &node_ptr : nodeRefs) {
-#else
-        for (auto it = nodeRefs.begin();
-                it != nodeRefs.end();
-                ++it) {
-            auto node_ptr = *it;
-#endif
+    for (auto it = nodeRefs.begin();
+            it != nodeRefs.end();
+            ++it) {
+        auto node_ptr = *it;
 
-            geometry += node_ptr->geom_str(" ");
-            geometry += ", ";
+        geometry += node_ptr->geom_str(" ");
+        geometry += ", ";
 
-#ifdef WITH_RANGE_LOOP
-        }
-#else
     }
-#endif
     geometry[geometry.size() - 2] = ')';
     return geometry;
 }
 
 
-std::string
-Way::length_str(const std::vector<Node*> &nodeRefs) const {
+double
+Way::length(const std::vector<Node*> &nodeRefs) const {
     double length = 0;
     auto prev_node_ptr = nodeRefs.front();
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &node_ptr : nodeRefs) {
-#else
-        for (auto it = nodeRefs.begin();
-                it != nodeRefs.end();
-                ++it) {
-            auto node_ptr = *it;
-#endif
+    for (auto it = nodeRefs.begin();
+            it != nodeRefs.end();
+            ++it) {
+        auto node_ptr = *it;
 
-            length  += getLength(*prev_node_ptr, *node_ptr);
-            prev_node_ptr = node_ptr;
+        length  += getLength(*prev_node_ptr, *node_ptr);
+        prev_node_ptr = node_ptr;
 
-#ifdef WITH_RANGE_LOOP
-        }
-#else
     }
-#endif
-
-    return boost::lexical_cast<std::string>(length);
+    return length;
 }
 
 

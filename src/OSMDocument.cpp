@@ -32,7 +32,9 @@
 
 namespace osm2pgr {
 
-OSMDocument::OSMDocument(Configuration &config) : m_rConfig(config) {
+OSMDocument::OSMDocument(Configuration &config, size_t lines) :
+    m_rConfig(config),
+    m_lines(lines){
 }
 
 OSMDocument::~OSMDocument() {
@@ -41,7 +43,7 @@ OSMDocument::~OSMDocument() {
     ez_vectordelete(m_Relations);
 }
 void OSMDocument::AddNode(Node* n) {
-    m_Nodes[n->id()] = n;
+    m_Nodes[n->osm_id()] = n;
 }
 
 void OSMDocument::AddWay(Way* w) {
