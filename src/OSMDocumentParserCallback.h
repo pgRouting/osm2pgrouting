@@ -63,6 +63,7 @@ class OSMDocumentParserCallback :
  private:   
     Node *last_node;
     size_t m_line;
+    int m_section;
 };  // class OSMDocumentParserCallback
 
 }  // end namespace osm2pgr

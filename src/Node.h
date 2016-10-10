@@ -70,22 +70,26 @@ class Node {
          *    @param lat latitude
          *    @param lon longitude
          */
-        Node(int64_t p_id, double p_lat, double p_lon);
         explicit Node(const char **attributes);
         void add_tag(const char **attributes);
 
         inline int64_t osm_id() const {return m_id;}
 
-        inline double lat() const {return m_lat;}
-        inline double lon() const {return m_lon;}
         inline std::string geom_str(std::string separator) {
-            return boost::lexical_cast<std::string>(m_lon)
-                + separator +
-                boost::lexical_cast<std::string>(m_lat);
+            return m_lon + separator + m_lat;
         }
+
+        inline std::string point_geometry() {
+            return
+                std::string("srid=4326; POINT(") 
+                + geom_str(" ") + ")";
+        }
+
         inline std::string osm_id_str() {
             return boost::lexical_cast<std::string>(m_id); 
         }
+        double getLength(const Node &previous) const;
+
 
         inline uint16_t incrementUse() {return ++m_numsOfUse;}
         inline uint16_t numsOfUse() const {return m_numsOfUse;}
@@ -95,9 +99,9 @@ class Node {
         // ! ID of the node
         int64_t m_id;
         // ! latitude coordinate
-        double m_lat;
+        std::string m_lat;
         // ! longitude coordinate
-        double m_lon;
+        std::string m_lon;
         std::map<std::string, std::string> tags;
         /**
          *    counts the rate, how much this node is used in different ways

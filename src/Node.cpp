@@ -18,17 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
 #include <map>
 #include "./Node.h"
 
 namespace osm2pgr {
 
-Node::Node(int64_t p_id, double p_lat, double p_lon) :
-    m_id(p_id),
-    m_lat(p_lat),
-    m_lon(p_lon),
-    m_numsOfUse(0) {
-}
 
 Node::Node(const char **atts) {
     auto **attribut = atts;
@@ -38,9 +34,9 @@ Node::Node(const char **atts) {
         if (strcmp(name, "id") == 0) {
             m_id = boost::lexical_cast<int64_t>(value);
         } else if (strcmp(name, "lat") == 0) {
-            m_lat = boost::lexical_cast<double>(value);
+            m_lat = value;
         } else if (strcmp(name, "lon") == 0) {
-            m_lon = boost::lexical_cast<double>(value);
+            m_lon = value;
         } else {
             auto tag_key = boost::lexical_cast<std::string>(name);
             auto tag_value = boost::lexical_cast<std::string>(value);
@@ -63,6 +59,23 @@ Node::add_tag(const char **atts) {
         }
     }
     tags[tag_key] = tag_value;
+}
+
+double 
+Node::getLength(const Node &previous) const {
+    typedef boost::geometry::model::d2::point_xy<double> point_type;
+
+    /* converted point to fit boost.geomtery
+     *      * (`p` and `q` are same as `a ` and `b`)
+     *           */
+    point_type p(
+            boost::lexical_cast<double>(m_lat),
+            boost::lexical_cast<double>(m_lon));
+    point_type q(
+            boost::lexical_cast<double>(previous.m_lat),
+            boost::lexical_cast<double>(previous.m_lon));
+
+    return boost::geometry::distance(p, q);
 }
 
 }  // namespace osm2pgr

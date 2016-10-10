@@ -367,17 +367,16 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
         Node* node = n.second;
         std::string row_data = TO_STR(node->osm_id());
         row_data += "\t";
-        row_data += TO_STR(node->lon());
-        row_data += "\t";
-        row_data += TO_STR(node->lat());
+        row_data += node->geom_str("\t");
         row_data += "\t";
         row_data += TO_STR(node->numsOfUse());
         row_data += "\t";
-        row_data += "srid=4326; POINT(" + node->geom_str(" ") + ")";
+        row_data += node->point_geometry();
         row_data += "\n";
         PQputline(mycon, row_data.c_str());
     }
 
+    print_progress(nodes.size(), count);
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     processSectionExportNodes(nodes_columns);

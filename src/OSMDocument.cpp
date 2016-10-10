@@ -28,7 +28,6 @@
 #include "./Node.h"
 #include "./Relation.h"
 #include "./Way.h"
-#include "./math_functions.h"
 
 namespace osm2pgr {
 

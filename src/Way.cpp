@@ -26,7 +26,6 @@
 #include "Way.h"
 #include <string>
 #include "Node.h"
-#include "./math_functions.h"
 
 
 
@@ -120,7 +119,7 @@ Way::length_str(const std::vector<Node*> &nodeRefs) const {
             auto node_ptr = *it;
 #endif
 
-            length  += getLength(*prev_node_ptr, *node_ptr);
+            length  += node_ptr->getLength(*prev_node_ptr);
             prev_node_ptr = node_ptr;
 
 #ifdef WITH_RANGE_LOOP

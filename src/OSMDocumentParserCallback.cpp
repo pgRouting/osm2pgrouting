@@ -64,13 +64,32 @@ OSMDocumentParserCallback::show_progress() {
 }
 
 
-
 /**
   Parser callback for OSMDocument files
   */
-void OSMDocumentParserCallback::StartElement(const char *name, const char** atts) {
+void
+OSMDocumentParserCallback::StartElement(
+        const char *name,
+        const char** atts) {
 
     show_progress();
+    if ((m_section == 1 && (strcmp(name, "way") == 0))
+            || (m_section == 2 && (strcmp(name, "relation") == 0))) {
+        ++m_section;
+    }
+
+
+    if (m_section == 1) {
+        if (strcmp(name, "node") == 0) {
+            last_node = new Node(atts);
+            m_rDocument.AddNode(last_node);
+        };
+        if (strcmp(name, "tag") == 0) {
+            last_node->add_tag(atts);
+        }
+        return;
+    }
+
 
     // START RELATIONS CODE
     if (strcmp(name, "member") == 0) {
@@ -107,27 +126,7 @@ void OSMDocumentParserCallback::StartElement(const char *name, const char** atts
                 }
             }
         }
-    } else if (strcmp(name, "node") == 0) {
-        if (atts != NULL) {
-            int64_t id =-1;
-            double lat =-1;
-            double lon =-1;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "id") == 0) {
-                    id = atoll(value);
-                } else if (strcmp(name, "lat") == 0) {
-                    lat = atof(value);
-                } else if (strcmp(name, "lon") == 0) {
-                    lon = atof(value);
-                }
-            }
-            if (id > 0) m_rDocument.AddNode(new Node(id, lat, lon));
-        }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
-        exit(1);
         if (atts != NULL) {
             int64_t id =-1;
             const char** attribut = (const char**)atts;
@@ -330,6 +329,8 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         m_pActRelation = 0;
 
         // std::cout<<"Adding relation: "<<m_pActRelation->id<<std::endl;
+    } else if (strcmp(name, "osm") == 0) {
+        show_progress();
     }
     // END OF THE RELATIONS CODE
 }

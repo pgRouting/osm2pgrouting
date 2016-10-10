@@ -149,11 +149,11 @@ int main(int argc, char* argv[]) {
         //############# Export2DB
         {
             if (clean) {
-                std::cout << "Dropping tables..." << endl;
+                std::cout << "\nDropping tables..." << endl;
                 dbConnection.dropTables();
             }
 
-            std::cout << "Creating tables..." << endl;
+            std::cout << "\nCreating tables..." << endl;
             dbConnection.createTables();
 
             std::cout << "Adding auxiliary tables to database..." << endl;
