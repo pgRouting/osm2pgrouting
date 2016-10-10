@@ -18,23 +18,39 @@
 *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ***************************************************************************/                  
 #include <string>
+#include <boost/lexical_cast.hpp>
+
 #include "./Class.h"
 
 
 namespace osm2pgr {
 
-Class::Class(
-    int64_t id,
-    std::string name,
-    double priority,
-    double default_maxspeed
-    )
-:
-  id(id),
-  name(name),
-  priority(priority),
-  default_maxspeed(default_maxspeed) {
+
+Class::Class(const char **atts) :
+    m_priority(0),
+    m_default_maxspeed(50) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        const char* name = *attribut++;
+        const char* value = *attribut++;
+        if (std::strcmp(name, "id") == 0) {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (std::strcmp(name, "name") == 0) {
+            m_name = value;
+        } else if (strcmp(name, "priority") == 0) {
+            m_priority = boost::lexical_cast<double>(value);
+        } else if (strcmp(name, "maxspeed") == 0) {
+            m_default_maxspeed = boost::lexical_cast<int>(value);
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            m_tags[tag_key] = tag_value;
+        }
+    }
 }
+
+
+
 
 
 }  // end namespace osm2pgr

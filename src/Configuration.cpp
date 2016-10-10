@@ -47,7 +47,7 @@ Class Configuration::FindClass(const std::string &typeName, const std::string &c
 }
 
 std::string Configuration::priority_str(const std::string &typeName, const std::string &className) const {
-    return  boost::lexical_cast<std::string>(FindClass(typeName, className).priority);
+    return  boost::lexical_cast<std::string>(FindClass(typeName, className).priority());
 }
 
 }  // end namespace osm2pgr

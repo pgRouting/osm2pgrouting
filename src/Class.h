@@ -20,6 +20,7 @@
 #ifndef SRC_CLASS_H_
 #define SRC_CLASS_H_
 
+#include <map>
 #include <string>
 
 namespace osm2pgr {
@@ -28,22 +29,20 @@ class Class {
  public:
      Class() = default;
      Class(const Class &) = default;
-    /** 
-     *    Constructor
-     *    @param id ID of the class
-     *    @param name name of the class
-     */
-    Class(
-        int64_t id,
-        std::string name,
-        double priority,
-        double default_maxspeed);
+     explicit Class(const char ** attributes);
 
- public:
-    int64_t id;
-    std::string name;
-    double priority;
-    double default_maxspeed;
+
+     inline int64_t id() const {return m_id;}
+     inline std::string name() const {return m_name;}
+     inline double priority() const {return m_priority;}
+     inline double default_maxspeed() const {return m_default_maxspeed;}
+
+ private:
+    int64_t m_id;
+    std::string m_name;
+    double m_priority;
+    double m_default_maxspeed;
+    std::map<std::string, std::string> m_tags;
 };
 
 

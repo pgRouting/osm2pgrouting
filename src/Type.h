@@ -29,11 +29,6 @@
 namespace osm2pgr {
 
 class Type {
- private:
-    std::map<std::string, Class> m_Classes;
-    int64_t m_id;
-    std::string m_name;
-    std::map<std::string, std::string> m_tags;
  public:
     /** 
      *    Constructor
@@ -45,11 +40,6 @@ class Type {
     ~Type();
     inline int64_t id() const {return m_id;}
     inline std::string name() const {return m_name;}
-    /**
-     *    saves the classes of the type
-     *    @param pClass class
-     */
-    void AddClass(const Class &pClass);
     void add_class(const char **atts);
     std::map<std::string, Class> classes() const {
         return m_Classes;
@@ -57,6 +47,19 @@ class Type {
     std::map<std::string, Class>& classes() {
         return m_Classes;
     }
+
+ private:
+    /**
+     *    saves the classes of the type
+     *    @param pClass class
+     */
+    void AddClass(const Class &pClass);
+
+ private:
+    std::map<std::string, Class> m_Classes;
+    int64_t m_id;
+    std::string m_name;
+    std::map<std::string, std::string> m_tags;
 };
 
 }  // namespace osm2pgr

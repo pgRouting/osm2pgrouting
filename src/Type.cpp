@@ -19,6 +19,7 @@
 ***************************************************************************/
 #include <string>
 #include <map>
+#include "./Class.h"
 #include "./Type.h"
 #include <boost/lexical_cast.hpp>
 
@@ -33,7 +34,7 @@ Type::~Type() {
 }
 
 void Type::AddClass(const Class &pClass) {
-   m_Classes[pClass.name] = pClass;
+   m_Classes[pClass.name()] = pClass;
 }
 
 
@@ -56,31 +57,7 @@ Type::Type(const char **atts) {
 
 void
 Type::add_class(const char **atts) {
-    auto **attribut = atts;
-    std::string class_name;
-    int64_t class_id(0);
-    double maxspeed(0);
-    double priority(0);
-    while (*attribut != NULL) {
-        const char* name = *attribut++;
-        const char* value = *attribut++;
-        if (std::strcmp(name, "id") == 0) {
-            class_id = boost::lexical_cast<int64_t>(value);
-        } else if (std::strcmp(name, "name") == 0) {
-            class_name = value;
-        } else if (strcmp(name, "priority") == 0) {
-            priority = boost::lexical_cast<double>(value);
-        } else if (strcmp(name, "maxspeed") == 0) {
-            maxspeed = boost::lexical_cast<int>(value);
-        } else {
-#if 0
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-#endif
-        }
-    }
-    AddClass(Class(class_id, class_name, priority, maxspeed));
+    AddClass(Class(atts));
 }
 
 

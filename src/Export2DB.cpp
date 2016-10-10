@@ -480,46 +480,29 @@ void Export2DB::exportRelations(
 
 
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
-#ifdef WITH_RANGE_LOOP
-    for (const auto &relation : relations) {
-#else
-        for (auto it = relations.begin(); it != relations.end(); ++it) {
-            auto relation = *it;
-#endif
-            std::cout << relation->m_Tags.size();
+    for (auto it = relations.begin(); it != relations.end(); ++it) {
+        auto relation = *it;
+        std::cout << relation->m_Tags.size();
 
-#ifdef WITH_RANGE_LOOP
-            for (const auto &tag : relation->m_Tags) {
-#else
-                for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
-                    auto tag = *it_tag;
-#endif
-                    //  std::pair<std::string, std::string> pair = *it_tag++;
-                    std::string row_data = TO_STR(relation->id);
-                    row_data += "\t";
-                    row_data += TO_STR(config.FindType(tag.first)->id());
-                    row_data += "\t";
-                    row_data += TO_STR(config.FindClass(tag.first, tag.second).id);
-                    row_data += "\t";
-                    if (!relation->name.empty()) {
-                        std::string escaped_name = relation->name;
-                        boost::replace_all(escaped_name, "\t", "\\\t");
-                        row_data += escaped_name;
-                    }
-                    row_data += "\n";
-                    std::cout << row_data << "\n";
-                    PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-                }
-#else
+        for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
+            auto tag = *it_tag;
+            //  std::pair<std::string, std::string> pair = *it_tag++;
+            std::string row_data = TO_STR(relation->id);
+            row_data += "\t";
+            row_data += TO_STR(config.FindType(tag.first)->id());
+            row_data += "\t";
+            row_data += TO_STR(config.FindClass(tag.first, tag.second).id());
+            row_data += "\t";
+            if (!relation->name.empty()) {
+                std::string escaped_name = relation->name;
+                boost::replace_all(escaped_name, "\t", "\\\t");
+                row_data += escaped_name;
             }
-#endif
-
-#ifdef WITH_RANGE_LOOP
+            row_data += "\n";
+            std::cout << row_data << "\n";
+            PQputline(mycon, row_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
@@ -628,7 +611,7 @@ void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &co
                 for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
                     auto tag = *it_tag;
 #endif
-                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id);
+                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
                     row_data += "\t";
                     row_data += TO_STR(way.id());
                     row_data += "\n";
@@ -726,7 +709,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
         // common information of the split ways
         auto way_data =
-            TO_STR(config.FindClass(way->type(), way->clss()).id)  + "\t"
+            TO_STR(config.FindClass(way->type(), way->clss()).id())  + "\t"
             + TO_STR(way->osm_id()) + "\t"
             // maxspeed
             + way->maxspeed_forward_str() + "\t"
@@ -893,15 +876,15 @@ void Export2DB::exportClasses(const std::map<std::string, Type*> &types)  const 
         for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
             auto c = *it_c;
             Class clss(c.second);
-            std::string row_data = TO_STR(clss.id);
+            std::string row_data = TO_STR(clss.id());
             row_data += "\t";
             row_data += TO_STR(type.id());
             row_data += "\t";
-            row_data += clss.name;
+            row_data += clss.name();
             row_data += "\t";
-            row_data += TO_STR(clss.priority);
+            row_data += TO_STR(clss.priority());
             row_data += "\t";
-            row_data += TO_STR(clss.default_maxspeed);
+            row_data += TO_STR(clss.default_maxspeed());
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
