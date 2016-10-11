@@ -64,11 +64,29 @@ class Configuration {
      Type& FindType(std::string typeName);
      Class FindClass(const std::string &typeName, const std::string &className) const;
      std::string priority_str(const std::string &typeName, const std::string &className) const;
-     inline size_t count_classes(const std::string &class_name, const std::string &type_name) const {
-         return m_Types.at(class_name).count_classes(type_name);
+
+
+     inline size_t has_class(const std::string &type_name, const std::string &class_name) const {
+         return has_type(type_name)
+             && m_Types.at(type_name).has_class(class_name);
      }
 
- public:
+     double class_default_maxspeed(const std::string &type_name, const std::string &class_name) const {
+         return m_Types.at(type_name).classes().at(class_name).default_maxspeed();
+     }
+
+     double class_priority(const std::string &type_name, const std::string &class_name) const {
+         return m_Types.at(type_name).classes().at(class_name).priority();
+     }
+
+     const std::map<std::string, Type>& types() const {return m_Types;}
+
+
+ private:
+     inline bool has_type(const std::string &type_name) const {
+         return m_Types.count(type_name) != 0;
+     }
+
      //! Map, which saves the parsed types
      std::map<std::string, Type> m_Types;
 };

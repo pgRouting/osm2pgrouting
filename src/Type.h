@@ -52,7 +52,7 @@ class Type {
         return m_Classes;
     }
 
-    inline size_t count_classes(const std::string &class_name) const {
+    inline bool has_class(const std::string &class_name) const {
         return m_Classes.count(class_name);
     } 
 

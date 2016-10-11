@@ -50,7 +50,6 @@ void ConfigurationParserCallback::StartElement(
 void ConfigurationParserCallback::EndElement(const char* name) {
     if (strcmp(name, "type") == 0) {
         m_config.AddType(*m_current);
-        // m_current = nullptr;
         delete m_current;
     }
 }

@@ -160,8 +160,8 @@ int main(int argc, char* argv[]) {
             if (!skipnodes) {
                 dbConnection.exportNodes(document.m_Nodes);
             }
-            dbConnection.exportTypes(config.m_Types);
-            dbConnection.exportClasses(config.m_Types);
+            dbConnection.exportTypes(config.types());
+            dbConnection.exportClasses(config.types());
             // dbConnection.exportRelations(document.m_Relations, config);
             dbConnection.exportRelationsWays(document.m_Relations);
             dbConnection.exportTags(document.m_SplitWays, config);

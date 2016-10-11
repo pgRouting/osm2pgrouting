@@ -232,47 +232,36 @@ OSMDocumentParserCallback::StartElement(
                         m_pActWay->maxspeed_backward(mspeed_backwd);
                         m_pActWay->maxspeed_forward(mspeed_fwd);
                     }
-                } else if (m_pActWay && m_rDocument.m_rConfig.m_Types.count(k)) {
-                    // else if (m_pActWay && k.compare("highway") == 0)
+                } else if (m_pActWay && m_rDocument.m_rConfig.has_class(k, v)) {
                     if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
                             || (
-                                m_rDocument.m_rConfig.m_Types.count(k)
-                                // && m_rDocument.m_rConfig.m_Types[k].classes().count(v)
-                                && m_rDocument.m_rConfig.count_classes(k, v) // k name of the type, v name of the class
-                                && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())
-                                && m_rDocument.m_rConfig.m_Types[k].classes()[v].priority()
-                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].priority()
+                                m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
+                                && m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())
+                                && m_rDocument.m_rConfig.class_priority(k, v)
+                                < m_rDocument.m_rConfig.class_priority(m_pActWay->type(), m_pActWay->clss())
                                )
                        ) {
                         m_pActWay->type(k);
                         m_pActWay->clss(v);
 
-                        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())) {
+                        if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
                             m_pActWay->AddTag(k, v);
 
-                            // std::cout<<"Added tag: "<<k<<" "<<v<<std::endl;
 
                             // set default maxspeed values from classes, if not set previously (default: -1)
+                            auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(m_pActWay->type(), m_pActWay->clss());
                             if (m_pActWay->maxspeed_forward() <= 0) {
-                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].default_maxspeed();
                                 m_pActWay->maxspeed_forward(newValue);
                             }
                             if (m_pActWay->maxspeed_backward() <= 0) {
-                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].default_maxspeed();
                                 m_pActWay->maxspeed_backward(newValue);
                             }
                         }
                     }
-                } else if (m_pActRelation && m_rDocument.m_rConfig.m_Types.count(k))  {
-                    // START TAG FOR RELATION
-                    if (m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k].classes().count(v)) {
-                        m_pActRelation->AddTag(k, v);
-                        // std::cout<<"Added Relation tag: "<<k<<" "<<v<<std::endl;
-                    }
-                    // std::cout<<"Relations tag: "<<k<<" "<<v<<std::endl;
+                } else if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
+                    m_pActRelation->AddTag(k, v);
                 }
+
                 if (m_pActRelation && k.compare("name") == 0) {
                     m_pActRelation->name = v;
                 }
@@ -303,25 +292,15 @@ OSMDocumentParserCallback::StartElement(
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "way") == 0) {
-        //  #ifdef RESTRICT
-        // _FILTER
 
-        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type()) && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())) {
-            // #endif
-
-            // Comment out the following to get more log output
-            // std::cout<<"We need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
+        if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
 
             m_rDocument.AddWay(m_pActWay);
-            // std::cout << "First tag: " << m_pActWay->m_Tags.back()->key << ":" << m_pActWay->m_Tags.back()->value << std::endl;
 
-
-            // #ifdef RESTRICT
         } else {
             // std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
             // delete m_pActWay;
         }
-        // #endif
 
         m_pActWay = 0;
     } else if (strcmp(name, "relation") == 0) {
