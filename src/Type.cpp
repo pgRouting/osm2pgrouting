@@ -25,6 +25,7 @@
 
 namespace osm2pgr {
 
+#if 0
 Type::Type(int64_t id, std::string name) :
   m_id(id),
   m_name(name) {
@@ -32,7 +33,7 @@ Type::Type(int64_t id, std::string name) :
 
 Type::~Type() {
 }
-
+#endif
 void Type::AddClass(const Class &pClass) {
    m_Classes[pClass.name()] = pClass;
 }

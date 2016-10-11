@@ -28,6 +28,7 @@
 
 namespace osm2pgr {
 
+#if 1
 template< class Map >
 void ez_mapdelete(Map &c) {
     auto it(c.begin());
@@ -36,7 +37,9 @@ void ez_mapdelete(Map &c) {
         delete (*it++).second;
     }
 }
+#endif
 
+#if 1
 template< class Vector >
 void ez_vectordelete(Vector &c) {
     auto it(c.begin());
@@ -45,7 +48,7 @@ void ez_vectordelete(Vector &c) {
         delete (*it++);
     }
 }
-
+#endif
 
 /**
 A configuration document.
@@ -53,20 +56,21 @@ A configuration document.
 class Configuration {
  public:
      //! Constructor
-     Configuration();
-
-     //! Destructor
-     virtual ~Configuration();
+     Configuration() = default;
 
      //! add node to the map
-     void AddType(Type* t);
-     Type* FindType(std::string typeName) const;
+     void AddType(Type t);
+     Type FindType(std::string typeName) const;
+     Type& FindType(std::string typeName);
      Class FindClass(const std::string &typeName, const std::string &className) const;
      std::string priority_str(const std::string &typeName, const std::string &className) const;
+     inline size_t count_classes(const std::string &class_name, const std::string &type_name) const {
+         return m_Types.at(class_name).count_classes(type_name);
+     }
 
  public:
      //! Map, which saves the parsed types
-     std::map<std::string, Type*> m_Types;
+     std::map<std::string, Type> m_Types;
 };
 
 

@@ -237,36 +237,37 @@ OSMDocumentParserCallback::StartElement(
                     if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.m_Types.count(k)
-                                && m_rDocument.m_rConfig.m_Types[k]->classes().count(v)
+                                // && m_rDocument.m_rConfig.m_Types[k].classes().count(v)
+                                && m_rDocument.m_rConfig.count_classes(k, v) // k name of the type, v name of the class
                                 && m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes().count(m_pActWay->clss())
-                                && m_rDocument.m_rConfig.m_Types[k]->classes()[v].priority()
-                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes()[m_pActWay->clss()].priority()
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())
+                                && m_rDocument.m_rConfig.m_Types[k].classes()[v].priority()
+                                < m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].priority()
                                )
                        ) {
                         m_pActWay->type(k);
                         m_pActWay->clss(v);
 
                         if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type())
-                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes().count(m_pActWay->clss())) {
+                                && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())) {
                             m_pActWay->AddTag(k, v);
 
                             // std::cout<<"Added tag: "<<k<<" "<<v<<std::endl;
 
                             // set default maxspeed values from classes, if not set previously (default: -1)
                             if (m_pActWay->maxspeed_forward() <= 0) {
-                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes()[m_pActWay->clss()].default_maxspeed();
+                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].default_maxspeed();
                                 m_pActWay->maxspeed_forward(newValue);
                             }
                             if (m_pActWay->maxspeed_backward() <= 0) {
-                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes()[m_pActWay->clss()].default_maxspeed();
+                                auto newValue = m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes()[m_pActWay->clss()].default_maxspeed();
                                 m_pActWay->maxspeed_backward(newValue);
                             }
                         }
                     }
                 } else if (m_pActRelation && m_rDocument.m_rConfig.m_Types.count(k))  {
                     // START TAG FOR RELATION
-                    if (m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k]->classes().count(v)) {
+                    if (m_rDocument.m_rConfig.m_Types.count(k) && m_rDocument.m_rConfig.m_Types[k].classes().count(v)) {
                         m_pActRelation->AddTag(k, v);
                         // std::cout<<"Added Relation tag: "<<k<<" "<<v<<std::endl;
                     }
@@ -305,7 +306,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         //  #ifdef RESTRICT
         // _FILTER
 
-        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type()) && m_rDocument.m_rConfig.m_Types[m_pActWay->type()]->classes().count(m_pActWay->clss())) {
+        if (m_rDocument.m_rConfig.m_Types.count(m_pActWay->type()) && m_rDocument.m_rConfig.m_Types[m_pActWay->type()].classes().count(m_pActWay->clss())) {
             // #endif
 
             // Comment out the following to get more log output

@@ -27,23 +27,20 @@
 
 namespace osm2pgr {
 
-Configuration::Configuration() {
+
+void Configuration::AddType(Type t) {
+    m_Types[t.name()] = t;
 }
 
-Configuration::~Configuration() {
-    ez_mapdelete(m_Types);
+Type& Configuration::FindType(std::string name) {
+    return m_Types.at(name);
 }
-
-void Configuration::AddType(Type* t) {
-    m_Types[t->name()] = t;
-}
-
-Type* Configuration::FindType(std::string name) const {
+Type Configuration::FindType(std::string name) const {
     return m_Types.at(name);
 }
 
 Class Configuration::FindClass(const std::string &typeName, const std::string &className) const {
-    return m_Types.at(typeName)->classes()[className];
+    return m_Types.at(typeName).classes()[className];
 }
 
 std::string Configuration::priority_str(const std::string &typeName, const std::string &className) const {

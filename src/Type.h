@@ -34,10 +34,14 @@ class Type {
      *    Constructor
      *    @param name name of the type
      */
+    Type() = default;
+    Type(const Type &) = default;
     explicit Type(const char **atts);
+#if 0
     Type(int64_t id, std::string);
     //! Destructor
     ~Type();
+#endif
     inline int64_t id() const {return m_id;}
     inline std::string name() const {return m_name;}
     void add_class(const char **atts);
@@ -47,6 +51,10 @@ class Type {
     std::map<std::string, Class>& classes() {
         return m_Classes;
     }
+
+    inline size_t count_classes(const std::string &class_name) const {
+        return m_Classes.count(class_name);
+    } 
 
  private:
     /**
