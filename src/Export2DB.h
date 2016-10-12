@@ -67,7 +67,7 @@ class Export2DB {
      void createTempTables() const;
      //! exports nodes to the database
      void prepareExportNodes(const std::string nodes_columns) const;
-     void exportNodes(const std::map<int64_t, Node*>& nodes) const;
+     void exportNodes(const std::map<int64_t, Node>& nodes) const;
      void processSectionExportNodes(const std::string nodes_columns) const;
 
      //! exports ways to the database

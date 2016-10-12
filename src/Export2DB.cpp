@@ -340,7 +340,7 @@ void  Export2DB::prepareExportNodes(const std::string nodes_columns) const {
 
 
 
-void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
+void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
     std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
 
@@ -364,14 +364,14 @@ void Export2DB::exportNodes(const std::map<int64_t, Node*> &nodes) const {
             prepareExportNodes(nodes_columns);
         }
 
-        Node* node = n.second;
-        std::string row_data = TO_STR(node->osm_id());
+        auto node = n.second;
+        std::string row_data = TO_STR(node.osm_id());
         row_data += "\t";
-        row_data += node->geom_str("\t");
+        row_data += node.geom_str("\t");
         row_data += "\t";
-        row_data += TO_STR(node->numsOfUse());
+        row_data += TO_STR(node.numsOfUse());
         row_data += "\t";
-        row_data += node->point_geometry();
+        row_data += node.point_geometry();
         row_data += "\n";
         PQputline(mycon, row_data.c_str());
     }
@@ -749,14 +749,14 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
                 + "srid=4326;" + way->geometry_str(i) + "\t";
 
             // cost based on oneway
-            if (way->oneWayType() == REVERSED)
+            if (way->is_reversed())
                 split_data += "-" + length;
             else
                 split_data += length;
             split_data += "\t";
 
             // reverse_cost
-            if (way->oneWayType() == YES)
+            if (way->is_oneway())
                 split_data += "-" + length;
             else
                 split_data += length;

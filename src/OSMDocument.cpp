@@ -37,12 +37,11 @@ OSMDocument::OSMDocument(Configuration &config, size_t lines) :
 }
 
 OSMDocument::~OSMDocument() {
-    ez_mapdelete(m_Nodes);
     ez_vectordelete(m_Ways);
     ez_vectordelete(m_Relations);
 }
-void OSMDocument::AddNode(Node* n) {
-    m_Nodes[n->osm_id()] = n;
+void OSMDocument::AddNode(Node n) {
+    m_Nodes[n.osm_id()] = n;
 }
 
 void OSMDocument::AddWay(Way* w) {
@@ -53,10 +52,16 @@ void OSMDocument::AddRelation(Relation* r) {
     m_Relations.push_back(r);
 }
 
-Node* OSMDocument::FindNode(int64_t nodeRefId)
-const {
-    std::map<int64_t, Node*>::const_iterator  it = m_Nodes.find(nodeRefId);
-    return (it != m_Nodes.end()) ? it->second : 0;
+Node*
+OSMDocument::FindNode(int64_t nodeRefId) {
+    auto it = m_Nodes.find(nodeRefId);
+    return &(it->second);
+}
+
+bool
+OSMDocument::has_node(int64_t nodeRefId) const {
+    auto it = m_Nodes.find(nodeRefId);
+    return (it != m_Nodes.end());
 }
 
 

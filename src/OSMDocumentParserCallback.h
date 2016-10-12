@@ -55,13 +55,17 @@ class OSMDocumentParserCallback :
         m_rDocument(doc),
         m_pActWay(0),
         m_pActRelation(0),
-        m_line(0){
+        last_node(nullptr),
+        last_way(nullptr),
+        m_line(0),
+        m_section(1) {
     }
  private:
     void show_progress();
 
  private:   
     Node *last_node;
+    Way *last_way;
     size_t m_line;
     int m_section;
 };  // class OSMDocumentParserCallback

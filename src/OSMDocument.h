@@ -44,19 +44,20 @@ class OSMDocument {
     virtual ~OSMDocument();
 
     //! add node to the map
-    void AddNode(Node* n);
+    void AddNode(Node n);
 
     //! add way to the map
     void AddWay(Way* w);
 
     //! find node by using an ID
-    Node* FindNode(int64_t nodeRefId) const;
+    bool has_node(int64_t nodeRefId) const;
+    Node* FindNode(int64_t nodeRefId);
 
     void AddRelation(Relation* r);
 
  public:
     // ! Map, which saves the parsed nodes
-    std::map<int64_t, Node*> m_Nodes;
+    std::map<int64_t, Node> m_Nodes;
     //! parsed ways
     std::vector<Way*> m_Ways;
     //! split ways

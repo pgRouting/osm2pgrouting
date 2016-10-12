@@ -38,9 +38,12 @@ Node::Node(const char **atts) {
         } else if (strcmp(name, "lon") == 0) {
             m_lon = value;
         } else {
+#if 0
+            //TODO (vicky) using a configuration variable add the tags
             auto tag_key = boost::lexical_cast<std::string>(name);
             auto tag_value = boost::lexical_cast<std::string>(value);
             m_tags[tag_key] = tag_value;
+#endif
         }
     }
 }

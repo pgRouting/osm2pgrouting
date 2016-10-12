@@ -18,13 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#if __GNUC__ > 4 || \
-            (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
-#define WITH_RANGE_LOOP
-#endif
 
 #include "Way.h"
 #include <string>
+#include "boost/lexical_cast.hpp"
+#include "OSMDocument.h"
 #include "Node.h"
 
 
@@ -40,11 +38,62 @@ Way::Way(int64_t id,
     m_visible(visible),
     m_maxspeed_forward(maxspeed_forward),
     m_maxspeed_backward(maxspeed_backward),
-    m_oneWayType(UNKNOWN),
+    m_oneWay("UNKNOWN"),
     m_osm_id(osm_id) {
     }
 
-void Way::AddNodeRef(Node* pNode) {
+
+Way::Way(const char **atts) :
+    m_maxspeed_forward(-1),
+    m_maxspeed_backward(-1),
+    m_oneWay("UNKNOWN") {
+        auto **attribut = atts;
+        while (*attribut != NULL) {
+            std::string key = *attribut++;
+            std::string value = *attribut++;
+            if (key == "id") {
+                m_id = boost::lexical_cast<int64_t>(value);
+            } else if (key == "visible") {
+                m_visible = boost::lexical_cast<bool>(value);
+            } else {
+                m_attributes[key] = value;
+            }
+        }
+    }
+
+
+void Way::add_node(const char **atts, OSMDocument& data) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string key = *attribut++;
+        std::string value = *attribut++;
+        if (key == "ref") {
+            m_node_osm_id.push_back(boost::lexical_cast<int64_t>(value));
+            auto node = data.FindNode(boost::lexical_cast<int64_t>(value));
+            if (node != 0) {
+                node->incrementUse();
+                m_NodeRefs.push_back(node);
+            } else {
+                std::cout << "Reference nd=" << value
+                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+            }
+        };
+    }
+}
+
+void Way::add_tag(const char **atts) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string key = *attribut++;
+        std::string value = *attribut++;
+        m_Tags[key] = value;
+    }
+}
+
+
+
+void
+Way::AddNodeRef(Node* pNode) {
     if (pNode) m_NodeRefs.push_back(pNode);
 }
 
@@ -83,23 +132,15 @@ std::string
 Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
     std::string geometry("LINESTRING(");
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &node_ptr : nodeRefs) {
-#else
-        for (auto it = nodeRefs.begin();
-                it != nodeRefs.end();
-                ++it) {
-            auto node_ptr = *it;
-#endif
+    for (auto it = nodeRefs.begin();
+            it != nodeRefs.end();
+            ++it) {
+        auto node_ptr = *it;
 
-            geometry += node_ptr->geom_str(" ");
-            geometry += ", ";
+        geometry += node_ptr->geom_str(" ");
+        geometry += ", ";
 
-#ifdef WITH_RANGE_LOOP
-        }
-#else
     }
-#endif
     geometry[geometry.size() - 2] = ')';
     return geometry;
 }
@@ -110,23 +151,15 @@ Way::length_str(const std::vector<Node*> &nodeRefs) const {
     double length = 0;
     auto prev_node_ptr = nodeRefs.front();
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &node_ptr : nodeRefs) {
-#else
-        for (auto it = nodeRefs.begin();
-                it != nodeRefs.end();
-                ++it) {
-            auto node_ptr = *it;
-#endif
+    for (auto it = nodeRefs.begin();
+            it != nodeRefs.end();
+            ++it) {
+        auto node_ptr = *it;
 
-            length  += node_ptr->getLength(*prev_node_ptr);
-            prev_node_ptr = node_ptr;
+        length  += node_ptr->getLength(*prev_node_ptr);
+        prev_node_ptr = node_ptr;
 
-#ifdef WITH_RANGE_LOOP
-        }
-#else
     }
-#endif
 
     return boost::lexical_cast<std::string>(length);
 }
@@ -173,7 +206,162 @@ Way::split_me() {
 
 
 
+std::string
+Way::oneWay() const {
+    return m_oneWay;
+}
 
+void
+Way::oneWay(const std::string &key, const std::string &p_one_way) {      
+    if (key != "oneway") {
+        implied_oneWay(key, p_one_way);
+        return;
+    }
+
+    // one way tag
+    if ((p_one_way == "yes") || p_one_way == "true" || p_one_way == "1") {
+        m_oneWay = "YES";
+    }
+
+    // check false conditions: 0, no, false
+    if ((p_one_way == "no") || p_one_way == "false" || p_one_way == "1") {
+        m_oneWay = "NO";
+    }
+
+    // check reversible condition
+    if (p_one_way == "reversible") {
+        m_oneWay = "REVERSIBLE";
+    } 
+
+    // check revers conditions: -1
+    if (p_one_way == "-1") {
+        m_oneWay = "REVERSED";
+    }
+}
+
+void
+Way::implied_oneWay(const std::string &key, const std::string &value) {
+    /*
+     * was tagged, so not using implied tagging
+     */
+    if (m_oneWay != "UNKNOWN") return;
+
+    if ((key == "junction" && value == "roundabout")
+            || (key == "highway"
+                && (value == "motorway"
+                    || value == "trunk") )) {
+        m_oneWay == "YES";
+        return;
+    }
+
+    if (key == "highway"
+            && (value == "primary"
+                || value == "secondary"
+                || value == "tertiary")) {
+        m_oneWay == "NO";
+        return;
+    }
+}
+
+#if 0
+void
+Way::pedestrian(const std::string &key, const std::string &value) {
+    // TODO
+    // m_pedestrian("UNKNOWN") <-- the default in the constructor
+    if ((key == "sidewak" && value == "no")
+            || (key == "foot" && value == "no")) {
+        m_pedestrian = "NO";
+    }
+
+    if ((key == "highway" && value == "pedestrian") {
+            || (key == "highway" && value == "footway") 
+            || (key == "highway" && value == "cycleway") 
+            || (key == "highway" && value == "bridleway") 
+            || (key == "highway" && value == "track") 
+            || (key == "sidewak" && value != "no")  )
+        || (key == "foot" && value != "no")  )
+            || (key == "highway" && value == "steps") { 
+                m_pedestrian = "YES";
+                return
+            }
+    }
+#endif
+
+    bool
+        Way::is_number(const std::string& s) const{
+            auto str = s;
+            remove_if(str.begin(), str.end(), isspace);
+            auto it = str.begin();
+            for (; it != str.end() && std::isdigit(*it);
+                    ++it) {};
+            return !str.empty() && it == s.end();
+        }
+
+
+    /*
+     * takes the fist value found
+     */
+    double
+        Way::get_kph(const std::string &value) const {
+            auto mph_pos = value.find("mph");
+            if (mph_pos != std::string::npos) {
+                auto newstr = value;
+                newstr.erase(mph_pos, std::string::npos);
+                if (is_number(newstr)) {
+                    return boost::lexical_cast<double>(newstr) * 1.609346;
+                }
+            }
+
+            mph_pos = value.find("knots");
+            if (mph_pos != std::string::npos) {
+                auto newstr = value;
+                newstr.erase(mph_pos, std::string::npos);
+                if (is_number(newstr)) {
+                    return boost::lexical_cast<double>(newstr) * 1.852;
+                }
+            }
+            if (is_number(value)) { 
+                return boost::lexical_cast<double>(value);
+            }
+            // TODO(vicky): handle non-numeric values, ex.: RO:urban
+            // maybe using a configuration option
+            // http://wiki.openstreetmap.org/wiki/Speed_limits
+            //
+            // TODO(vicky): handle multiple values for lanes
+            // the way with N lanes generates N ways that have to be split
+            // with the different Speeds ???
+            return 50;
+        }
+
+
+
+
+    void
+        Way::max_speed(const std::string &key, const std::string &value) {
+            if (key == "maxspeed:forward") {
+                m_maxspeed_forward = get_kph(value);
+                return;
+            }
+            if (key == "maxspeed:backward") {
+                m_maxspeed_backward = get_kph(value);
+                return;
+            }
+            if (key == "maxspeed") {
+                m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
+                return;
+            }
+        }
+
+
+    std::string
+        Way::oneWayType_str() const{  
+            if (m_oneWay == "YES") return "1";
+            if (m_oneWay == "NO") return  "2";
+            if (m_oneWay == "REVERSIBLE") return  "3";
+            if (m_oneWay == "REVERSED") return "-1";
+            if (m_oneWay == "UNKNOWN") return "0";
+            return "0";
+        }
 
 
 }  // end namespace osm2pgr

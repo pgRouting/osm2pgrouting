@@ -82,11 +82,12 @@ OSMDocumentParserCallback::StartElement(
     if (m_section == 1) {
         if (strcmp(name, "node") == 0) {
             last_node = new Node(atts);
-            m_rDocument.AddNode(last_node);
         };
+#if 0
         if (strcmp(name, "tag") == 0) {
             last_node->add_tag(atts);
         }
+#endif
         return;
     }
 
@@ -156,13 +157,17 @@ OSMDocumentParserCallback::StartElement(
                 }
             }
             if (!k.empty()) {
+                  m_pActWay->oneWay(k, v);
+                  m_pActWay->max_speed(k, v);
                 //  CHECKING OUT SOME DATA...
                 // std::cout<<"k: "<<k<<", v: "<<v<<std::endl;
                 // std::cout<<"m_pActWay: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
                 // std::cout<<"thecount: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
                 if (m_pActWay && k.compare("name") == 0) {
                     m_pActWay->name(v);
-                } else if (m_pActWay && k.compare("oneway") == 0) {  // checks ONEWAY tag
+                }
+#if 0
+                else if (m_pActWay && k.compare("oneway") == 0) {  // checks ONEWAY tag
                     // one way tag
                     if ((v.compare("yes") == 0) || (v.compare("true") == 0) || (v.compare("1") == 0)) {
                         m_pActWay->oneWayType(YES);
@@ -186,7 +191,9 @@ OSMDocumentParserCallback::StartElement(
                     // in case roundabout, if there is not additional oneway tag, set default oneway to YES
                 } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
                     if (m_pActWay->oneWayType() == UNKNOWN) m_pActWay->oneWayType(YES);
-                } else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
+                }
+#endif
+                else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
                     // handle 3 cases if the key contains maxspeed
                     // If the value contains mph, strip unit, convert to kph.
                     if (v.find("mph") != std::string::npos) {
@@ -232,7 +239,8 @@ OSMDocumentParserCallback::StartElement(
                         m_pActWay->maxspeed_backward(mspeed_backwd);
                         m_pActWay->maxspeed_forward(mspeed_fwd);
                     }
-                } else if (m_pActWay && m_rDocument.m_rConfig.has_class(k, v)) {
+                }
+                else if (m_pActWay && m_rDocument.m_rConfig.has_class(k, v)) {
                     if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
@@ -291,6 +299,11 @@ OSMDocumentParserCallback::StartElement(
 }
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
+    if (strcmp(name, "node") == 0) {
+        m_rDocument.AddNode(*last_node);
+        delete last_node;
+        return;
+    }
     if (strcmp(name, "way") == 0) {
 
         if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
