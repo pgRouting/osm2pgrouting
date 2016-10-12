@@ -30,7 +30,6 @@
 #include "./Relation.h"
 #include "./Way.h"
 #include "./Node.h"
-#include "./utils.h"
 
 // define here, which streetstype you want to parse
 // for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
@@ -165,80 +164,6 @@ OSMDocumentParserCallback::StartElement(
                 // std::cout<<"thecount: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
                 if (m_pActWay && k.compare("name") == 0) {
                     m_pActWay->name(v);
-                }
-#if 0
-                else if (m_pActWay && k.compare("oneway") == 0) {  // checks ONEWAY tag
-                    // one way tag
-                    if ((v.compare("yes") == 0) || (v.compare("true") == 0) || (v.compare("1") == 0)) {
-                        m_pActWay->oneWayType(YES);
-                    } else {}
-
-                    // check false conditions: 0, no, false
-                    if ((v.compare("no") == 0) || (v.compare("false") == 0) || (v.compare("0") == 0)) {
-                        m_pActWay->oneWayType(NO);
-                    } else {}
-
-                    // check reversible condition
-                    if (v.compare("reversible") == 0) {
-                        m_pActWay->oneWayType(REVERSIBLE);
-                    } else {}
-
-                    // check revers conditions: -1
-                    if ((v.compare("-1") == 0)) {
-                        m_pActWay->oneWayType(REVERSED);
-                    }
-
-                    // in case roundabout, if there is not additional oneway tag, set default oneway to YES
-                } else if (m_pActWay && k.compare("junction") == 0 && v.compare("roundabout") == 0) {
-                    if (m_pActWay->oneWayType() == UNKNOWN) m_pActWay->oneWayType(YES);
-                }
-#endif
-                else if (m_pActWay && k.find("maxspeed") != std::string::npos) {
-                    // handle 3 cases if the key contains maxspeed
-                    // If the value contains mph, strip unit, convert to kph.
-                    if (v.find("mph") != std::string::npos) {
-                        // Assume format is /[0-9]{1,3} ?mph/
-                        v = my_utils::read_number_substring(v);
-                        std::ostringstream ostr;
-                        ostr << floor(atoi(v.c_str()) * 1.60934);
-                        v = ostr.str();
-                    }
-                    // handle maxspeed:forward tag
-                    if (k.compare("maxspeed:forward") == 0) {
-                        double mspeed_fwd = 50;
-
-                        if (my_utils::is_number(v)) {
-                            mspeed_fwd = atoi(v.c_str());
-                        } else {
-                            // TODO(who): handle non-numeric values, ex.: RO:urban
-                            std::cout << "unknown maxspeed1 value: " << v << std::endl;
-                        }
-                        m_pActWay->maxspeed_forward(mspeed_fwd);
-                    } else if (k.compare("maxspeed:backward") == 0) {
-                        // handler maxspeed:backward
-                        int mspeed_backwd = 50;
-
-                        if (my_utils::is_number(v)) {
-                            mspeed_backwd = atoi(v.c_str());
-                        } else {
-                            // TODO(who): handle non-numeric values, ex.: RO:urban
-                            std::cout << "unknown maxspeed2 value: " << v << std::endl;
-                        }
-                        m_pActWay->maxspeed_backward(mspeed_backwd);
-                    } else if (k.compare("maxspeed") == 0) {
-                        double mspeed_fwd = 50;
-                        double mspeed_backwd = 50;
-
-                        if (my_utils::is_number(v)) {
-                            mspeed_fwd = atoi(v.c_str());
-                            mspeed_backwd = atoi(v.c_str());
-                        } else {
-                            // TODO(who): handle non-numeric values, ex.: RO:urban
-                            std::cout << "unknown maxspeed3 value: " << v << std::endl;
-                        }
-                        m_pActWay->maxspeed_backward(mspeed_backwd);
-                        m_pActWay->maxspeed_forward(mspeed_fwd);
-                    }
                 }
                 else if (m_pActWay && m_rDocument.m_rConfig.has_class(k, v)) {
                     if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
