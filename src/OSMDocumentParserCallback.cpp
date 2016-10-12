@@ -156,8 +156,10 @@ OSMDocumentParserCallback::StartElement(
                 }
             }
             if (!k.empty()) {
+                if (m_pActWay) {
                   m_pActWay->oneWay(k, v);
                   m_pActWay->max_speed(k, v);
+                }
                 //  CHECKING OUT SOME DATA...
                 // std::cout<<"k: "<<k<<", v: "<<v<<std::endl;
                 // std::cout<<"m_pActWay: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
@@ -217,6 +219,7 @@ OSMDocumentParserCallback::StartElement(
             }
             if (id > 0) {
                 m_pActWay = new Way(id, visibility, id , -1, -1);
+                std::cout << "\nStart process Way: " << m_pActWay->osm_id();
             }
         }
     } else if (strcmp(name, "osm") == 0) {
@@ -226,6 +229,7 @@ OSMDocumentParserCallback::StartElement(
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
+        std::cout << "\nadded Node: " << last_node->osm_id();
         delete last_node;
         return;
     }
@@ -234,6 +238,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
 
             m_rDocument.AddWay(m_pActWay);
+            std::cout << "\nadded Way: " << m_pActWay->osm_id();
 
         } else {
             // std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;

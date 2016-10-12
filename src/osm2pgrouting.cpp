@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
             cerr << "Failed to open / parse data file " << dataFile << endl;
             return 1;
         }
+        std::cout << "    Finish Parsing data\n" << endl;
 
         //############# Export2DB
         {
