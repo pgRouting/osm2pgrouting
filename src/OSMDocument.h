@@ -47,7 +47,7 @@ class OSMDocument {
     void AddNode(Node n);
 
     //! add way to the map
-    void AddWay(Way* w);
+    void AddWay(Way w);
 
     //! find node by using an ID
     bool has_node(int64_t nodeRefId) const;
@@ -59,7 +59,7 @@ class OSMDocument {
     // ! Map, which saves the parsed nodes
     std::map<int64_t, Node> m_Nodes;
     //! parsed ways
-    std::vector<Way*> m_Ways;
+    std::vector<Way> m_Ways;
     //! split ways
     std::vector<Way> m_SplitWays;
 

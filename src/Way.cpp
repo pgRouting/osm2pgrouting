@@ -35,11 +35,11 @@ Way::Way(int64_t id,
         double maxspeed_forward,
         double maxspeed_backward) :
     m_id(id),
+    m_osm_id(osm_id),
     m_visible(visible),
     m_maxspeed_forward(maxspeed_forward),
     m_maxspeed_backward(maxspeed_backward),
-    m_oneWay("UNKNOWN"),
-    m_osm_id(osm_id) {
+    m_oneWay("UNKNOWN") {
     }
 
 

@@ -204,24 +204,7 @@ OSMDocumentParserCallback::StartElement(
             }
         }
     } else if (strcmp(name, "way") == 0) {
-        if (atts != NULL) {
-            int64_t id =-1;
-            bool visibility = false;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "id") == 0) {
-                    id = atoll(value);
-                } else if (strcmp(name, "visible") == 0) {
-                    visibility = strcmp(value, "true") == 0;
-                }
-            }
-            if (id > 0) {
-                m_pActWay = new Way(id, visibility, id , -1, -1);
-                std::cout << "\nStart process Way: " << m_pActWay->osm_id();
-            }
-        }
+        m_pActWay = new Way(atts);
     } else if (strcmp(name, "osm") == 0) {
     }
 }
@@ -237,15 +220,13 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
 
         if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
 
-            m_rDocument.AddWay(m_pActWay);
+            m_rDocument.AddWay(*m_pActWay);
             std::cout << "\nadded Way: " << m_pActWay->osm_id();
 
-        } else {
-            // std::cout<<"We DON'T need a way of type "<<m_pActWay->type<<" and class "<< m_pActWay->clss<<std::endl;
-            // delete m_pActWay;
         }
-
-        m_pActWay = 0;
+        delete m_pActWay;
+        m_pActWay = nullptr;
+        return;
     } else if (strcmp(name, "relation") == 0) {
         // THIS IS THE RELATION CODE...
         m_rDocument.AddRelation(m_pActRelation);

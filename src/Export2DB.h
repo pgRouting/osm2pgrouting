@@ -76,7 +76,7 @@ class Export2DB {
      void exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const;
      void exportTypes(const std::map<std::string, Type>& types) const;
      void exportClasses(const std::map<std::string, Type>& types) const;
-     void exportWays(const std::vector<Way*> &ways, const Configuration &config) const;
+     void exportWays(const std::vector<Way> &ways, const Configuration &config) const;
 
      /**
       * creates the topology

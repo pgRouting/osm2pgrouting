@@ -662,7 +662,7 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
     PQclear(q_result);
 }
 
-void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &config) const {
+void Export2DB::exportWays(const std::vector<Way> &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
 
     std::string separator("\t");
@@ -691,7 +691,7 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
     int64_t split_count = 0;
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = *it;
-        way->split_me();
+        way.split_me();
 
         if ((count % (chunck_size / 100)) == 0) {
             print_progress(ways.size(), count);
@@ -709,20 +709,20 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
 
         // common information of the split ways
         auto way_data =
-            TO_STR(config.FindClass(way->type(), way->clss()).id())  + "\t"
-            + TO_STR(way->osm_id()) + "\t"
+            TO_STR(config.FindClass(way.type(), way.clss()).id())  + "\t"
+            + TO_STR(way.osm_id()) + "\t"
             // maxspeed
-            + way->maxspeed_forward_str() + "\t"
-            + way->maxspeed_backward_str() + "\t"
+            + way.maxspeed_forward_str() + "\t"
+            + way.maxspeed_backward_str() + "\t"
             // one_way
-            + way->oneWayType_str() + "\t"
+            + way.oneWayType_str() + "\t"
             // priority
-            + config.priority_str(way->type(), way->clss()) + "\t";
+            + config.priority_str(way.type(), way.clss()) + "\t";
 
         // name
         std::string name_data;
-        if (!way->name().empty()) {
-            std::string escaped_name = way->name();
+        if (!way.name().empty()) {
+            std::string escaped_name = way.name();
             boost::replace_all(escaped_name, "\\", "");
             boost::replace_all(escaped_name, "\t", "\\\t");
             boost::replace_all(escaped_name, "\n", "");
@@ -730,33 +730,33 @@ void Export2DB::exportWays(const std::vector<Way*> &ways, const Configuration &c
             name_data = escaped_name.substr(0, 199);
         };
 
-        split_count +=  way->splits();
+        split_count +=  way.splits();
 
-        for (size_t i = 0; i < way->splits() ; ++i){
-            auto length = way->length_str(i);
+        for (size_t i = 0; i < way.splits() ; ++i){
+            auto length = way.length_str(i);
 
             // length (degrees)
             auto split_data = length + "\t"
                 // x1, y1
-                + way->first_node_str(i) + "\t"
+                + way.first_node_str(i) + "\t"
                 // x2, y2
-                + way->last_node_str(i) + "\t"
+                + way.last_node_str(i) + "\t"
                 // source_osm
-                + way->source_osm_id(i) + "\t"
+                + way.source_osm_id(i) + "\t"
                 // target_osm
-                + way->target_osm_id(i) + "\t"
+                + way.target_osm_id(i) + "\t"
                 //geometry
-                + "srid=4326;" + way->geometry_str(i) + "\t";
+                + "srid=4326;" + way.geometry_str(i) + "\t";
 
             // cost based on oneway
-            if (way->is_reversed())
+            if (way.is_reversed())
                 split_data += "-" + length;
             else
                 split_data += length;
             split_data += "\t";
 
             // reverse_cost
-            if (way->is_oneway())
+            if (way.is_oneway())
                 split_data += "-" + length;
             else
                 split_data += length;
