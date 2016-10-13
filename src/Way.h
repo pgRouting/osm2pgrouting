@@ -159,6 +159,8 @@ class Way {
      //! @brief splits the way
      inline size_t splits() {return m_split_ways.size();}
 
+     friend
+     std::ostream& operator<<(std::ostream &, const Way &);
 
 
 

@@ -81,11 +81,11 @@ class Configuration {
 
      const std::map<std::string, Type>& types() const {return m_Types;}
 
-
- private:
      inline bool has_type(const std::string &type_name) const {
          return m_Types.count(type_name) != 0;
      }
+
+ private:
 
      //! Map, which saves the parsed types
      std::map<std::string, Type> m_Types;

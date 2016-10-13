@@ -23,6 +23,7 @@
 
 #include <math.h>
 #include <string>
+#include <cassert>
 #include <iostream>
 #include <sstream>
 #include "./OSMDocument.h"
@@ -90,6 +91,69 @@ OSMDocumentParserCallback::StartElement(
         return;
     }
 
+#if 1
+    if (m_section == 2) {
+        if (strcmp(name, "way") == 0) {
+            last_way = new Way(atts);
+        };
+        if (strcmp(name, "tag") == 0) {
+            std::string k;
+            std::string v;
+            last_way->add_tag(atts, k, v);
+            /*
+             * for example
+             *  <tag highway=motorway>    // k = highway  v = motorway
+             *  <tag highway=path>    // k = highway  v = motorway
+             *
+             * And the configuration file has:
+             * <type name="highway" id="1">
+             *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
+             *     // there is no class name="path"
+             */
+            if (m_rDocument.m_rConfig.has_class(k, v)) {
+                if ((last_way->type().compare("") == 0 && last_way->clss().compare("") == 0)
+                        || (
+                            m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
+                            && m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())
+                            && m_rDocument.m_rConfig.class_priority(k, v)
+                            < m_rDocument.m_rConfig.class_priority(last_way->type(), last_way->clss())
+                           )
+                   ) {
+                    last_way->type(k);
+                    last_way->clss(v);
+
+                    if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
+                        last_way->AddTag(k, v);
+
+
+                        // set default maxspeed values from classes, if not set previously (default: -1)
+                        auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_way->type(), last_way->clss());
+                        if (last_way->maxspeed_forward() <= 0) {
+                            last_way->maxspeed_forward(newValue);
+                        }
+                        if (last_way->maxspeed_backward() <= 0) {
+                            last_way->maxspeed_backward(newValue);
+                        }
+                    }
+                }
+            }
+            std::cout << "tag added " << k << "->" << v << "\n";
+        }
+
+        if (strcmp(name, "nd") == 0) {
+            auto nodeRefId = last_way->add_node(atts);
+            last_way->AddNodeRef(m_rDocument.FindNode(nodeRefId));
+            auto node = m_rDocument.FindNode(nodeRefId);
+            if (node != 0) {
+                node->incrementUse();
+            } else {
+                std::cout << "Reference nd=" << nodeRefId
+                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+            }
+        }    
+        // return;
+    }
+#endif
 
     // START RELATIONS CODE
     if (strcmp(name, "member") == 0) {
@@ -112,18 +176,14 @@ OSMDocumentParserCallback::StartElement(
 
     if (strcmp(name, "nd") == 0) {
         if (m_pActWay && atts != NULL) {
-            const char* name = *atts++;
-            const char* value = *atts++;
-            if (strcmp(name, "ref") == 0) {
-                int64_t nodeRefId = atoll(value);
-                m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
-                Node * node = m_rDocument.FindNode(nodeRefId);
-                if (node != 0) {
-                    node->incrementUse();
-                } else {
-                    std::cout << "Reference nd=" << nodeRefId
-                        << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
-                }
+            auto nodeRefId = m_pActWay->add_node(atts);
+            m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
+            Node *node = m_rDocument.FindNode(nodeRefId);
+            if (node != 0) {
+                node->incrementUse();
+            } else {
+                std::cout << "Reference nd=" << nodeRefId
+                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
             }
         }
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
@@ -157,8 +217,8 @@ OSMDocumentParserCallback::StartElement(
             }
             if (!k.empty()) {
                 if (m_pActWay) {
-                  m_pActWay->oneWay(k, v);
-                  m_pActWay->max_speed(k, v);
+                    m_pActWay->oneWay(k, v);
+                    m_pActWay->max_speed(k, v);
                 }
                 //  CHECKING OUT SOME DATA...
                 // std::cout<<"k: "<<k<<", v: "<<v<<std::endl;
@@ -212,21 +272,35 @@ OSMDocumentParserCallback::StartElement(
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
+#if 0
         std::cout << "\nadded Node: " << last_node->osm_id();
+#endif
         delete last_node;
         return;
     }
     if (strcmp(name, "way") == 0) {
 
+#if 1
+        std::cout << (*m_pActWay) << "\n";
+        std::cout << (*last_way) << "\n";
+#endif
+#if 0
         if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
-
             m_rDocument.AddWay(*m_pActWay);
             std::cout << "\nadded Way: " << m_pActWay->osm_id();
-
         }
+#else
+        if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
+            m_rDocument.AddWay(*last_way);
+            std::cout << "\nadded Way: " << last_way->osm_id();
+        }
+#endif
         delete m_pActWay;
         m_pActWay = nullptr;
+        delete last_way;
+        last_way = nullptr;
         return;
+
     } else if (strcmp(name, "relation") == 0) {
         // THIS IS THE RELATION CODE...
         m_rDocument.AddRelation(m_pActRelation);

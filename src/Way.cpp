@@ -44,6 +44,7 @@ Way::Way(int64_t id,
 
 
 Way::Way(const char **atts) :
+    m_visible(true),
     m_maxspeed_forward(-1),
     m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") {
@@ -81,15 +82,20 @@ void
 Way::add_tag(const char **atts, std::string &key, std::string &value) {
     auto **attribut = atts;
     while (*attribut != NULL) {
-        key = *attribut++;
-        value = *attribut++;
-        /* store the tag as originaly recieved*/
-        std::cout << "added tag" << key << "-> " << value << "\n";
-        m_Tags[key] = value;
-        oneWay(key, value);
-        max_speed(key, value);
-        name(key,value);
+        std::string k = *attribut++;
+        std::string v = *attribut++;
+        if (k == "k") {
+            key = v;
+        } if (k == "v") {
+            value = v;
+        }
     }
+    /* store the tag as originaly recieved*/
+    std::cout << "adding tag (" << key << "-> " << value << ")\n";
+    m_Tags[key] = value;
+    oneWay(key, value);
+    max_speed(key, value);
+    name(key,value);
 }
 
 
@@ -296,84 +302,112 @@ Way::pedestrian(const std::string &key, const std::string &value) {
                 return
             }
     }
+}
 #endif
 
-    bool
-        Way::is_number(const std::string& s) const{
-            auto str = s;
-            remove_if(str.begin(), str.end(), isspace);
-            auto it = str.begin();
-            for (; it != str.end() && std::isdigit(*it);
-                    ++it) {};
-            return !str.empty() && it == s.end();
+bool
+Way::is_number(const std::string& s) const{
+    auto str = s;
+    remove_if(str.begin(), str.end(), isspace);
+    auto it = str.begin();
+    for (; it != str.end() && std::isdigit(*it);
+            ++it) {};
+    return !str.empty() && it == s.end();
+}
+
+
+/*
+ * takes the fist value found
+ */
+double
+Way::get_kph(const std::string &value) const {
+    auto mph_pos = value.find("mph");
+    if (mph_pos != std::string::npos) {
+        auto newstr = value;
+        newstr.erase(mph_pos, std::string::npos);
+        if (is_number(newstr)) {
+            return boost::lexical_cast<double>(newstr) * 1.609346;
         }
+    }
 
-
-    /*
-     * takes the fist value found
-     */
-    double
-        Way::get_kph(const std::string &value) const {
-            auto mph_pos = value.find("mph");
-            if (mph_pos != std::string::npos) {
-                auto newstr = value;
-                newstr.erase(mph_pos, std::string::npos);
-                if (is_number(newstr)) {
-                    return boost::lexical_cast<double>(newstr) * 1.609346;
-                }
-            }
-
-            mph_pos = value.find("knots");
-            if (mph_pos != std::string::npos) {
-                auto newstr = value;
-                newstr.erase(mph_pos, std::string::npos);
-                if (is_number(newstr)) {
-                    return boost::lexical_cast<double>(newstr) * 1.852;
-                }
-            }
-            if (is_number(value)) { 
-                return boost::lexical_cast<double>(value);
-            }
-            // TODO(vicky): handle non-numeric values, ex.: RO:urban
-            // maybe using a configuration option
-            // http://wiki.openstreetmap.org/wiki/Speed_limits
-            //
-            // TODO(vicky): handle multiple values for lanes
-            // the way with N lanes generates N ways that have to be split
-            // with the different Speeds ???
-            return 50;
+    mph_pos = value.find("knots");
+    if (mph_pos != std::string::npos) {
+        auto newstr = value;
+        newstr.erase(mph_pos, std::string::npos);
+        if (is_number(newstr)) {
+            return boost::lexical_cast<double>(newstr) * 1.852;
         }
+    }
+    if (is_number(value)) { 
+        return boost::lexical_cast<double>(value);
+    }
+    // TODO(vicky): handle non-numeric values, ex.: RO:urban
+    // maybe using a configuration option
+    // http://wiki.openstreetmap.org/wiki/Speed_limits
+    //
+    // TODO(vicky): handle multiple values for lanes
+    // the way with N lanes generates N ways that have to be split
+    // with the different Speeds ???
+    return 50;
+}
 
 
 
 
-    void
-        Way::max_speed(const std::string &key, const std::string &value) {
-            if (key == "maxspeed:forward") {
-                m_maxspeed_forward = get_kph(value);
-                return;
-            }
-            if (key == "maxspeed:backward") {
-                m_maxspeed_backward = get_kph(value);
-                return;
-            }
-            if (key == "maxspeed") {
-                m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
-                return;
-            }
-        }
+void
+Way::max_speed(const std::string &key, const std::string &value) {
+    if (key == "maxspeed:forward") {
+        m_maxspeed_forward = get_kph(value);
+        return;
+    }
+    if (key == "maxspeed:backward") {
+        m_maxspeed_backward = get_kph(value);
+        return;
+    }
+    if (key == "maxspeed") {
+        m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
+        return;
+    }
+}
 
 
-    std::string
-        Way::oneWayType_str() const{  
-            if (m_oneWay == "YES") return "1";
-            if (m_oneWay == "NO") return  "2";
-            if (m_oneWay == "REVERSIBLE") return  "3";
-            if (m_oneWay == "REVERSED") return "-1";
-            if (m_oneWay == "UNKNOWN") return "0";
-            return "0";
-        }
+std::string
+Way::oneWayType_str() const{  
+    if (m_oneWay == "YES") return "1";
+    if (m_oneWay == "NO") return  "2";
+    if (m_oneWay == "REVERSIBLE") return  "3";
+    if (m_oneWay == "REVERSED") return "-1";
+    if (m_oneWay == "UNKNOWN") return "0";
+    return "0";
+}
+
+std::ostream& operator<<(std::ostream &os, const Way &way) {
+    std::cout << "\nWay"
+        << "\t m_id: " << way.m_id
+        << "\t m_type: " << way.m_type
+        << "\t m_class: " << way.m_clss
+        << "\t m_name: " << way.m_name
+        << "\t m_osm_id: " << way.m_osm_id
+        << "\t m_visible: " << way.m_visible
+        << "\t m_maxspeed_forward: " << way.m_maxspeed_forward
+        << "\t m_maxspeed_backward: " << way.m_maxspeed_backward
+        << "\t m_oneWay: " << way.m_oneWay;
+    std::cout << "\n\n ************ attributes:\n";
+    for (auto const &e : way.m_attributes) {
+        std::cout << "(" << e.first << "-> " << e.second << "), ";
+    }
+    std::cout << "\n\n ************ tags \n";
+    for (auto const &e : way.m_Tags) {
+        std::cout << "(" << e.first << "-> " << e.second << "), ";;
+    }
+    std::cout << "\n nodes: \n";
+    for (auto const &e : way.m_node_osm_id) {
+        std::cout << e << ", ";
+    }
+
+    return os;
+}
 
 
-}  // end namespace osm2pgr
+}  // namespace osm2pgr
 

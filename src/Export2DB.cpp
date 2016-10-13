@@ -430,7 +430,7 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 
 
 void Export2DB::fill_source_target(const std::string &table, const std::string &vertices_tab) const {
-    //     std::cout << "    Filling 'source' column of '" << table << "': ";
+    // std::cout << "    Filling 'source' column of '" << table << "': ";
     std::string sql1(
             " UPDATE " + table + " AS w"
             " SET source = v.id "
@@ -455,16 +455,17 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
             " UPDATE " + table +
             " SET  length_m = st_length(geography(ST_Transform(the_geom, 4326))),"
             "      cost_s = CASE "
-            "           WHEN one_way = -1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward * 5 / 18)"
-            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
+            "           WHEN one_way = -1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
+            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END, "
             "      reverse_cost_s = CASE "
-            "           WHEN one_way = 1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
-            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward * 5 / 18)"
+            "           WHEN one_way = 1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
             " WHERE length_m IS NULL;");
     q_result = PQexec(mycon, sql3.c_str());
-    //     std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
+    std::cout << sql3 << "\n";
     PQclear(q_result);
 }
 
@@ -916,6 +917,7 @@ void Export2DB::createTopology() const {
 }
 
 void Export2DB::createFKeys() {
+    return; // TODO
     /*
        ALTER TABLE osm_way_classes
        ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
