@@ -52,7 +52,8 @@ Way::Way(const char **atts) :
             std::string key = *attribut++;
             std::string value = *attribut++;
             if (key == "id") {
-                m_id = boost::lexical_cast<int64_t>(value);
+                m_osm_id = boost::lexical_cast<int64_t>(value);
+                std::cout << "found id" << m_osm_id << " " << osm_id() << "\n";
             } else if (key == "visible") {
                 m_visible = boost::lexical_cast<bool>(value);
             } else {
@@ -62,33 +63,43 @@ Way::Way(const char **atts) :
     }
 
 
-void Way::add_node(const char **atts, OSMDocument& data) {
+int64_t
+Way::add_node(const char **atts) {
     auto **attribut = atts;
     while (*attribut != NULL) {
         std::string key = *attribut++;
         std::string value = *attribut++;
         if (key == "ref") {
             m_node_osm_id.push_back(boost::lexical_cast<int64_t>(value));
-            auto node = data.FindNode(boost::lexical_cast<int64_t>(value));
-            if (node != 0) {
-                node->incrementUse();
-                m_NodeRefs.push_back(node);
-            } else {
-                std::cout << "Reference nd=" << value
-                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
-            }
+            return  boost::lexical_cast<int64_t>(value);
         };
+    }
+    return 0;
+}
+
+void
+Way::add_tag(const char **atts, std::string &key, std::string &value) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        key = *attribut++;
+        value = *attribut++;
+        /* store the tag as originaly recieved*/
+        std::cout << "added tag" << key << "-> " << value << "\n";
+        m_Tags[key] = value;
+        oneWay(key, value);
+        max_speed(key, value);
+        name(key,value);
     }
 }
 
-void Way::add_tag(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string key = *attribut++;
-        std::string value = *attribut++;
-        m_Tags[key] = value;
+
+void
+Way::name(const std::string key, const std::string value) {
+    if (key == "name") {
+        m_name = value;
     }
 }
+
 
 
 

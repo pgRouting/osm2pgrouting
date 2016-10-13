@@ -70,8 +70,8 @@ class Way {
       *  saves the nodes of the way  
       *  @param pNode node
       */
-     void add_node(const char** atts, OSMDocument& data);
-     void add_tag(const char **atts);
+     int64_t add_node(const char** atts);
+     void add_tag(const char **atts, std::string &k, std::string &v);
      void AddNodeRef(Node* pNode);
      void AddTag(std::string key, std::string value);
      bool HasTag(std::string key);
@@ -85,7 +85,9 @@ class Way {
      inline bool visible() const {return m_visible;}
      inline int64_t id() const {return m_id;}
 
-     inline void name(std::string p_name) {m_name = p_name;}
+     void name(const std::string key, const std::string value);
+     inline void name(const std::string value) {m_name = value;}
+
      inline void type(std::string p_type) {m_type = p_type;}
      inline void clss(std::string p_clss) {m_clss = p_clss;}
 
@@ -165,6 +167,7 @@ class Way {
      std::string length_str(const std::vector<Node*> &) const;
 
      //! Do not delete nodes in this container!
+     //TODO delete this pointers containers
      std::vector<Node*> m_NodeRefs;
      std::vector<int64_t> m_node_osm_id;
 
@@ -172,6 +175,7 @@ class Way {
      <way id="173421994" version="2" timestamp="2015-10-07T21:23:54Z" changeset="34500025" uid="2512300" user="samely">
      */
      int64_t m_id;
+     int64_t m_osm_id;
      std::map<std::string, std::string> m_attributes;
      /*
       * <tag k="highway" v="tertiary"/>
@@ -189,6 +193,7 @@ class Way {
       *  - max speeds
       *  - one_way_type
       */
+     // TODO delete this container
      std::vector<std::vector<Node*>> m_split_ways;
 
 
@@ -196,7 +201,6 @@ class Way {
      //! name of the street
      std::string m_name;
      //! type of the street, for example "motorway"
-
      std::string m_type;
      std::string m_clss;
 
@@ -205,7 +209,6 @@ class Way {
 
      std::string m_oneWay;
 
-     int64_t m_osm_id;
 };
 
 
