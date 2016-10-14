@@ -163,15 +163,15 @@ OSMDocumentParserCallback::StartElement(
                <member type="way" ref="173424370" role=""/>
                <member type="way" ref="48435091" role="link"/>
                */
-            auto way_id = m_pActRelation->add_member(atts);
+            auto way_id = last_relation->add_member(atts);
             if (way_id == -1) return;
-            assert(!m_pActRelation->m_WayRefs.empty());
+            assert(!last_relation->m_WayRefs.empty());
             if (m_rDocument.has_way(way_id)) {
                 Way* way_ptr = m_rDocument.FindWay(way_id);
-                way_ptr->m_Tags.insert(m_pActRelation->m_Tags.begin(),  m_pActRelation->m_Tags.end());
+                way_ptr->m_Tags.insert(last_relation->m_Tags.begin(),  last_relation->m_Tags.end());
             } else {
-                assert(!m_pActRelation->m_WayRefs.empty());
-                m_pActRelation->m_WayRefs.pop_back();
+                assert(!last_relation->m_WayRefs.empty());
+                last_relation->m_WayRefs.pop_back();
             }
 
             return;
@@ -179,28 +179,28 @@ OSMDocumentParserCallback::StartElement(
 
 
         if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
-            m_pActRelation = new Relation(atts);
+            last_relation = new Relation(atts);
             return;
         }
         else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
             if (atts != NULL) {
                 std::string k;
                 std::string v;
-                m_pActRelation->add_tag(atts, k, v);
+                last_relation->add_tag(atts, k, v);
                 if (!k.empty()) {
-                    if ((m_pActRelation->type().compare("") == 0 && m_pActRelation->clss().compare("") == 0)
+                    if ((last_relation->type().compare("") == 0 && last_relation->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
-                                && m_rDocument.m_rConfig.has_class(m_pActRelation->type(), m_pActRelation->clss())
+                                && m_rDocument.m_rConfig.has_class(last_relation->type(), last_relation->clss())
                                 && m_rDocument.m_rConfig.class_priority(k, v)
-                                < m_rDocument.m_rConfig.class_priority(m_pActRelation->type(), m_pActRelation->clss())
+                                < m_rDocument.m_rConfig.class_priority(last_relation->type(), last_relation->clss())
                                )
                        ) {
-                        m_pActRelation->type(k);
-                        m_pActRelation->clss(v);
+                        last_relation->type(k);
+                        last_relation->clss(v);
                     }
-                    if (m_pActRelation && k == "name") {
-                        m_pActRelation->name = v;
+                    if (last_relation && k == "name") {
+                        last_relation->name = v;
                     }
                 }
             }
@@ -222,15 +222,15 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         return;
 
     } else if (strcmp(name, "relation") == 0) {
-        if (m_rDocument.m_rConfig.has_class(m_pActRelation->type(), m_pActRelation->clss())) {
-            for (const auto &way_id: m_pActRelation->m_WayRefs) {
+        if (m_rDocument.m_rConfig.has_class(last_relation->type(), last_relation->clss())) {
+            for (const auto &way_id: last_relation->m_WayRefs) {
 
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
-                    way_ptr->clss(m_pActRelation->clss());
-                    way_ptr->type(m_pActRelation->type());
-                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(m_pActRelation->type(), m_pActRelation->clss());
+                    way_ptr->clss(last_relation->clss());
+                    way_ptr->type(last_relation->type());
+                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_relation->type(), last_relation->clss());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);
                     }
@@ -239,9 +239,10 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                     }
                 }
             }
-            m_rDocument.AddRelation(m_pActRelation);
+            m_rDocument.AddRelation(*last_relation);
         }
-        m_pActRelation = 0;
+        delete last_relation;
+        last_relation = nullptr;
 
     } else if (strcmp(name, "osm") == 0) {
         show_progress();

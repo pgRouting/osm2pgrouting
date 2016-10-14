@@ -47,10 +47,6 @@ Relation::Relation(const char **atts) {
 }
 
 
-#if 0
-Relation::~Relation() {
-}
-#endif
 
 int64_t
 Relation::add_member(const char **atts) {

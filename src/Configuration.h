@@ -28,27 +28,6 @@
 
 namespace osm2pgr {
 
-#if 1
-template< class Map >
-void ez_mapdelete(Map &c) {
-    auto it(c.begin());
-    auto last(c.end());
-    while (it != last) {
-        delete (*it++).second;
-    }
-}
-#endif
-
-#if 1
-template< class Vector >
-void ez_vectordelete(Vector &c) {
-    auto it(c.begin());
-    auto last(c.end());
-    while (it != last) {
-        delete (*it++);
-    }
-}
-#endif
 
 /**
 A configuration document.

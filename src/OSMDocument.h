@@ -40,9 +40,6 @@ class OSMDocument {
     //! Constructor
     explicit OSMDocument(Configuration& config, size_t lines);
 
-    //! Destructor
-    virtual ~OSMDocument();
-
     //! add node to the map
     void AddNode(Node n);
 
@@ -56,7 +53,7 @@ class OSMDocument {
     bool has_way(int64_t way_id) const;
     Way* FindWay(int64_t way_id);
 
-    void AddRelation(Relation* r);
+    void AddRelation(const Relation &r);
 
  public:
     // ! parsed nodes
@@ -64,7 +61,7 @@ class OSMDocument {
     //! parsed ways
     std::map<int64_t, Way> m_Ways;
     //! parsed relations
-    std::vector<Relation*> m_Relations;
+    std::vector<Relation> m_Relations;
 
 
     Configuration& m_rConfig;

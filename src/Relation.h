@@ -100,16 +100,10 @@ class Relation {
          *    Constructor
          *    @param id ID of the way
          */
-#if 0
-        explicit Relation(int64_t id);
-#endif
         explicit Relation(const char ** atts);
         Relation() = delete;
         Relation(const Relation&) = default;
-#if 0
-        //! Destructor
-        ~Relation();
-#endif
+
         /**
          *    saves the nodes of the way  
          *    @param pNode node

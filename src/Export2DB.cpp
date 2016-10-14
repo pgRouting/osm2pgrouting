@@ -470,7 +470,7 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
 
 
 void Export2DB::exportRelations(
-        const std::vector<Relation*> &relations,
+        const std::vector<Relation> &relations,
         const Configuration &config) const {
     std::cout << "    Processing " << relations.size() << " relations\n";
     createTempTable(create_relations, "__relations_temp");
@@ -482,18 +482,18 @@ void Export2DB::exportRelations(
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
     for (auto it = relations.begin(); it != relations.end(); ++it) {
         auto relation = *it;
-        std::cout << relation->m_Tags.size();
+        std::cout << relation.m_Tags.size();
 
         // for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
         // auto tag = *it_tag;
         //  std::pair<std::string, std::string> pair = *it_tag++;
-        std::string row_data = TO_STR(relation->osm_id());
+        std::string row_data = TO_STR(relation.osm_id());
         row_data += "\t";
-        row_data += TO_STR(config.FindType(relation->type()).id());
+        row_data += TO_STR(config.FindType(relation.type()).id());
         row_data += "\t";
-        row_data += TO_STR(config.FindClass(relation->type(), relation->clss()).id());
+        row_data += TO_STR(config.FindClass(relation.type(), relation.clss()).id());
         row_data += "\t";
-        row_data = row_data + relation->type() + "=" + relation->clss();
+        row_data = row_data + relation.type() + "=" + relation.clss();
 
 #if 0
         if (!relation->name.empty()) {
@@ -536,7 +536,7 @@ void Export2DB::exportRelations(
 
 // ////////should break into 2 functions
 
-void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, const Configuration &config) const {
+void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const {
     std::cout << "    Processing way's relations: ";
     createTempTable(create_relations_ways, "__relations_ways_temp");
 
@@ -547,13 +547,13 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, con
 
     for (auto it = relations.begin(); it != relations.end(); ++it) {
         auto relation = *it;
-        for (auto it_ref = relation->m_WayRefs.begin(); it_ref != relation->m_WayRefs.end(); ++it_ref) {
+        for (auto it_ref = relation.m_WayRefs.begin(); it_ref != relation.m_WayRefs.end(); ++it_ref) {
             auto way_id = *it_ref;
-            std::string row_data = TO_STR(relation->osm_id());
+            std::string row_data = TO_STR(relation.osm_id());
             row_data += "\t";
             row_data += TO_STR(way_id);
             row_data += "\t";
-            row_data += TO_STR(config.FindType(relation->type()).id());
+            row_data += TO_STR(config.FindType(relation.type()).id());
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
@@ -942,6 +942,8 @@ void Export2DB::createFKeys() {
             "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
     result = PQexec(mycon, fk_relations.c_str());
 #if 0
+    // its not wroking as there are several ways with the same osm_id
+    // the gid is not possible because that is "on the fly" sequential
      "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
 #endif
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {

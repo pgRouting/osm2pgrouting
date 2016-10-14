@@ -36,9 +36,7 @@ OSMDocument::OSMDocument(Configuration &config, size_t lines) :
     m_lines(lines) {
 }
 
-OSMDocument::~OSMDocument() {
-    ez_vectordelete(m_Relations);
-}
+
 void OSMDocument::AddNode(Node n) {
     m_Nodes[n.osm_id()] = n;
 }
@@ -47,7 +45,7 @@ void OSMDocument::AddWay(Way w) {
     m_Ways[w.osm_id()] = w;
 }
 
-void OSMDocument::AddRelation(Relation* r) {
+void OSMDocument::AddRelation(const Relation &r) {
     m_Relations.push_back(r);
 }
 

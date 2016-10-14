@@ -56,6 +56,7 @@ class OSMDocumentParserCallback :
         m_pActRelation(0),
         last_node(nullptr),
         last_way(nullptr),
+        last_relation(nullptr),
         m_line(0),
         m_section(1) {
     }
@@ -65,6 +66,7 @@ class OSMDocumentParserCallback :
  private:   
     Node *last_node;
     Way *last_way;
+    Relation* last_relation;
     size_t m_line;
     int m_section;
 };  // class OSMDocumentParserCallback
