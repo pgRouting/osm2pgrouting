@@ -56,13 +56,11 @@ class OSMDocument {
     void AddRelation(Relation* r);
 
  public:
-    // ! Map, which saves the parsed nodes
+    // ! parsed nodes
     std::map<int64_t, Node> m_Nodes;
     //! parsed ways
     std::vector<Way> m_Ways;
-    //! split ways
-    std::vector<Way> m_SplitWays;
-
+    //! parsed relations
     std::vector<Relation*> m_Relations;
 
 

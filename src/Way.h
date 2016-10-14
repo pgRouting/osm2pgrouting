@@ -59,13 +59,6 @@ class Way {
       */
      Way(const char **atts);
 
-     Way(int64_t id,
-             bool visible,
-             int64_t osm_id,
-             double maxspeed_forward,
-             double maxspeed_backward);
-     //! Destructor
-     // ~Way();
      /**
       *  saves the nodes of the way  
       *  @param pNode node

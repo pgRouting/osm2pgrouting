@@ -84,6 +84,7 @@ OSMDocumentParserCallback::StartElement(
             last_node = new Node(atts);
         };
 #if 0
+        // TODO to be used in V.2.2 for a hstore column
         if (strcmp(name, "tag") == 0) {
             last_node->add_tag(atts);
         }
@@ -91,7 +92,6 @@ OSMDocumentParserCallback::StartElement(
         return;
     }
 
-#if 1
     if (m_section == 2) {
         if (strcmp(name, "way") == 0) {
             last_way = new Way(atts);
@@ -151,159 +151,114 @@ OSMDocumentParserCallback::StartElement(
                     << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
             }
         }    
-        // return;
+        return;
     }
-#endif
 
-    // START RELATIONS CODE
-    if (strcmp(name, "member") == 0) {
-        // std::cout << "In member..." << std::endl;
+    if (m_section == 3) {
+        // START RELATIONS CODE
+        if (strcmp(name, "member") == 0) {
+            /*
+               <member type="node" ref="721818679" role="label"/>
+               <member type="way" ref="173424370" role=""/>
+               <member type="way" ref="48435091" role="link"/>
+               */
+            // std::cout << "In member..." << std::endl;
 
-        if (m_pActRelation && atts != NULL) {
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "ref") == 0) {
-                    int64_t wayRefId = atoll(value);
-                    m_pActRelation->AddWayRef(wayRefId);
+            if (m_pActRelation && atts != NULL) {
+                const char** attribut = (const char**)atts;
+                while (*attribut != NULL) {
+                    const char* name = *attribut++;
+                    const char* value = *attribut++;
+                    if (strcmp(name, "ref") == 0) {
+                        int64_t wayRefId = atoll(value);
+                        m_pActRelation->AddWayRef(wayRefId);
+                    }
                 }
             }
         }
-    }
-    // END RELATIONS CODE
+        // END RELATIONS CODE
 
 
-    if (strcmp(name, "nd") == 0) {
+        if (strcmp(name, "nd") == 0) {
+        } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
+            m_pActRelation = new Relation(atts);
+            
 #if 0
-        if (m_pActWay && atts != NULL) {
-            auto nodeRefId = m_pActWay->add_node(atts);
-            m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
-            Node *node = m_rDocument.FindNode(nodeRefId);
-            if (node != 0) {
-                node->incrementUse();
-            } else {
-                std::cout << "Reference nd=" << nodeRefId
-                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+            if (atts != NULL) {
+                int64_t id =-1;
+                const char** attribut = (const char**)atts;
+                while (*attribut != NULL) {
+                    const char* name = *attribut++;
+                    const char* value = *attribut++;
+                    if (strcmp(name, "id") == 0) {
+                        id = atoll(value);
+                    }
+                }
+                if (id > 0) m_pActRelation = new Relation(id);
             }
-        }
 #endif
-    } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
-        if (atts != NULL) {
-            int64_t id =-1;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "id") == 0) {
-                    id = atoll(value);
-                }
-            }
-            if (id > 0) m_pActRelation = new Relation(id);
-            // std::cout<<"Starting relation: "<<id<<std::endl;
-        }
-    } else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
-        // <tag k="name" v="Pfnderweg"/>
-        if (atts != NULL) {
-            std::string k;
-            std::string v;
-            const char** attribut = (const char**)atts;
-            while (*attribut != NULL) {
-                const char* name = *attribut++;
-                const char* value = *attribut++;
-                if (strcmp(name, "k") == 0) {
-                    k = value;
-                } else if (strcmp(name, "v") == 0) {
-                    v = value;
-                }
-            }
-            if (!k.empty()) {
+        } else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
+            if (atts != NULL) {
+                std::string k;
+                std::string v;
+                m_pActRelation->add_tag(atts, k, v);
 #if 0
-                if (m_pActWay) {
-                    m_pActWay->oneWay(k, v);
-                    m_pActWay->max_speed(k, v);
+                const char** attribut = (const char**)atts;
+                while (*attribut != NULL) {
+                    const char* name = *attribut++;
+                    const char* value = *attribut++;
+                    if (strcmp(name, "k") == 0) {
+                        k = value;
+                    } else if (strcmp(name, "v") == 0) {
+                        v = value;
+                    }
                 }
-                //  CHECKING OUT SOME DATA...
-                // std::cout<<"k: "<<k<<", v: "<<v<<std::endl;
-                // std::cout<<"m_pActWay: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
-                // std::cout<<"thecount: "<<m_rDocument.m_rConfig.m_Types.count(k)<<std::endl;
-                if (m_pActWay && k.compare("name") == 0) {
-                    m_pActWay->name(v);
-                }
-                else if (m_pActWay && m_rDocument.m_rConfig.has_class(k, v)) {
-                    if ((m_pActWay->type().compare("") == 0 && m_pActWay->clss().compare("") == 0)
+#endif
+                if (!k.empty()) {
+                    if ((m_pActRelation->type().compare("") == 0 && m_pActRelation->clss().compare("") == 0)
                             || (
                                 m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
-                                && m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())
+                                && m_rDocument.m_rConfig.has_class(m_pActRelation->type(), m_pActRelation->clss())
                                 && m_rDocument.m_rConfig.class_priority(k, v)
-                                < m_rDocument.m_rConfig.class_priority(m_pActWay->type(), m_pActWay->clss())
+                                < m_rDocument.m_rConfig.class_priority(m_pActRelation->type(), m_pActRelation->clss())
                                )
                        ) {
-                        m_pActWay->type(k);
-                        m_pActWay->clss(v);
-
-                        if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
-                            m_pActWay->AddTag(k, v);
-
-
-                            // set default maxspeed values from classes, if not set previously (default: -1)
-                            auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(m_pActWay->type(), m_pActWay->clss());
-                            if (m_pActWay->maxspeed_forward() <= 0) {
-                                m_pActWay->maxspeed_forward(newValue);
-                            }
-                            if (m_pActWay->maxspeed_backward() <= 0) {
-                                m_pActWay->maxspeed_backward(newValue);
-                            }
-                        }
-                    }
-                } else
-#endif
-                    if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
-                    m_pActRelation->AddTag(k, v);
-                }
-
-                if (m_pActRelation && k.compare("name") == 0) {
-                    m_pActRelation->name = v;
-                }
-                // END TAG FOR RELATION
-            }
-        }
+                        m_pActRelation->type(k);
+                        m_pActRelation->clss(v);
 #if 0
-    } else if (strcmp(name, "way") == 0) {
-        m_pActWay = new Way(atts);
+                        if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
+                            m_pActRelation->visible(true);
+                            //                        m_pActRelation->AddTag(k, v);
+                        }
 #endif
-    } else if (strcmp(name, "osm") == 0) {
+                        if (m_pActRelation && k == "name") {
+                            m_pActRelation->name = v;
+                        }
+                        // END TAG FOR RELATION
+                    }
+                }
+#if 0
+#endif
+            }
+        } else if (strcmp(name, "osm") == 0) {
+        }
     }
 }
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
-#if 0
-        std::cout << "\nadded Node: " << last_node->osm_id();
-#endif
         delete last_node;
         return;
     }
     if (strcmp(name, "way") == 0) {
-
 #if 0
-        std::cout << (*m_pActWay) << "\n";
-        std::cout << (*last_way) << "\n";
-#endif
-#if 0
-        if (m_rDocument.m_rConfig.has_class(m_pActWay->type(), m_pActWay->clss())) {
-            m_rDocument.AddWay(*m_pActWay);
-            std::cout << "\nadded Way: " << m_pActWay->osm_id();
-        }
-#endif
         if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
-        m_rDocument.AddWay(*last_way);
-        std::cout << "\nadded Way: " << last_way->osm_id();
-        }
+#endif
+            m_rDocument.AddWay(*last_way);
+            std::cout << "\nadded Way: " << last_way->osm_id();
 #if 0
-        delete m_pActWay;
-        m_pActWay = nullptr;
+        }
 #endif
         delete last_way;
         last_way = nullptr;
@@ -311,7 +266,9 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
 
     } else if (strcmp(name, "relation") == 0) {
         // THIS IS THE RELATION CODE...
-        m_rDocument.AddRelation(m_pActRelation);
+        if (m_rDocument.m_rConfig.has_class(m_pActRelation->type(), m_pActRelation->clss())) {
+            m_rDocument.AddRelation(m_pActRelation);
+        }
         m_pActRelation = 0;
 
         // std::cout<<"Adding relation: "<<m_pActRelation->id<<std::endl;

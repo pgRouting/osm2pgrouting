@@ -29,22 +29,12 @@
 
 namespace osm2pgr {
 
-Way::Way(int64_t id,
-        bool visible,
-        int64_t osm_id,
-        double maxspeed_forward,
-        double maxspeed_backward) :
-    m_id(id),
-    m_osm_id(osm_id),
-    m_visible(visible),
-    m_maxspeed_forward(maxspeed_forward),
-    m_maxspeed_backward(maxspeed_backward),
-    m_oneWay("UNKNOWN") {
-    }
-
 
 Way::Way(const char **atts) :
     m_visible(true),
+    m_name(""),
+    m_type(""),
+    m_clss(""),
     m_maxspeed_forward(-1),
     m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") {

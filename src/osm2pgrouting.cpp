@@ -71,7 +71,9 @@ int main(int argc, char* argv[]) {
     std::time_t start_t = std::time(NULL);
     std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
 #endif
+#if 0
     try {
+#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -161,12 +163,19 @@ int main(int argc, char* argv[]) {
             if (!skipnodes) {
                 dbConnection.exportNodes(document.m_Nodes);
             }
+            std::cout << "\nexport Types ..." << endl;
             dbConnection.exportTypes(config.types());
+            std::cout << "\nexport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
-            // dbConnection.exportRelations(document.m_Relations, config);
-            dbConnection.exportRelationsWays(document.m_Relations);
+            std::cout << "\nexport Relations ..." << endl;
+            dbConnection.exportRelations(document.m_Relations, config);
+            std::cout << "\nexport RelationsWays ..." << endl;
+            dbConnection.exportRelationsWays(document.m_Relations, config);
+#if 0
+            std::cout << "\nexport Tags ..." << endl;
             dbConnection.exportTags(document.m_SplitWays, config);
-            // dbConnection.exportWays(document.m_SplitWays, config);
+#endif
+            std::cout << "\nexport Tags ..." << endl;
             dbConnection.exportWays(document.m_Ways, config);
 
 
@@ -179,7 +188,6 @@ int main(int argc, char* argv[]) {
         std::cout << "#########################" << endl;
 
         std::cout << "size of streets: " << document.m_Ways.size() << endl;
-        std::cout << "size of split ways : " << document.m_SplitWays.size() << endl;
 
 #ifdef WITH_TIME
         clock_t end = clock();
@@ -198,9 +206,8 @@ int main(int argc, char* argv[]) {
 #endif
 
         std::cout << "#########################" << endl;
-        //  string n;
-        //  getline(cin, n);
         return 0;
+#if 0
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -214,4 +221,5 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
+#endif
 }

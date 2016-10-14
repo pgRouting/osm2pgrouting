@@ -101,23 +101,40 @@ class Relation {
          *    @param id ID of the way
          */
         explicit Relation(int64_t id);
+        explicit Relation(const char ** atts);
         Relation() = delete;
         Relation(const Relation&) = default;
+#if 0
         //! Destructor
         ~Relation();
+#endif
         /**
          *    saves the nodes of the way  
          *    @param pNode node
          */
+        void AddWayRef(int64_t osm_id,  const std::string &k, const std::string &v);
         void AddWayRef(int64_t wID);
+        void add_tag(const char **atts, std::string &key, std::string &value);
         void AddTag(std::string key, std::string value);
+        inline int64_t osm_id() const {return m_osm_id;}
+        inline int64_t visible(bool p_visible) {return m_visible = p_visible;}
+
+        inline void type(std::string p_type) {m_type = p_type;}
+        inline void clss(std::string p_clss) {m_clss = p_clss;}
+        inline std::string type() const {return m_type;}
+        inline std::string clss() const {return m_clss;}
 
     public:
-        int64_t id;
+        int64_t m_osm_id;
+        bool m_visible;
+        std::string m_type;
+        std::string m_clss;
+
         std::string name;
         std::vector<int64_t> m_WayRefs;
         std::map<std::string, std::string> m_Tags;
         std::map<std::string, std::string> m_attributes;
+
 };
 
 

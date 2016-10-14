@@ -484,24 +484,28 @@ void Export2DB::exportRelations(
         auto relation = *it;
         std::cout << relation->m_Tags.size();
 
-        for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
-            auto tag = *it_tag;
+        // for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
+            // auto tag = *it_tag;
             //  std::pair<std::string, std::string> pair = *it_tag++;
-            std::string row_data = TO_STR(relation->id);
+            std::string row_data = TO_STR(relation->osm_id());
             row_data += "\t";
-            row_data += TO_STR(config.FindType(tag.first).id());
+            row_data += TO_STR(config.FindType(relation->type()).id());
             row_data += "\t";
-            row_data += TO_STR(config.FindClass(tag.first, tag.second).id());
+            row_data += TO_STR(config.FindClass(relation->type(), relation->clss()).id());
             row_data += "\t";
+            row_data = row_data + relation->type() + "=" + relation->clss();
+
+#if 0
             if (!relation->name.empty()) {
                 std::string escaped_name = relation->name;
                 boost::replace_all(escaped_name, "\t", "\\\t");
                 row_data += escaped_name;
             }
+#endif
             row_data += "\n";
             std::cout << row_data << "\n";
             PQputline(mycon, row_data.c_str());
-        }
+        // }
     }
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
@@ -509,14 +513,24 @@ void Export2DB::exportRelations(
     std::string insert_into_relations(
             " WITH data AS ("
             " SELECT a.* "
-            " FROM  __relations_temp a LEFT JOIN " +  addSchema("osm_relations") + " b USING (relation_id, type_id)"
-            "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL)"
+            " FROM  __relations_temp a LEFT JOIN " +  addSchema(full_table_name("osm_relations")) + " b USING (relation_id, type_id, class_id)"
+            "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL OR b.class_id IS NULL))"
 
-            " INSERT INTO " + addSchema("osm_relations")  + " "
+            " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
             "(" + relations_columns + ") "
             " (SELECT " + relations_columns + " FROM data); ");
+    std::cout << insert_into_relations << "\n";
     q_result = PQexec(mycon, insert_into_relations.c_str());
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "\n";
+    if (PQresultStatus(q_result) != PGRES_COMMAND_OK) {
+        std::cerr << PQresultStatus(q_result);
+        std::cerr << "foreign keys for ways failed: "
+            << PQerrorMessage(mycon)
+            << std::endl;
+    } else {
+        std::cout << " Inserted: " << PQcmdTuples(q_result) << " tuples in " << addSchema(full_table_name("osm_relations")) << "\n";
+        std::cout << "Foreign keys for Ways table created" << std::endl;
+    }
+
     PQclear(q_result);
     dropTable("__relations_temp");
 }
@@ -524,40 +538,28 @@ void Export2DB::exportRelations(
 
 // ////////should break into 2 functions
 
-void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations/*, Configuration *config*/) const {
+void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, const Configuration &config) const {
     std::cout << "    Processing way's relations: ";
     createTempTable(create_relations_ways, "__relations_ways_temp");
 
-    std::string relations_ways_columns(" relation_id, way_id ");
+    std::string relations_ways_columns(" relation_id, way_id, type ");
     std::string copy_relations_ways("COPY __relations_ways_temp (" + relations_ways_columns + ") FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_relations_ways.c_str());
 
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &relation : relations) {
-        for (const auto &way_id : relation->m_WayRefs) {
-#else
-            for (auto it = relations.begin(); it != relations.end(); ++it) {
-                auto relation = *it;
-                for (auto it_ref = relation->m_WayRefs.begin(); it_ref != relation->m_WayRefs.end(); ++it_ref) {
-                    auto way_id = *it;
-#endif
-                    std::string row_data = TO_STR(relation->id);
-                    row_data += "\t";
-                    row_data += TO_STR(way_id);
-                    row_data += "\n";
-                    PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-                }
-#else
-            }
-#endif
-
-#ifdef WITH_RANGE_LOOP
+    for (auto it = relations.begin(); it != relations.end(); ++it) {
+        auto relation = *it;
+        for (auto it_ref = relation->m_WayRefs.begin(); it_ref != relation->m_WayRefs.end(); ++it_ref) {
+            auto way_id = *it_ref;
+            std::string row_data = TO_STR(relation->osm_id());
+            row_data += "\t";
+            row_data += TO_STR(way_id);
+            row_data += "\t";
+            row_data += relation->type();
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
@@ -691,13 +693,15 @@ void Export2DB::exportWays(const std::vector<Way> &ways, const Configuration &co
     int64_t split_count = 0;
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = *it;
-        way.split_me();
 
         if ((count % (chunck_size / 100)) == 0) {
             print_progress(ways.size(), count);
         }
+        ++count;
+        if (way.clss() == "" || way.type() == "") continue;
 
-        if ((++count % chunck_size) == 0) {
+        way.split_me();
+        if ((count % chunck_size) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
             std::cout << "    Ways Processed: " << count << "\t";
@@ -916,7 +920,7 @@ void Export2DB::createTopology() const {
 }
 
 void Export2DB::createFKeys() {
-    return; // TODO
+    // return; // TODO
     /*
        ALTER TABLE osm_way_classes
        ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;

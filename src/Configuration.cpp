@@ -29,7 +29,11 @@ namespace osm2pgr {
 
 
 void Configuration::AddType(Type t) {
-    if (has_type(t.name())) return;
+    if (has_type(t.name())) {
+        // TODO should be looking for id
+        std::cerr << "duplicate Type found in condfiguration file" << t.name() << "\n";
+        return;
+    }
     m_Types[t.name()] = t;
 }
 
