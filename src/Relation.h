@@ -100,7 +100,9 @@ class Relation {
          *    Constructor
          *    @param id ID of the way
          */
+#if 0
         explicit Relation(int64_t id);
+#endif
         explicit Relation(const char ** atts);
         Relation() = delete;
         Relation(const Relation&) = default;
@@ -114,6 +116,7 @@ class Relation {
          */
         void AddWayRef(int64_t osm_id,  const std::string &k, const std::string &v);
         void AddWayRef(int64_t wID);
+        int64_t add_member(const char **atts);
         void add_tag(const char **atts, std::string &key, std::string &value);
         void AddTag(std::string key, std::string value);
         inline int64_t osm_id() const {return m_osm_id;}

@@ -503,7 +503,6 @@ void Export2DB::exportRelations(
         }
 #endif
         row_data += "\n";
-        std::cout << row_data << "\n";
         PQputline(mycon, row_data.c_str());
         // }
     }
@@ -519,11 +518,10 @@ void Export2DB::exportRelations(
             " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
             "(" + relations_columns + ") "
             " (SELECT " + relations_columns + " FROM data); ");
-    std::cout << insert_into_relations << "\n";
     q_result = PQexec(mycon, insert_into_relations.c_str());
     if (PQresultStatus(q_result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(q_result);
-        std::cerr << "foreign keys for ways failed: "
+        std::cerr << "inserting to osm_relations failed \n"
             << PQerrorMessage(mycon)
             << std::endl;
     } else {
@@ -597,7 +595,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, con
    </relation>
    */
 
-void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &config) const {
+void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
 
     createTempTable(create_way_tag, "__way_tag_temp");
@@ -605,7 +603,7 @@ void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &co
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
 
     for (auto it = ways.begin(); it != ways.end(); ++it) {
-        auto way = *it;
+        auto way = it->second;
         for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
             auto tag = *it_tag;
             std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
@@ -651,7 +649,7 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
     PQclear(q_result);
 }
 
-void Export2DB::exportWays(const std::vector<Way> &ways, const Configuration &config) const {
+void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
 
     std::string separator("\t");
@@ -679,7 +677,7 @@ void Export2DB::exportWays(const std::vector<Way> &ways, const Configuration &co
     int64_t count = 0;
     int64_t split_count = 0;
     for (auto it = ways.begin(); it != ways.end(); ++it) {
-        auto way = *it;
+        auto way = it->second;
 
         if ((count % (chunck_size / 100)) == 0) {
             print_progress(ways.size(), count);
@@ -941,9 +939,11 @@ void Export2DB::createFKeys() {
     }
 
     std::string fk_relations(
-            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); " +
-            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(gid);");
+            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
     result = PQexec(mycon, fk_relations.c_str());
+#if 0
+     "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
+#endif
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(result);
         std::cerr << "foreign keys for " + addSchema(full_table_name("relations_ways"))  + " failed: "

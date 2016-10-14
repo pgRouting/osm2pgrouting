@@ -24,10 +24,12 @@
 
 namespace osm2pgr {
 
+#if 0
 Relation::Relation(int64_t id)
 :
     m_osm_id(id) {
 }
+#endif
 
 Relation::Relation(const char **atts) {
     auto **attribut = atts;
@@ -36,7 +38,6 @@ Relation::Relation(const char **atts) {
         std::string value = *attribut++;
         if (key == "id") {
             m_osm_id = boost::lexical_cast<int64_t>(value);
-            std::cout << "found relation id" << m_osm_id << " " << osm_id() << "\n";
         } else if (key == "visible") {
             m_visible = boost::lexical_cast<bool>(value);
         } else {
@@ -51,12 +52,11 @@ Relation::~Relation() {
 }
 #endif
 
-#if 0
 int64_t
-Way::add_member(const char **atts) {
+Relation::add_member(const char **atts) {
     auto **attribut = atts;
     std::string type;
-    int64_t osm_id;
+    int64_t osm_id(0);
     std::string role;
     while (*attribut != NULL) {
         std::string key = *attribut++;
@@ -65,19 +65,18 @@ Way::add_member(const char **atts) {
          * currently only adding way
          */
         if (key == "type") {
-            if (value != "way") return;
+            if (value != "way") return -1;
         }
         if (key == "ref") {
             osm_id = boost::lexical_cast<int64_t>(value);
         };
         if (key == "role") {
-            role = boost::lexical_cast<int64_t>(value);
+            role = value;
         };
     }
     AddWayRef(osm_id, "way", role);
     return osm_id;
 }
-#endif
 
 
 void
@@ -93,7 +92,6 @@ Relation::add_tag(const char **atts, std::string &key, std::string &value) {
         }
     }
     /* store the tag as originaly recieved*/
-    std::cout << "adding tag (" << key << "-> " << value << ")\n";
     m_Tags[key] = value;
 }
 

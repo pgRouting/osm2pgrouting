@@ -58,6 +58,7 @@ class Way {
       *  @param id ID of the way
       */
      Way(const char **atts);
+     Way() = default;
 
      /**
       *  saves the nodes of the way  
@@ -156,6 +157,8 @@ class Way {
      std::ostream& operator<<(std::ostream &, const Way &);
 
 
+     // TODO figure out what to do to move to private
+     std::map<std::string, std::string> m_Tags;
 
  private:
      std::string geometry_str(const std::vector<Node*> &) const;
@@ -177,7 +180,6 @@ class Way {
       * <tag k="source" v="YahooJapan/ALPSMAP"/>
       * <tag k="yh:WIDTH" v="5.5m〜13.0m"/>
       */
-     std::map<std::string, std::string> m_Tags;
 
      /*! the splited ways are a subset of the original way
       *  all split_ways share the information of the original way

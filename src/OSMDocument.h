@@ -53,13 +53,16 @@ class OSMDocument {
     bool has_node(int64_t nodeRefId) const;
     Node* FindNode(int64_t nodeRefId);
 
+    bool has_way(int64_t way_id) const;
+    Way* FindWay(int64_t way_id);
+
     void AddRelation(Relation* r);
 
  public:
     // ! parsed nodes
     std::map<int64_t, Node> m_Nodes;
     //! parsed ways
-    std::vector<Way> m_Ways;
+    std::map<int64_t, Way> m_Ways;
     //! parsed relations
     std::vector<Relation*> m_Relations;
 

@@ -137,7 +137,6 @@ OSMDocumentParserCallback::StartElement(
                     }
                 }
             }
-            std::cout << "tag added " << k << "->" << v << "\n";
         }
 
         if (strcmp(name, "nd") == 0) {
@@ -155,65 +154,39 @@ OSMDocumentParserCallback::StartElement(
     }
 
     if (m_section == 3) {
-        // START RELATIONS CODE
+        /*
+         *  START RELATIONS CODE
+         */
         if (strcmp(name, "member") == 0) {
             /*
                <member type="node" ref="721818679" role="label"/>
                <member type="way" ref="173424370" role=""/>
                <member type="way" ref="48435091" role="link"/>
                */
-            // std::cout << "In member..." << std::endl;
-
-            if (m_pActRelation && atts != NULL) {
-                const char** attribut = (const char**)atts;
-                while (*attribut != NULL) {
-                    const char* name = *attribut++;
-                    const char* value = *attribut++;
-                    if (strcmp(name, "ref") == 0) {
-                        int64_t wayRefId = atoll(value);
-                        m_pActRelation->AddWayRef(wayRefId);
-                    }
-                }
+            auto way_id = m_pActRelation->add_member(atts);
+            if (way_id == -1) return;
+            assert(!m_pActRelation->m_WayRefs.empty());
+            if (m_rDocument.has_way(way_id)) {
+                Way* way_ptr = m_rDocument.FindWay(way_id);
+                way_ptr->m_Tags.insert(m_pActRelation->m_Tags.begin(),  m_pActRelation->m_Tags.end());
+            } else {
+                assert(!m_pActRelation->m_WayRefs.empty());
+                m_pActRelation->m_WayRefs.pop_back();
             }
+
+            return;
         }
-        // END RELATIONS CODE
 
 
-        if (strcmp(name, "nd") == 0) {
-        } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
+        if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
             m_pActRelation = new Relation(atts);
-            
-#if 0
-            if (atts != NULL) {
-                int64_t id =-1;
-                const char** attribut = (const char**)atts;
-                while (*attribut != NULL) {
-                    const char* name = *attribut++;
-                    const char* value = *attribut++;
-                    if (strcmp(name, "id") == 0) {
-                        id = atoll(value);
-                    }
-                }
-                if (id > 0) m_pActRelation = new Relation(id);
-            }
-#endif
-        } else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
+            return;
+        }
+        else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
             if (atts != NULL) {
                 std::string k;
                 std::string v;
                 m_pActRelation->add_tag(atts, k, v);
-#if 0
-                const char** attribut = (const char**)atts;
-                while (*attribut != NULL) {
-                    const char* name = *attribut++;
-                    const char* value = *attribut++;
-                    if (strcmp(name, "k") == 0) {
-                        k = value;
-                    } else if (strcmp(name, "v") == 0) {
-                        v = value;
-                    }
-                }
-#endif
                 if (!k.empty()) {
                     if ((m_pActRelation->type().compare("") == 0 && m_pActRelation->clss().compare("") == 0)
                             || (
@@ -225,23 +198,14 @@ OSMDocumentParserCallback::StartElement(
                        ) {
                         m_pActRelation->type(k);
                         m_pActRelation->clss(v);
-#if 0
-                        if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
-                            m_pActRelation->visible(true);
-                            //                        m_pActRelation->AddTag(k, v);
-                        }
-#endif
-                        if (m_pActRelation && k == "name") {
-                            m_pActRelation->name = v;
-                        }
-                        // END TAG FOR RELATION
+                    }
+                    if (m_pActRelation && k == "name") {
+                        m_pActRelation->name = v;
                     }
                 }
-#if 0
-#endif
             }
-        } else if (strcmp(name, "osm") == 0) {
         }
+    } else if (strcmp(name, "osm") == 0) {
     }
 }
 
@@ -252,30 +216,36 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         return;
     }
     if (strcmp(name, "way") == 0) {
-#if 0
-        if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
-#endif
-            m_rDocument.AddWay(*last_way);
-            std::cout << "\nadded Way: " << last_way->osm_id();
-#if 0
-        }
-#endif
+        m_rDocument.AddWay(*last_way);
         delete last_way;
         last_way = nullptr;
         return;
 
     } else if (strcmp(name, "relation") == 0) {
-        // THIS IS THE RELATION CODE...
         if (m_rDocument.m_rConfig.has_class(m_pActRelation->type(), m_pActRelation->clss())) {
+            for (const auto &way_id: m_pActRelation->m_WayRefs) {
+
+                assert(m_rDocument.has_way(way_id));
+                if (m_rDocument.has_way(way_id)) {
+                    Way* way_ptr = m_rDocument.FindWay(way_id);
+                    way_ptr->clss(m_pActRelation->clss());
+                    way_ptr->type(m_pActRelation->type());
+                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(m_pActRelation->type(), m_pActRelation->clss());
+                    if (way_ptr->maxspeed_forward() <= 0) {
+                        way_ptr->maxspeed_forward(newValue);
+                    }
+                    if (way_ptr->maxspeed_backward() <= 0) {
+                        way_ptr->maxspeed_backward(newValue);
+                    }
+                }
+            }
             m_rDocument.AddRelation(m_pActRelation);
         }
         m_pActRelation = 0;
 
-        // std::cout<<"Adding relation: "<<m_pActRelation->id<<std::endl;
     } else if (strcmp(name, "osm") == 0) {
         show_progress();
     }
-    // END OF THE RELATIONS CODE
 }
 
 }  // end namespace osm2pgr

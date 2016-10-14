@@ -44,7 +44,7 @@ void OSMDocument::AddNode(Node n) {
 }
 
 void OSMDocument::AddWay(Way w) {
-    m_Ways.push_back(w);
+    m_Ways[w.osm_id()] = w;
 }
 
 void OSMDocument::AddRelation(Relation* r) {
@@ -61,6 +61,18 @@ bool
 OSMDocument::has_node(int64_t nodeRefId) const {
     auto it = m_Nodes.find(nodeRefId);
     return (it != m_Nodes.end());
+}
+
+Way*
+OSMDocument::FindWay(int64_t way_id) {
+    auto it = m_Ways.find(way_id);
+    return &(it->second);
+}
+
+bool
+OSMDocument::has_way(int64_t way_id) const {
+    auto it = m_Ways.find(way_id);
+    return (it != m_Ways.end());
 }
 
 

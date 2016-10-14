@@ -44,7 +44,6 @@ Way::Way(const char **atts) :
             std::string value = *attribut++;
             if (key == "id") {
                 m_osm_id = boost::lexical_cast<int64_t>(value);
-                std::cout << "found id" << m_osm_id << " " << osm_id() << "\n";
             } else if (key == "visible") {
                 m_visible = boost::lexical_cast<bool>(value);
             } else {
@@ -81,7 +80,6 @@ Way::add_tag(const char **atts, std::string &key, std::string &value) {
         }
     }
     /* store the tag as originaly recieved*/
-    std::cout << "adding tag (" << key << "-> " << value << ")\n";
     m_Tags[key] = value;
     oneWay(key, value);
     max_speed(key, value);
