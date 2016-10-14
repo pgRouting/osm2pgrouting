@@ -175,6 +175,7 @@ OSMDocumentParserCallback::StartElement(
 
 
     if (strcmp(name, "nd") == 0) {
+#if 0
         if (m_pActWay && atts != NULL) {
             auto nodeRefId = m_pActWay->add_node(atts);
             m_pActWay->AddNodeRef(m_rDocument.FindNode(nodeRefId));
@@ -186,6 +187,7 @@ OSMDocumentParserCallback::StartElement(
                     << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
             }
         }
+#endif
     } else if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
         if (atts != NULL) {
             int64_t id =-1;
@@ -216,6 +218,7 @@ OSMDocumentParserCallback::StartElement(
                 }
             }
             if (!k.empty()) {
+#if 0
                 if (m_pActWay) {
                     m_pActWay->oneWay(k, v);
                     m_pActWay->max_speed(k, v);
@@ -253,7 +256,9 @@ OSMDocumentParserCallback::StartElement(
                             }
                         }
                     }
-                } else if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
+                } else
+#endif
+                    if (m_pActRelation && m_rDocument.m_rConfig.has_class(k, v) )  {
                     m_pActRelation->AddTag(k, v);
                 }
 
@@ -263,8 +268,10 @@ OSMDocumentParserCallback::StartElement(
                 // END TAG FOR RELATION
             }
         }
+#if 0
     } else if (strcmp(name, "way") == 0) {
         m_pActWay = new Way(atts);
+#endif
     } else if (strcmp(name, "osm") == 0) {
     }
 }
@@ -280,7 +287,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
     }
     if (strcmp(name, "way") == 0) {
 
-#if 1
+#if 0
         std::cout << (*m_pActWay) << "\n";
         std::cout << (*last_way) << "\n";
 #endif
@@ -289,14 +296,15 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
             m_rDocument.AddWay(*m_pActWay);
             std::cout << "\nadded Way: " << m_pActWay->osm_id();
         }
-#else
-        if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
-            m_rDocument.AddWay(*last_way);
-            std::cout << "\nadded Way: " << last_way->osm_id();
-        }
 #endif
+        if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
+        m_rDocument.AddWay(*last_way);
+        std::cout << "\nadded Way: " << last_way->osm_id();
+        }
+#if 0
         delete m_pActWay;
         m_pActWay = nullptr;
+#endif
         delete last_way;
         last_way = nullptr;
         return;

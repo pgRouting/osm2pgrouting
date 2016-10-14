@@ -29,6 +29,7 @@ namespace osm2pgr {
 
 
 void Configuration::AddType(Type t) {
+    if (has_type(t.name())) return;
     m_Types[t.name()] = t;
 }
 

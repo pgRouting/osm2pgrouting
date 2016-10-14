@@ -464,8 +464,7 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
             "             END "
             " WHERE length_m IS NULL;");
     q_result = PQexec(mycon, sql3.c_str());
-    std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
-    std::cout << sql3 << "\n";
+    // std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
     PQclear(q_result);
 }
 

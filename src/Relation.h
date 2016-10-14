@@ -29,47 +29,95 @@ class Way;
 
 /**
 \code
- <way id="20215432" visible="true" timestamp="2008-01-09T22:35:16+00:00" user="Pferdo">
-    <nd ref="213794929"/>
-    <nd ref="213795470"/>
-    <nd ref="213795483"/>
-    <nd ref="213795493"/>
-    <nd ref="213795506"/>
-    <nd ref="213795517"/>
-    <nd ref="213795527"/>
-    <nd ref="213795541"/>
-    <nd ref="213795552"/>
-    <nd ref="213795561"/>
-    <nd ref="213795571"/>
-    <tag k="name" v="Pf�nderweg"/>
-    <tag k="created_by" v="JOSM"/>
-    <tag k="highway" v="residential"/>
-  </way>
+
+<relation id="2781938" version="1" timestamp="2013-02-24T05:24:08Z" changeset="15143772" uid="621319" user="hayashi">
+<member type="way" ref="206946707" role="outer"/>
+<member type="way" ref="206946714" role="inner"/>
+<member type="way" ref="206946713" role="inner"/>
+<member type="way" ref="206946715" role="inner"/>
+<member type="way" ref="206946721" role="inner"/>
+<member type="way" ref="206946723" role="inner"/>
+<tag k="building" v="yes"/>
+<tag k="type" v="multipolygon"/>
+</relation>
+
+<relation id="6127135" version="2" timestamp="2016-04-11T03:26:53Z" changeset="38464643" uid="624003" user="eugenebata">
+<member type="way" ref="184275824" role="link"/>
+<member type="way" ref="184275806" role="link"/>
+<member type="way" ref="184275771" role="link"/>
+<member type="way" ref="374341622" role=""/>
+<member type="way" ref="374341625" role=""/>
+<member type="way" ref="374341511" role=""/>
+<member type="way" ref="374341509" role=""/>
+<member type="way" ref="48434343" role=""/>
+<member type="way" ref="48434229" role=""/>
+<member type="way" ref="184275832" role=""/>
+<member type="way" ref="48434228" role=""/>
+<member type="way" ref="48434218" role=""/>
+<member type="way" ref="48434217" role=""/>
+<member type="way" ref="48434216" role=""/>
+<member type="way" ref="48434215" role=""/>
+<member type="way" ref="374341621" role=""/>
+<member type="way" ref="48434190" role="link"/>
+<member type="way" ref="93148473" role=""/>
+<member type="way" ref="93148470" role=""/>
+<member type="way" ref="93148447" role=""/>
+<member type="way" ref="185567427" role=""/>
+<member type="way" ref="93148469" role="link"/>
+<member type="way" ref="48437504" role=""/>
+<member type="way" ref="93148452" role=""/>
+<member type="way" ref="48437501" role=""/>
+<member type="way" ref="48437503" role=""/>
+<member type="way" ref="48437502" role=""/>
+<member type="way" ref="184275829" role=""/>
+<member type="way" ref="184275830" role=""/>
+<member type="way" ref="184275826" role=""/>
+<member type="way" ref="48437500" role=""/>
+<member type="way" ref="48437506" role=""/>
+<member type="way" ref="184275822" role="link"/>
+<member type="way" ref="184275810" role="link"/>
+<member type="way" ref="184275776" role="link"/>
+<member type="way" ref="93148444" role=""/>
+<member type="way" ref="93148467" role=""/>
+<member type="way" ref="48434207" role=""/>
+<member type="way" ref="48434208" role=""/>
+<member type="way" ref="251901729" role="link"/>
+<member type="way" ref="251901695" role="link"/>
+<member type="way" ref="251901733" role="link"/>
+<member type="way" ref="251901727" role="link"/>
+<tag k="name" v="阪神高速31号神戸山手線"/>
+<tag k="name:en" v="Hanshin Expressway Route 31"/>
+<tag k="ref" v="31"/>
+<tag k="route" v="road"/>
+<tag k="type" v="route"/>
+</relation>
+
 \endcode
 */
 class Relation {
- public:
-    /** 
-     *    Constructor
-     *    @param id ID of the way
-     */
-    explicit Relation(int64_t id);
-    Relation() = delete;
-    Relation(const Relation&) = default;
-    //! Destructor
-    ~Relation();
-    /**
-     *    saves the nodes of the way  
-     *    @param pNode node
-     */
-    void AddWayRef(int64_t pID);
-    void AddTag(std::string key, std::string value);
+    public:
+        /** 
+         *    Constructor
+         *    @param id ID of the way
+         */
+        explicit Relation(int64_t id);
+        Relation() = delete;
+        Relation(const Relation&) = default;
+        //! Destructor
+        ~Relation();
+        /**
+         *    saves the nodes of the way  
+         *    @param pNode node
+         */
+        void AddWayRef(int64_t wID);
+        void AddTag(std::string key, std::string value);
 
- public:
-    int64_t id;
-    std::string name;
-    std::vector<int64_t> m_WayRefs;
-    std::map<std::string, std::string> m_Tags;
+    public:
+        int64_t id;
+        std::string name;
+        std::vector<int64_t> m_WayRefs;
+        std::map<std::string, std::string> m_Tags;
+        std::map<std::string, std::string> m_attributes;
 };
 
 
