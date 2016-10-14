@@ -35,13 +35,13 @@
 
 #include "./prog_options.h"
 
-#if __GNUC__ > 4 || \
-        (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
-#define WITH_RANGE_LOOP
-#endif
 
-
-#define TO_STR(x)    boost::lexical_cast<std::string>(x)
+template <typename T>
+static
+std::string
+TO_STR(const T &x) {
+    return  boost::lexical_cast<std::string>(x);
+}
 
 
 Export2DB::Export2DB(const  po::variables_map &vm) :
@@ -102,12 +102,12 @@ Export2DB::Export2DB(const  po::variables_map &vm) :
                 " one_way int, "  //  0 unknown, 1 yes(normal direction), 2 (2 way),
                 //  -1 reversed (1 way but geometry is reversed)
                 //  3 - reversible (one way street but direction chnges on time)
-            " maxspeed_forward integer,"
-                " maxspeed_backward integer,"
-                " osm_id bigint,"
-                " source_osm bigint,"
-                " target_osm bigint,"
-                " priority double precision DEFAULT 1");
+                " maxspeed_forward integer,"
+                    " maxspeed_backward integer,"
+                    " osm_id bigint,"
+                    " source_osm bigint,"
+                    " target_osm bigint,"
+                    " priority double precision DEFAULT 1");
 
         create_relations = std::string(
                 "relation_id bigint PRIMARY KEY,"
@@ -158,7 +158,7 @@ CONNECTION_SETENV: Negotiating environment.
 
   CREATE TEMP TABLE table (
   table_description
- );
+  );
 
 */
 bool Export2DB::createTempTable(const std::string &table_description,
@@ -180,7 +180,7 @@ bool Export2DB::createTempTable(const std::string &table_description,
   CREATE TABLE table (
   table_description,
   constraint
- );
+  );
 
 */
 bool Export2DB::has_postGIS() const {
@@ -485,26 +485,26 @@ void Export2DB::exportRelations(
         std::cout << relation->m_Tags.size();
 
         // for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
-            // auto tag = *it_tag;
-            //  std::pair<std::string, std::string> pair = *it_tag++;
-            std::string row_data = TO_STR(relation->osm_id());
-            row_data += "\t";
-            row_data += TO_STR(config.FindType(relation->type()).id());
-            row_data += "\t";
-            row_data += TO_STR(config.FindClass(relation->type(), relation->clss()).id());
-            row_data += "\t";
-            row_data = row_data + relation->type() + "=" + relation->clss();
+        // auto tag = *it_tag;
+        //  std::pair<std::string, std::string> pair = *it_tag++;
+        std::string row_data = TO_STR(relation->osm_id());
+        row_data += "\t";
+        row_data += TO_STR(config.FindType(relation->type()).id());
+        row_data += "\t";
+        row_data += TO_STR(config.FindClass(relation->type(), relation->clss()).id());
+        row_data += "\t";
+        row_data = row_data + relation->type() + "=" + relation->clss();
 
 #if 0
-            if (!relation->name.empty()) {
-                std::string escaped_name = relation->name;
-                boost::replace_all(escaped_name, "\t", "\\\t");
-                row_data += escaped_name;
-            }
+        if (!relation->name.empty()) {
+            std::string escaped_name = relation->name;
+            boost::replace_all(escaped_name, "\t", "\\\t");
+            row_data += escaped_name;
+        }
 #endif
-            row_data += "\n";
-            std::cout << row_data << "\n";
-            PQputline(mycon, row_data.c_str());
+        row_data += "\n";
+        std::cout << row_data << "\n";
+        PQputline(mycon, row_data.c_str());
         // }
     }
     PQputline(mycon, "\\.\n");
@@ -555,7 +555,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation*> &relations, con
             row_data += "\t";
             row_data += TO_STR(way_id);
             row_data += "\t";
-            row_data += relation->type();
+            row_data += TO_STR(config.FindType(relation->type()).id());
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
@@ -604,30 +604,17 @@ void Export2DB::exportTags(const std::vector<Way> &ways, const Configuration &co
     std::string copy_way_tag("COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
 
-#ifdef WITH_RANGE_LOOP
-    for (const auto &way : ways) {
-        for (const auto &tag : way.tags()) {
-#else
-            for (auto it = ways.begin(); it != ways.end(); ++it) {
-                auto way = *it;
-                for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
-                    auto tag = *it_tag;
-#endif
-                    std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
-                    row_data += "\t";
-                    row_data += TO_STR(way.id());
-                    row_data += "\n";
-                    PQputline(mycon, row_data.c_str());
-#ifdef WITH_RANGE_LOOP
-                }
-#else
-            }
-#endif
-#ifdef WITH_RANGE_LOOP
+    for (auto it = ways.begin(); it != ways.end(); ++it) {
+        auto way = *it;
+        for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
+            auto tag = *it_tag;
+            std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
+            row_data += "\t";
+            row_data += TO_STR(way.id());
+            row_data += "\n";
+            PQputline(mycon, row_data.c_str());
         }
-#else
     }
-#endif
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
     PQclear(q_result);
