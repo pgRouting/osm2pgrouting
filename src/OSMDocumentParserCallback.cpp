@@ -29,6 +29,7 @@
 #include "./OSMDocument.h"
 #include "./print_progress.h"
 #include "./Relation.h"
+#include "./osm_tag.h"
 #include "./Way.h"
 #include "./Node.h"
 
@@ -83,10 +84,10 @@ OSMDocumentParserCallback::StartElement(
         if (strcmp(name, "node") == 0) {
             last_node = new Node(atts);
         };
-#if 0
+#if 1
         // TODO to be used in V.2.2 for a hstore column
         if (strcmp(name, "tag") == 0) {
-            last_node->add_tag(atts);
+            last_node->add_tag(Tag(atts));
         }
 #endif
         return;

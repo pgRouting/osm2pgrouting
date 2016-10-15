@@ -30,7 +30,7 @@
 
 namespace osm2pgr {
 
-
+class Tag;
 class Node {
     /**
       \code
@@ -70,7 +70,10 @@ class Node {
          *    @param lon longitude
          */
         explicit Node(const char **attributes);
+#if 0
         void add_tag(const char **attributes);
+#endif
+        Tag add_tag(const Tag &);
 
         inline int64_t osm_id() const {return m_id;}
 

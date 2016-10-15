@@ -21,6 +21,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <map>
+#include "./osm_tag.h"
 #include "./Node.h"
 
 namespace osm2pgr {
@@ -48,6 +49,13 @@ Node::Node(const char **atts) {
     }
 }
 
+Tag
+Node::add_tag(const Tag &tag) {
+    m_tags[tag.key()] = tag.value();
+    return tag;
+}
+
+#if 0
 void
 Node::add_tag(const char **atts) {
     auto **attribut = atts;
@@ -63,6 +71,7 @@ Node::add_tag(const char **atts) {
     }
     m_tags[tag_key] = tag_value;
 }
+#endif
 
 double 
 Node::getLength(const Node &previous) const {
