@@ -120,8 +120,7 @@ OSMDocumentParserCallback::StartElement(
                             < m_rDocument.m_rConfig.class_priority(last_way->type(), last_way->clss())
                            )
                    ) {
-                    last_way->type(k);
-                    last_way->clss(v);
+                    last_way->type(k, v);
 
                     if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
                         last_way->add_tag(tag);
@@ -141,15 +140,7 @@ OSMDocumentParserCallback::StartElement(
         }
 
         if (strcmp(name, "nd") == 0) {
-            auto nodeRefId = last_way->add_node(atts);
-            last_way->AddNodeRef(m_rDocument.FindNode(nodeRefId));
-            auto node = m_rDocument.FindNode(nodeRefId);
-            if (node != 0) {
-                node->incrementUse();
-            } else {
-                std::cout << "Reference nd=" << nodeRefId
-                    << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
-            }
+            m_rDocument.add_node(*last_way, atts);
         }    
         return;
     }
@@ -229,8 +220,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
-                    way_ptr->clss(last_relation->clss());
-                    way_ptr->type(last_relation->type());
+                    way_ptr->type(last_relation->type(), last_relation->clss());
                     auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_relation->type(), last_relation->clss());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);

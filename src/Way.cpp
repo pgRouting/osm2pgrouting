@@ -32,77 +32,35 @@ namespace osm2pgr {
 
 
 Way::Way(const char **atts) :
+    Element(atts),
     m_visible(true),
-    m_name(""),
     m_type(""),
     m_clss(""),
     m_maxspeed_forward(-1),
     m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") {
-        auto **attribut = atts;
-        while (*attribut != NULL) {
-            std::string key = *attribut++;
-            std::string value = *attribut++;
-            if (key == "id") {
-                m_osm_id = boost::lexical_cast<int64_t>(value);
-            } else if (key == "visible") {
-                m_visible = boost::lexical_cast<bool>(value);
-            } else {
-                m_attributes[key] = value;
-            }
+        if (has_attribute("visible")) {
+            m_visible = boost::lexical_cast<bool>(get_attribute("visible"));
         }
     }
 
 
-int64_t
-Way::add_node(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string key = *attribut++;
-        std::string value = *attribut++;
-        if (key == "ref") {
-            m_node_osm_id.push_back(boost::lexical_cast<int64_t>(value));
-            return  boost::lexical_cast<int64_t>(value);
-        };
-    }
-    return 0;
-}
 
 Tag
 Way::add_tag(const Tag &tag) {
     m_tags[tag.key()] = tag.value();
     oneWay(tag);
     max_speed(tag);
-    name(tag);
     return tag;
 }
 
 
 void
-Way::name(const Tag& tag) {
-    if (tag.key() == "name") {
-        m_name = tag.value();
-    }
+Way::add_node(Node *node) {
+    assert(node);
+    m_NodeRefs.push_back(node);
 }
 
-
-
-
-void
-Way::AddNodeRef(Node* pNode) {
-    if (pNode) m_NodeRefs.push_back(pNode);
-}
-
-#if 0
-void
-Way::AddTag(std::string key, std::string value) {
-    m_tags[key] = value;
-}
-bool
-Way::has_tag(const std::string &key) {
-    return  m_tags.find(key) != m_tags.end();
-}
-#endif
 
 
 std::string
@@ -115,15 +73,6 @@ Way::length_str() const {
     return length_str(m_NodeRefs);
 }
 
-std::string
-Way::length_str(size_t i) const {
-    return length_str(m_split_ways[i]);
-}
-
-std::string
-Way::geometry_str(size_t i) const {
-    return geometry_str(m_split_ways[i]);
-}
 
 std::string
 Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
@@ -163,17 +112,16 @@ Way::length_str(const std::vector<Node*> &nodeRefs) const {
 
 
 
-void
+std::vector<std::vector<Node*>>
 Way::split_me() {
     if (nodeRefs().size() < 2) {
         /*
          * The way is ill formed
          */
-        return;
+        return std::vector<std::vector<Node*>>();
     };
 
-    m_split_ways.clear(); // in case its called twice
-
+    std::vector<std::vector<Node*>> m_split_ways;
     auto it_node(nodeRefs().begin());
     auto last_node(nodeRefs().end());
 
@@ -199,6 +147,7 @@ Way::split_me() {
 
         if (split_way.size() > 1) m_split_ways.push_back(split_way);
     }
+    return m_split_ways;
 }
 
 
@@ -369,10 +318,10 @@ Way::oneWayType_str() const{
 
 void
 Way::insert_tags(const std::map<std::string, std::string> &tags) {
-     for (const auto &tag : tags) {
-         m_tags[tag.first] = tag.second;
-     }
- }
+    for (const auto &tag : tags) {
+        m_tags[tag.first] = tag.second;
+    }
+}
 
 
 
@@ -381,22 +330,15 @@ std::ostream& operator<<(std::ostream &os, const Way &way) {
         << "\t m_osm_id: " << way.m_osm_id
         << "\t m_type: " << way.m_type
         << "\t m_class: " << way.m_clss
-        << "\t m_name: " << way.m_name
         << "\t m_visible: " << way.m_visible
         << "\t m_maxspeed_forward: " << way.m_maxspeed_forward
         << "\t m_maxspeed_backward: " << way.m_maxspeed_backward
         << "\t m_oneWay: " << way.m_oneWay;
-    std::cout << "\n\n ************ attributes:\n";
-    for (auto const &e : way.m_attributes) {
-        std::cout << "(" << e.first << "-> " << e.second << "), ";
-    }
-    std::cout << "\n\n ************ tags \n";
-    for (auto const &e : way.m_tags) {
-        std::cout << "(" << e.first << "-> " << e.second << "), ";;
-    }
+    std::cout << "\n\n ************ attributes: " << way.attributes_str();
+    std::cout << "\n\n ************ tags: " << way.tags_str();
     std::cout << "\n nodes: \n";
-    for (auto const &e : way.m_node_osm_id) {
-        std::cout << e << ", ";
+    for (auto const &e : way.m_NodeRefs) {
+        std::cout << e->osm_id() << ", ";
     }
 
     return os;

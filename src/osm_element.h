@@ -53,8 +53,8 @@ class Element {
         Tag add_tag(const Tag &);
 
         inline int64_t osm_id() const {return m_osm_id;}
-        std::string attributes() const; 
-        std::string tags() const; 
+        std::string attributes_str() const; 
+        std::string tags_str() const; 
 
         bool has_attribute(const std::string&) const;
         std::string get_attribute(const std::string&) const;

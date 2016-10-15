@@ -24,16 +24,10 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <osm_element.h>
 #include <Node.h>
 namespace osm2pgr {
 
-#if 0
-enum OneWayType{UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
-#endif
-#if 0
-// TODO eliminate this:
-class OSMDocument;
-#endif
 
 /**
   \code
@@ -55,57 +49,38 @@ class OSMDocument;
   </way>
   \endcode
   */
-class Way {
+class Way : public Element {
  public:
      /** 
       *  Constructor
       *  @param id ID of the way
       */
-     Way(const char **atts);
      Way() = default;
 
-     /**
-      *  saves the nodes of the way  
-      *  @param pNode node
-      */
-     int64_t add_node(const char** atts);
+     Way(const char **atts);
      Tag add_tag(const Tag &tag);
-     void AddNodeRef(Node* pNode);
-#if 0
-     void AddTag(std::string key, std::string value);
-     bool has_tag(const std::string &key);
-#endif
+     void add_node(Node* node);
 
      std::vector<Node*>& nodeRefs() {return m_NodeRefs;}
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
      std::map<std::string, std::string>& tags() {return m_tags;}
      const std::map<std::string, std::string> tags() const {return m_tags;}
 
-     inline int64_t osm_id() const {return m_osm_id;}
      inline bool visible() const {return m_visible;}
-     void name(const Tag& tag);
-     inline void name(const std::string value) {m_name = value;}
+     inline void type(const std::string &p_type, const std::string &p_clss) {
+         m_type = p_type;
+         m_clss = p_clss;
+     }
 
-     inline void type(std::string p_type) {m_type = p_type;}
-     inline void clss(std::string p_clss) {m_clss = p_clss;}
 
-
- private:
-     bool is_number(const std::string& s) const;
-     double get_kph(const std::string &value) const; 
  public:
-     void max_speed(const Tag& tag);
-
-
      inline void maxspeed_forward(double p_max) {m_maxspeed_forward = p_max;}
      inline void maxspeed_backward(double p_max) {m_maxspeed_backward = p_max;}
 
-     inline std::string name() const {return m_name;}
+     inline std::string name() const {return has_tag("name")? get_tag("name") : "";}
      inline std::string type() const {return m_type;}
      inline std::string clss() const {return m_clss;}
 
-     void oneWay(const Tag& tag);
-     void implied_oneWay(const Tag& tag);
 
      std::string oneWay() const;
      std::string oneWayType_str() const;
@@ -118,30 +93,6 @@ class Way {
      std::string geometry_str() const;
      std::string length_str() const;
 
-     std::string geometry_str(size_t i) const;
-     std::string length_str(size_t i) const;
-
-
-     inline std::string source_osm_id(size_t i) const {
-         return m_split_ways[i].front()->osm_id_str();
-     }
-     inline std::string target_osm_id(size_t i) const {
-         return m_split_ways[i].back()->osm_id_str();
-     }
-
-     inline std::string first_node_str() const {
-         return nodeRefs().front()->geom_str(std::string("\t"));
-     }
-     inline std::string last_node_str() const {
-         return nodeRefs().back()->geom_str("\t");
-     }
-
-     inline std::string first_node_str(size_t i) const {
-         return m_split_ways[i].front()->geom_str(std::string("\t"));
-     }
-     inline std::string last_node_str(size_t i) const {
-         return m_split_ways[i].back()->geom_str(std::string("\t"));
-     }
 
      inline std::string maxspeed_forward_str() const {
          return boost::lexical_cast<std::string>(m_maxspeed_forward);
@@ -152,52 +103,46 @@ class Way {
 
 
      //! splits the way
-     void split_me();
+     std::vector<std::vector<Node*>> split_me();
+     std::string geometry_str(const std::vector<Node*> &) const;
+     std::string length_str(const std::vector<Node*> &) const;
 
-     //! @brief splits the way
-     inline size_t splits() {return m_split_ways.size();}
+     /**
+      * to insert the relations tags
+      */
+     void insert_tags(const std::map<std::string, std::string> &tags);
 
+     // TODO this is not usefull in production
      friend
      std::ostream& operator<<(std::ostream &, const Way &);
 
-     void insert_tags(const std::map<std::string, std::string> &tags);
 
  private:
-     std::map<std::string, std::string> m_tags;
+     bool is_number(const std::string& s) const;
+     double get_kph(const std::string &value) const; 
+     void max_speed(const Tag& tag);
+     void oneWay(const Tag& tag);
+     void implied_oneWay(const Tag& tag);
+
 
  private:
-     std::string geometry_str(const std::vector<Node*> &) const;
-     std::string length_str(const std::vector<Node*> &) const;
+     /*
+      * Data members
+      */
 
      //! Do not delete nodes in this container!
      //TODO delete this pointers containers
      std::vector<Node*> m_NodeRefs;
-     std::vector<int64_t> m_node_osm_id;
 
-     int64_t m_osm_id;
-     std::map<std::string, std::string> m_attributes;
+
      /*
       * <tag k="highway" v="tertiary"/>
       * <tag k="source" v="YahooJapan/ALPSMAP"/>
       * <tag k="yh:WIDTH" v="5.5m〜13.0m"/>
       */
 
-     /*! the splited ways are a subset of the original way
-      *  all split_ways share the information of the original way
-      *  - name
-      *  - osm id
-      *  - type
-      *  - class
-      *  - max speeds
-      *  - one_way_type
-      */
-     // TODO delete this container
-     std::vector<std::vector<Node*>> m_split_ways;
-
 
      bool m_visible;
-     //! name of the street
-     std::string m_name;
      //! type of the street, for example "motorway"
      std::string m_type;
      std::string m_clss;
@@ -206,7 +151,6 @@ class Way {
      double m_maxspeed_backward;
 
      std::string m_oneWay;
-
 };
 
 

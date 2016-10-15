@@ -73,5 +73,21 @@ OSMDocument::has_way(int64_t way_id) const {
     return (it != m_Ways.end());
 }
 
+void
+OSMDocument::add_node(Way &way, const char **atts) {
+    auto **attribut = atts;
+    std::string key = *attribut++;
+    std::string value = *attribut++;
+    auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
+    if (!has_node(node_id)) {
+        std::cout << "Reference nd=" << node_id
+            << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+    } else {
+        auto node = FindNode(node_id);
+        node->incrementUse();
+        way.add_node(node);
+    }
+}
+
 
 }  // end namespace osm2pgr

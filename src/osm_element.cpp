@@ -65,8 +65,9 @@ Element::get_attribute(const std::string& key) const {
     return m_attributes.find(key)->second;
 }
 
-std::string Element::attributes() const {
-    std::string str("\" ");
+std::string Element::attributes_str() const {
+    if (m_tags.empty()) return "\"\"";
+    std::string str("\"");
     for (auto it = m_attributes.begin(); it != m_attributes.end(); ++it) {
         auto attribute = *it;
         str +=  attribute.first + "=>" + attribute.second + ",";
@@ -76,8 +77,9 @@ std::string Element::attributes() const {
     return str;
 }
 
-std::string Element::tags()  const{
-    std::string str("\" ");
+std::string Element::tags_str()  const{
+    if (m_tags.empty()) return "";
+    std::string str("\"");
     for (auto it = m_tags.begin(); it != m_tags.end(); ++it) {
         auto tag = *it;
         str +=  tag.first + "=>" + tag.second + ",";

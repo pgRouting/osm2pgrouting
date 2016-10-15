@@ -55,6 +55,8 @@ class OSMDocument {
 
     void AddRelation(const Relation &r);
 
+    void add_node(Way &way, const char **atts);
+
  public:
     // ! parsed nodes
     std::map<int64_t, Node> m_Nodes;

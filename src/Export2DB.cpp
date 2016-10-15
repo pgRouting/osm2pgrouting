@@ -679,13 +679,13 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
     for (auto it = ways.begin(); it != ways.end(); ++it) {
         auto way = it->second;
 
+        // std::cout << way << "\n";
         if ((count % (chunck_size / 100)) == 0) {
             print_progress(ways.size(), count);
         }
         ++count;
         if (way.clss() == "" || way.type() == "") continue;
 
-        way.split_me();
         if ((count % chunck_size) == 0) {
             PQputline(mycon, "\\.\n");
             PQendcopy(mycon);
@@ -719,23 +719,24 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             name_data = escaped_name.substr(0, 199);
         };
 
-        split_count +=  way.splits();
+        auto splits = way.split_me();
+        split_count +=  splits.size();
 
-        for (size_t i = 0; i < way.splits() ; ++i){
-            auto length = way.length_str(i);
+        for (size_t i = 0; i < splits.size(); ++i){
+            auto length = way.length_str(splits[i]);
 
             // length (degrees)
             auto split_data = length + "\t"
                 // x1, y1
-                + way.first_node_str(i) + "\t"
+                + splits[i].front()->geom_str("\t") + "\t"
                 // x2, y2
-                + way.last_node_str(i) + "\t"
+                + splits[i].back()->geom_str("\t") + "\t"
                 // source_osm
-                + way.source_osm_id(i) + "\t"
+                + TO_STR(splits[i].front()->osm_id()) + "\t"
                 // target_osm
-                + way.target_osm_id(i) + "\t"
+                + TO_STR(splits[i].back()->osm_id()) + "\t"
                 //geometry
-                + "srid=4326;" + way.geometry_str(i) + "\t";
+                + "srid=4326;" + way.geometry_str(splits[i]) + "\t";
 
             // cost based on oneway
             if (way.is_reversed())
@@ -750,7 +751,6 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             else
                 split_data += length;
             split_data += "\t";
-
 
             split_data =  way_data + split_data + name_data + "\n";
             PQputline(mycon, split_data.c_str());
