@@ -27,67 +27,30 @@
 namespace osm2pgr {
 
 
-Node::Node(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        const char* name = *attribut++;
-        const char* value = *attribut++;
-        if (strcmp(name, "id") == 0) {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (strcmp(name, "lat") == 0) {
-            m_lat = value;
-        } else if (strcmp(name, "lon") == 0) {
-            m_lon = value;
-        } else {
-#if 0
-            //TODO (vicky) using a configuration variable add the tags
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-#endif
-        }
+Node::Node(const char **atts) :
+    Element(atts),
+    m_numsOfUse(0) {
+        assert(has_attribute("lat"));
+        assert(has_attribute("lon"));
     }
-}
 
-Tag
-Node::add_tag(const Tag &tag) {
-    m_tags[tag.key()] = tag.value();
-    return tag;
-}
-
-#if 0
-void
-Node::add_tag(const char **atts) {
-    auto **attribut = atts;
-    std::string tag_key, tag_value;
-    while (*attribut != NULL) {
-        const char* name = *attribut++;
-        const char* value = *attribut++;
-        if (strcmp(name, "k") == 0) {
-            tag_key = boost::lexical_cast<std::string>(value);
-        } else if (strcmp(name, "v") == 0) {
-            tag_value = boost::lexical_cast<std::string>(value);
-        }
-    }
-    m_tags[tag_key] = tag_value;
-}
-#endif
 
 double 
-Node::getLength(const Node &previous) const {
-    typedef boost::geometry::model::d2::point_xy<double> point_type;
+    Node::getLength(const Node &previous) const {
+        typedef boost::geometry::model::d2::point_xy<double> point_type;
 
-    /* converted point to fit boost.geomtery
-     *      * (`p` and `q` are same as `a ` and `b`)
-     *           */
-    point_type p(
-            boost::lexical_cast<double>(m_lat),
-            boost::lexical_cast<double>(m_lon));
-    point_type q(
-            boost::lexical_cast<double>(previous.m_lat),
-            boost::lexical_cast<double>(previous.m_lon));
+        /* converted point to fit boost.geomtery
+         *      * (`p` and `q` are same as `a ` and `b`)
+         *           */
+        point_type p(
+                boost::lexical_cast<double>(get_attribute("lat")),
+                boost::lexical_cast<double>(get_attribute("lon")));
 
-    return boost::geometry::distance(p, q);
-}
+        point_type q(
+                boost::lexical_cast<double>(previous.get_attribute("lat")),
+                boost::lexical_cast<double>(previous.get_attribute("lon")));
+
+        return boost::geometry::distance(p, q);
+    }
 
 }  // namespace osm2pgr

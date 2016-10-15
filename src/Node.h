@@ -27,13 +27,14 @@
 #include <string>
 #include <map>
 #include <boost/lexical_cast.hpp>
+#include "./osm_element.h"
 
 namespace osm2pgr {
 
 class Tag;
-class Node {
+class Node : public Element {
     /**
-      \code
+      @code
       <node id="122603925" lat="53.0780875" lon="8.1351704" 
       user="artus70" visible="true" timestamp="2007-11-18T22:18:59+00:00"/>
       </node>
@@ -55,9 +56,7 @@ class Node {
       <tag k="tram" v="yes"/>
       <tag k="highway" v="turning_circle"/>
 
-
-
-      \endcode
+      @endcode
       */
 
     public:
@@ -66,19 +65,10 @@ class Node {
         /**
          *    Construktor
          *    @param id ID of the node
-         *    @param lat latitude
-         *    @param lon longitude
          */
         explicit Node(const char **attributes);
-#if 0
-        void add_tag(const char **attributes);
-#endif
-        Tag add_tag(const Tag &);
-
-        inline int64_t osm_id() const {return m_id;}
-
         inline std::string geom_str(std::string separator) {
-            return m_lon + separator + m_lat;
+            return get_attribute("lon") + separator +  get_attribute("lat");
         }
 
         inline std::string point_geometry() {
@@ -88,7 +78,7 @@ class Node {
         }
 
         inline std::string osm_id_str() {
-            return boost::lexical_cast<std::string>(m_id); 
+            return boost::lexical_cast<std::string>(m_osm_id); 
         }
         double getLength(const Node &previous) const;
 
@@ -98,13 +88,6 @@ class Node {
         inline void numsOfUse(uint16_t val)  {m_numsOfUse = val;}
 
     private:
-        // ! ID of the node
-        int64_t m_id;
-        // ! latitude coordinate
-        std::string m_lat;
-        // ! longitude coordinate
-        std::string m_lon;
-        std::map<std::string, std::string> m_tags;
         /**
          *    counts the rate, how much this node is used in different ways
          */
