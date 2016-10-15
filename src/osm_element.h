@@ -53,13 +53,20 @@ class Element {
         Tag add_tag(const Tag &);
 
         inline int64_t osm_id() const {return m_osm_id;}
+
         std::string attributes_str() const; 
         std::string tags_str() const; 
 
         bool has_attribute(const std::string&) const;
         std::string get_attribute(const std::string&) const;
+        std::map<std::string, std::string>& attributes() {return m_attributes;}
+        const std::map<std::string, std::string> attributes() const {return m_attributes;}
+
+
         bool has_tag(const std::string&) const;
         std::string get_tag(const std::string&) const;
+        std::map<std::string, std::string>& tags() {return m_tags;}
+        const std::map<std::string, std::string> tags() const {return m_tags;}
 
     protected:
         // ! OSM ID of the element

@@ -31,7 +31,14 @@ Relation::Relation(int64_t id)
 }
 #endif
 
-Relation::Relation(const char **atts) {
+Relation::Relation(const char **atts) :
+    Element(atts),
+    m_visible(true)
+{
+    if (has_attribute("visible")) {
+        m_visible = boost::lexical_cast<bool>(get_attribute("visible"));
+    }
+#if 0
     auto **attribut = atts;
     while (*attribut != NULL) {
         std::string key = *attribut++;
@@ -44,6 +51,7 @@ Relation::Relation(const char **atts) {
             m_attributes[key] = value;
         }
     }
+#endif
 }
 
 
@@ -88,7 +96,7 @@ Relation::add_tag(const char **atts, std::string &key, std::string &value) {
         }
     }
     /* store the tag as originaly recieved*/
-    m_Tags[key] = value;
+    m_tags[key] = value;
 }
 
 
@@ -103,7 +111,7 @@ void Relation::AddWayRef(int64_t pID) {
 }
 
 void Relation::AddTag(std::string key, std::string value) {
-    m_Tags[key] = value;
+    m_tags[key] = value;
 }
 
 }  // end namespace osm2pgr

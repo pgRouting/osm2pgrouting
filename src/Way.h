@@ -63,8 +63,6 @@ class Way : public Element {
 
      std::vector<Node*>& nodeRefs() {return m_NodeRefs;}
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
-     std::map<std::string, std::string>& tags() {return m_tags;}
-     const std::map<std::string, std::string> tags() const {return m_tags;}
 
      inline bool visible() const {return m_visible;}
      inline void type(const std::string &p_type, const std::string &p_clss) {

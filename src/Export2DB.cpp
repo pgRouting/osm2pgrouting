@@ -482,7 +482,7 @@ void Export2DB::exportRelations(
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
     for (auto it = relations.begin(); it != relations.end(); ++it) {
         auto relation = *it;
-        std::cout << relation.m_Tags.size();
+        std::cout << relation.tags().size();
 
         // for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
         // auto tag = *it_tag;

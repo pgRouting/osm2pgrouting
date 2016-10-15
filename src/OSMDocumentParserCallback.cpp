@@ -160,7 +160,7 @@ OSMDocumentParserCallback::StartElement(
             assert(!last_relation->m_WayRefs.empty());
             if (m_rDocument.has_way(way_id)) {
                 Way* way_ptr = m_rDocument.FindWay(way_id);
-                way_ptr->insert_tags(last_relation->m_Tags);
+                way_ptr->insert_tags(last_relation->tags());
             } else {
                 assert(!last_relation->m_WayRefs.empty());
                 last_relation->m_WayRefs.pop_back();
@@ -188,11 +188,7 @@ OSMDocumentParserCallback::StartElement(
                                 < m_rDocument.m_rConfig.class_priority(last_relation->type(), last_relation->clss())
                                )
                        ) {
-                        last_relation->type(k);
-                        last_relation->clss(v);
-                    }
-                    if (last_relation && k == "name") {
-                        last_relation->name = v;
+                        last_relation->type(k, v);
                     }
                 }
             }
