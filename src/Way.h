@@ -27,9 +27,13 @@
 #include <Node.h>
 namespace osm2pgr {
 
+#if 0
 enum OneWayType{UNKNOWN = 0, YES = 1, NO = 2, REVERSED = -1, REVERSIBLE = 3};
+#endif
+#if 0
 // TODO eliminate this:
 class OSMDocument;
+#endif
 
 /**
   \code
@@ -65,21 +69,21 @@ class Way {
       *  @param pNode node
       */
      int64_t add_node(const char** atts);
-     void add_tag(const char **atts, std::string &k, std::string &v);
+     Tag add_tag(const Tag &tag);
      void AddNodeRef(Node* pNode);
+#if 0
      void AddTag(std::string key, std::string value);
-     bool HasTag(std::string key);
+     bool has_tag(const std::string &key);
+#endif
 
      std::vector<Node*>& nodeRefs() {return m_NodeRefs;}
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
-     std::map<std::string, std::string>& tags() {return m_Tags;}
-     const std::map<std::string, std::string> tags() const {return m_Tags;}
+     std::map<std::string, std::string>& tags() {return m_tags;}
+     const std::map<std::string, std::string> tags() const {return m_tags;}
 
      inline int64_t osm_id() const {return m_osm_id;}
      inline bool visible() const {return m_visible;}
-     inline int64_t id() const {return m_id;}
-
-     void name(const std::string key, const std::string value);
+     void name(const Tag& tag);
      inline void name(const std::string value) {m_name = value;}
 
      inline void type(std::string p_type) {m_type = p_type;}
@@ -90,7 +94,7 @@ class Way {
      bool is_number(const std::string& s) const;
      double get_kph(const std::string &value) const; 
  public:
-     void max_speed(const std::string &key, const std::string &value);
+     void max_speed(const Tag& tag);
 
 
      inline void maxspeed_forward(double p_max) {m_maxspeed_forward = p_max;}
@@ -100,8 +104,8 @@ class Way {
      inline std::string type() const {return m_type;}
      inline std::string clss() const {return m_clss;}
 
-     void oneWay(const std::string &key, const std::string &value);
-     void implied_oneWay(const std::string &key, const std::string &value);
+     void oneWay(const Tag& tag);
+     void implied_oneWay(const Tag& tag);
 
      std::string oneWay() const;
      std::string oneWayType_str() const;
@@ -156,9 +160,10 @@ class Way {
      friend
      std::ostream& operator<<(std::ostream &, const Way &);
 
+     void insert_tags(const std::map<std::string, std::string> &tags);
 
-     // TODO figure out what to do to move to private
-     std::map<std::string, std::string> m_Tags;
+ private:
+     std::map<std::string, std::string> m_tags;
 
  private:
      std::string geometry_str(const std::vector<Node*> &) const;
@@ -169,10 +174,6 @@ class Way {
      std::vector<Node*> m_NodeRefs;
      std::vector<int64_t> m_node_osm_id;
 
-     /*
-     <way id="173421994" version="2" timestamp="2015-10-07T21:23:54Z" changeset="34500025" uid="2512300" user="samely">
-     */
-     int64_t m_id;
      int64_t m_osm_id;
      std::map<std::string, std::string> m_attributes;
      /*

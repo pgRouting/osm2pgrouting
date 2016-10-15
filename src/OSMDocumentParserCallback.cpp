@@ -98,9 +98,9 @@ OSMDocumentParserCallback::StartElement(
             last_way = new Way(atts);
         };
         if (strcmp(name, "tag") == 0) {
-            std::string k;
-            std::string v;
-            last_way->add_tag(atts, k, v);
+            auto tag = last_way->add_tag(Tag(atts));
+            auto  k = tag.key();
+            auto  v = tag.value();
             /*
              * for example
              *  <tag highway=motorway>    // k = highway  v = motorway
@@ -124,7 +124,7 @@ OSMDocumentParserCallback::StartElement(
                     last_way->clss(v);
 
                     if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
-                        last_way->AddTag(k, v);
+                        last_way->add_tag(tag);
 
 
                         // set default maxspeed values from classes, if not set previously (default: -1)
@@ -169,7 +169,7 @@ OSMDocumentParserCallback::StartElement(
             assert(!last_relation->m_WayRefs.empty());
             if (m_rDocument.has_way(way_id)) {
                 Way* way_ptr = m_rDocument.FindWay(way_id);
-                way_ptr->m_Tags.insert(last_relation->m_Tags.begin(),  last_relation->m_Tags.end());
+                way_ptr->insert_tags(last_relation->m_Tags);
             } else {
                 assert(!last_relation->m_WayRefs.empty());
                 last_relation->m_WayRefs.pop_back();

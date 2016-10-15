@@ -608,7 +608,7 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
             auto tag = *it_tag;
             std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
             row_data += "\t";
-            row_data += TO_STR(way.id());
+            row_data += TO_STR(way.osm_id());
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }

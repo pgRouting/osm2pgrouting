@@ -23,6 +23,7 @@
 #include <string>
 #include "boost/lexical_cast.hpp"
 #include "OSMDocument.h"
+#include "osm_tag.h"
 #include "Node.h"
 
 
@@ -67,30 +68,20 @@ Way::add_node(const char **atts) {
     return 0;
 }
 
-void
-Way::add_tag(const char **atts, std::string &key, std::string &value) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string k = *attribut++;
-        std::string v = *attribut++;
-        if (k == "k") {
-            key = v;
-        } if (k == "v") {
-            value = v;
-        }
-    }
-    /* store the tag as originaly recieved*/
-    m_Tags[key] = value;
-    oneWay(key, value);
-    max_speed(key, value);
-    name(key,value);
+Tag
+Way::add_tag(const Tag &tag) {
+    m_tags[tag.key()] = tag.value();
+    oneWay(tag);
+    max_speed(tag);
+    name(tag);
+    return tag;
 }
 
 
 void
-Way::name(const std::string key, const std::string value) {
-    if (key == "name") {
-        m_name = value;
+Way::name(const Tag& tag) {
+    if (tag.key() == "name") {
+        m_name = tag.value();
     }
 }
 
@@ -102,15 +93,16 @@ Way::AddNodeRef(Node* pNode) {
     if (pNode) m_NodeRefs.push_back(pNode);
 }
 
+#if 0
 void
 Way::AddTag(std::string key, std::string value) {
-    m_Tags[key] = value;
+    m_tags[key] = value;
 }
-
 bool
-Way::HasTag(std::string key) {
-    return (m_Tags.count(key) > 0);
+Way::has_tag(const std::string &key) {
+    return  m_tags.find(key) != m_tags.end();
 }
+#endif
 
 
 std::string
@@ -217,35 +209,39 @@ Way::oneWay() const {
 }
 
 void
-Way::oneWay(const std::string &key, const std::string &p_one_way) {      
+Way::oneWay(const Tag &tag) {
+    auto key = tag.key();
+    auto value = tag.value();
     if (key != "oneway") {
-        implied_oneWay(key, p_one_way);
+        implied_oneWay(tag);
         return;
     }
 
     // one way tag
-    if ((p_one_way == "yes") || p_one_way == "true" || p_one_way == "1") {
+    if ((value == "yes") || value == "true" || value == "1") {
         m_oneWay = "YES";
     }
 
     // check false conditions: 0, no, false
-    if ((p_one_way == "no") || p_one_way == "false" || p_one_way == "1") {
+    if ((value == "no") || value == "false" || value == "1") {
         m_oneWay = "NO";
     }
 
     // check reversible condition
-    if (p_one_way == "reversible") {
+    if (value == "reversible") {
         m_oneWay = "REVERSIBLE";
     } 
 
     // check revers conditions: -1
-    if (p_one_way == "-1") {
+    if (value == "-1") {
         m_oneWay = "REVERSED";
     }
 }
 
 void
-Way::implied_oneWay(const std::string &key, const std::string &value) {
+Way::implied_oneWay(const Tag &tag) {
+    auto key = tag.key();
+    auto value = tag.value();
     /*
      * was tagged, so not using implied tagging
      */
@@ -343,7 +339,9 @@ Way::get_kph(const std::string &value) const {
 
 
 void
-Way::max_speed(const std::string &key, const std::string &value) {
+Way::max_speed(const Tag &tag) {
+    auto key = tag.key();
+    auto value = tag.value();
     if (key == "maxspeed:forward") {
         m_maxspeed_forward = get_kph(value);
         return;
@@ -369,13 +367,21 @@ Way::oneWayType_str() const{
     return "0";
 }
 
+void
+Way::insert_tags(const std::map<std::string, std::string> &tags) {
+     for (const auto &tag : tags) {
+         m_tags[tag.first] = tag.second;
+     }
+ }
+
+
+
 std::ostream& operator<<(std::ostream &os, const Way &way) {
     std::cout << "\nWay"
-        << "\t m_id: " << way.m_id
+        << "\t m_osm_id: " << way.m_osm_id
         << "\t m_type: " << way.m_type
         << "\t m_class: " << way.m_clss
         << "\t m_name: " << way.m_name
-        << "\t m_osm_id: " << way.m_osm_id
         << "\t m_visible: " << way.m_visible
         << "\t m_maxspeed_forward: " << way.m_maxspeed_forward
         << "\t m_maxspeed_backward: " << way.m_maxspeed_backward
@@ -385,7 +391,7 @@ std::ostream& operator<<(std::ostream &os, const Way &way) {
         std::cout << "(" << e.first << "-> " << e.second << "), ";
     }
     std::cout << "\n\n ************ tags \n";
-    for (auto const &e : way.m_Tags) {
+    for (auto const &e : way.m_tags) {
         std::cout << "(" << e.first << "-> " << e.second << "), ";;
     }
     std::cout << "\n nodes: \n";

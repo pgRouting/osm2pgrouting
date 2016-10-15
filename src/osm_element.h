@@ -58,12 +58,8 @@ class Element {
 
         bool has_attribute(const std::string&) const;
         std::string get_attribute(const std::string&) const;
-        // TODO
-#if 0
         bool has_tag(const std::string&) const;
-        
         std::string get_tag(const std::string&) const;
-#endif
 
     protected:
         // ! OSM ID of the element

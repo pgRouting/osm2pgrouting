@@ -46,6 +46,16 @@ Element::add_tag(const Tag &tag) {
 }
 
 bool
+Element::has_tag(const std::string& key) const {
+    return m_tags.find(key) != m_tags.end();
+}
+
+std::string
+Element::get_tag(const std::string& key) const {
+    return m_tags.find(key)->second;
+}
+
+bool
 Element::has_attribute(const std::string& key) const {
     return m_attributes.find(key) != m_attributes.end();
 }
