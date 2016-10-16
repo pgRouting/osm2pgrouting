@@ -161,33 +161,33 @@ int main(int argc, char* argv[]) {
 
             std::cout << "Adding auxiliary tables to database..." << endl;
             if (!skipnodes) {
-                dbConnection.exportNodes(document.m_Nodes);
+                std::cout << "\nExport Nodes ..." << endl;
+                dbConnection.exportNodes(document.nodes());
             }
-            std::cout << "\nexport Types ..." << endl;
+            std::cout << "\nExport Types ..." << endl;
             dbConnection.exportTypes(config.types());
-            std::cout << "\nexport Classes ..." << endl;
+            std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
-            std::cout << "\nexport Relations ..." << endl;
-            dbConnection.exportRelations(document.m_Relations, config);
-            std::cout << "\nexport RelationsWays ..." << endl;
-            dbConnection.exportRelationsWays(document.m_Relations, config);
+            std::cout << "\nExport Relations ..." << endl;
+            dbConnection.exportRelations(document.relations(), config);
+            std::cout << "\nExport RelationsWays ..." << endl;
+            dbConnection.exportRelationsWays(document.relations(), config);
 #if 0
             std::cout << "\nexport Tags ..." << endl;
             dbConnection.exportTags(document.m_SplitWays, config);
 #endif
-            std::cout << "\nexport Tags ..." << endl;
-            dbConnection.exportWays(document.m_Ways, config);
+            std::cout << "\nExport Ways ..." << endl;
+            dbConnection.exportWays(document.ways(), config);
 
 
-            std::cout << "Creating topology..." << endl;
-            dbConnection.createTopology();
+            std::cout << "Creating Foreign Keys ..." << endl;
             dbConnection.createFKeys();
         }
 
 
         std::cout << "#########################" << endl;
 
-        std::cout << "size of streets: " << document.m_Ways.size() << endl;
+        std::cout << "size of streets: " << document.ways().size() << endl;
 
 #ifdef WITH_TIME
         clock_t end = clock();

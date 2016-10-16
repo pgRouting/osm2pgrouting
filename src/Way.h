@@ -116,21 +116,7 @@ class Way : public Element {
 
 
  private:
-     /*
-      * Data members
-      */
-
-     //! Do not delete nodes in this container!
-     //TODO delete this pointers containers
      std::vector<Node*> m_NodeRefs;
-
-
-     /*
-      * <tag k="highway" v="tertiary"/>
-      * <tag k="source" v="YahooJapan/ALPSMAP"/>
-      * <tag k="yh:WIDTH" v="5.5m〜13.0m"/>
-      */
-
 
      double m_maxspeed_forward;
      double m_maxspeed_backward;

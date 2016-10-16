@@ -472,7 +472,7 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
 void Export2DB::exportRelations(
         const std::vector<Relation> &relations,
         const Configuration &config) const {
-    std::cout << "    Processing " << relations.size() << " relations\n";
+    std::cout << "    Processing " << relations.size() << " relations:";
     createTempTable(create_relations, "__relations_temp");
 
     std::string relations_columns("relation_id, type_id, class_id, name ");
@@ -482,11 +482,7 @@ void Export2DB::exportRelations(
     PGresult* q_result = PQexec(mycon, copy_relations.c_str());
     for (auto it = relations.begin(); it != relations.end(); ++it) {
         auto relation = *it;
-        std::cout << relation.tags().size();
 
-        // for (auto it_tag = relation->m_Tags.begin(); it_tag != relation->m_Tags.end(); ++it_tag) {
-        // auto tag = *it_tag;
-        //  std::pair<std::string, std::string> pair = *it_tag++;
         std::string row_data = TO_STR(relation.osm_id());
         row_data += "\t";
         row_data += TO_STR(config.FindType(relation.tag_config().key()).id());
@@ -494,17 +490,8 @@ void Export2DB::exportRelations(
         row_data += TO_STR(config.FindClass(relation.tag_config()).id());
         row_data += "\t";
         row_data = row_data + relation.tag_config().key() + "=" + relation.tag_config().value();
-
-#if 0
-        if (!relation->name.empty()) {
-            std::string escaped_name = relation->name;
-            boost::replace_all(escaped_name, "\t", "\\\t");
-            row_data += escaped_name;
-        }
-#endif
         row_data += "\n";
         PQputline(mycon, row_data.c_str());
-        // }
     }
     PQputline(mycon, "\\.\n");
     PQendcopy(mycon);
@@ -521,12 +508,11 @@ void Export2DB::exportRelations(
     q_result = PQexec(mycon, insert_into_relations.c_str());
     if (PQresultStatus(q_result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(q_result);
-        std::cerr << "inserting to osm_relations failed \n"
+        std::cerr << "Inserting to osm_relations failed \n"
             << PQerrorMessage(mycon)
             << std::endl;
     } else {
-        std::cout << " Inserted: " << PQcmdTuples(q_result) << " tuples in " << addSchema(full_table_name("osm_relations")) << "\n";
-        std::cout << "Foreign keys for Ways table created" << std::endl;
+        std::cout << "\tInserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("osm_relations")) << "\n";
     }
 
     PQclear(q_result);
@@ -547,7 +533,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
 
     for (auto it = relations.begin(); it != relations.end(); ++it) {
         auto relation = *it;
-        for (auto it_ref = relation.m_WayRefs.begin(); it_ref != relation.m_WayRefs.end(); ++it_ref) {
+        for (auto it_ref = relation.way_refs().begin(); it_ref != relation.way_refs().end(); ++it_ref) {
             auto way_id = *it_ref;
             std::string row_data = TO_STR(relation.osm_id());
             row_data += "\t";
@@ -571,7 +557,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
             " INSERT INTO " + addSchema(full_table_name("relations_ways")) +
             " SELECT * FROM data; ");
     q_result = PQexec(mycon, insert_into_relations_ways.c_str());
-    std::cout << " Inserted: " << PQcmdTuples(q_result) << "way's relations\n";
+    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("relations_ways")) << "\n";
     PQclear(q_result);
     dropTable("__relations_ways_temp");
 }
@@ -627,7 +613,7 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
             " SELECT * FROM data; ");
 
     q_result = PQexec(mycon, insert_into_tags.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " way's tags\n";
+    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_tags") << "\n";
     PQclear(q_result);
 
     dropTable("__way_tag_temp");
@@ -836,7 +822,7 @@ void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
             " (SELECT *  FROM data); ");
 
     q_result = PQexec(mycon, insert_into_types.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " way types\n";
+    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_types") << "\n";
 
     PQclear(q_result);
     dropTable("__way_types_temp");
@@ -892,17 +878,12 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
             " SELECT *  FROM data; ");
 
     q_result = PQexec(mycon, insert_into_classes.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " way's classes\n";
+    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_classes") << "\n";
 
     PQclear(q_result);
     dropTable("__classes_temp");
 }
 
-void Export2DB::createTopology() const {
-    // fill_source_target(full_table_name("ways"), full_table_name("ways") + "_vertices_pgr");
-    // fill_vertices_table(full_table_name("ways"), full_table_name("nodes"));
-    // fill_source_target(full_table_name("ways"));
-}
 
 void Export2DB::createFKeys() {
     // return; // TODO
@@ -972,19 +953,4 @@ void Export2DB::createFKeys() {
         std::cout << "Foreign keys for Ways table created" << std::endl;
     }
 
-    /* Not clear what the way_id column is referencing */
-#if 0
-    std::string fk_relations_ways(
-            "ALTER TABLE " + tables_prefix + "relation_ways ADD CONSTRAINT fk_relations_ways_ways FOREIGN KEY (way_id) REFERENCES " + tables_prefix + "ways(gid);");
-    result = PQexec(mycon, fk_relations_ways.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for relations_ways failed (Ways): "
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for Relations_ways table created (Ways)" << std::endl;
-    }
-#endif
 }

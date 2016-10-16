@@ -60,6 +60,8 @@ class Relation : public Element{
         explicit Relation(const char ** atts);
         Relation() = delete;
         Relation(const Relation&) = default;
+        std::vector<int64_t> way_refs() const {return m_WayRefs;}
+        std::vector<int64_t>& way_refs() {return m_WayRefs;}
 
         /**
          *    saves the nodes of the way  
@@ -67,7 +69,7 @@ class Relation : public Element{
          */
         int64_t add_member(const char **atts);
 
-    public:
+    private:
         std::vector<int64_t> m_WayRefs;
 };
 

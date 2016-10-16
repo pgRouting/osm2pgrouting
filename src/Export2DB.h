@@ -78,17 +78,6 @@ class Export2DB {
      void exportClasses(const std::map<std::string, Type>& types) const;
      void exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const;
 
-     /**
-      * creates the topology
-      * Be careful, it takes some time.
-      *
-      * for example:
-      * complete germany: OSM file with a size of 1,1 GiB.
-      * Export and create topology:
-      * time took circa 30 hours on an Intel Xeon 2,4 GHz with 2 GiB Ram.
-      * But only for the streettypes "motorway", "primary" and "secondary"
-      */
-     void createTopology() const;
      //! Be careful! It deletes the created tables!
      void dropTables() const;
      void dropTempTables() const;

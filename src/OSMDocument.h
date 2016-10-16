@@ -40,6 +40,15 @@ class OSMDocument {
     //! Constructor
     explicit OSMDocument(Configuration& config, size_t lines);
 
+    inline size_t lines() const {return m_lines;}
+    inline bool has_class(const Tag &tag) const {return m_rConfig.has_class(tag);}
+    inline double class_priority(const Tag &tag) const {return m_rConfig.class_priority(tag);}
+    inline double class_default_maxspeed(const Tag &tag) const {return m_rConfig.class_default_maxspeed(tag);}
+
+    const std::map<int64_t, Node>& nodes() const {return m_Nodes;}
+    const std::map<int64_t, Way>& ways() const {return m_Ways;}
+    const std::vector<Relation>& relations() const {return m_Relations;}
+
     //! add node to the map
     void AddNode(Node n);
 
@@ -57,7 +66,12 @@ class OSMDocument {
 
     void add_node(Way &way, const char **atts);
 
- public:
+    /**
+     * add the configuration tag used for the speeds
+     */
+    void add_config(Way &way, const Tag &tag) const;
+
+ private:
     // ! parsed nodes
     std::map<int64_t, Node> m_Nodes;
     //! parsed ways

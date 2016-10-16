@@ -58,8 +58,8 @@ namespace osm2pgr {
 
 void
 OSMDocumentParserCallback::show_progress() {
-    if ((++m_line % (m_rDocument.m_lines / 100)) == 0) {
-        print_progress(m_rDocument.m_lines, m_line);
+    if ((++m_line % (m_rDocument.lines() / 100)) == 0) {
+        print_progress(m_rDocument.lines(), m_line);
         std::cout << " Total Processed: " << m_line;
     }
 }
@@ -99,43 +99,7 @@ OSMDocumentParserCallback::StartElement(
         };
         if (strcmp(name, "tag") == 0) {
             auto tag = last_way->add_tag(Tag(atts));
-            auto  k = tag.key();
-            auto  v = tag.value();
-            /*
-             * for example
-             *  <tag highway=motorway>    // k = highway  v = motorway
-             *  <tag highway=path>    // k = highway  v = motorway
-             *
-             * And the configuration file has:
-             * <type name="highway" id="1">
-             *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
-             *     // there is no class name="path"
-             */
-            if (m_rDocument.m_rConfig.has_class(tag)) {
-                if ((last_way->tag_config().key() == "" && last_way->tag_config().value() == "")
-                        || (
-                            m_rDocument.m_rConfig.has_class(tag) // k name of the type, v name of the class
-                            && m_rDocument.m_rConfig.has_class(last_way->tag_config())
-                            && m_rDocument.m_rConfig.class_priority(tag)
-                            < m_rDocument.m_rConfig.class_priority(last_way->tag_config())
-                           )
-                   ) {
-                    last_way->tag_config(tag);
-
-                    if (m_rDocument.m_rConfig.has_class(last_way->tag_config())) {
-                        last_way->add_tag(tag);
-
-                        // set default maxspeed values from classes, if not set previously (default: -1)
-                        auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_way->tag_config());
-                        if (last_way->maxspeed_forward() <= 0) {
-                            last_way->maxspeed_forward(newValue);
-                        }
-                        if (last_way->maxspeed_backward() <= 0) {
-                            last_way->maxspeed_backward(newValue);
-                        }
-                    }
-                }
-            }
+            m_rDocument.add_config(*last_way, tag);
         }
 
         if (strcmp(name, "nd") == 0) {
@@ -148,6 +112,11 @@ OSMDocumentParserCallback::StartElement(
         /*
          *  START RELATIONS CODE
          */
+        if (strcmp(name, "relation") == 0) {
+            last_relation = new Relation(atts);
+            return;
+        }
+
         if (strcmp(name, "member") == 0) {
             /*
                <member type="node" ref="721818679" role="label"/>
@@ -156,35 +125,32 @@ OSMDocumentParserCallback::StartElement(
                */
             auto way_id = last_relation->add_member(atts);
             if (way_id == -1) return;
-            assert(!last_relation->m_WayRefs.empty());
+            assert(!last_relation->way_refs().empty());
             if (m_rDocument.has_way(way_id)) {
                 Way* way_ptr = m_rDocument.FindWay(way_id);
                 way_ptr->insert_tags(last_relation->tags());
             } else {
-                assert(!last_relation->m_WayRefs.empty());
-                last_relation->m_WayRefs.pop_back();
+                assert(!last_relation->way_refs().empty());
+                last_relation->way_refs().pop_back();
             }
 
             return;
         }
 
-
-        if (strcmp(name, "relation") == 0) {   // THIS IS THE RELATION CODE...
-            last_relation = new Relation(atts);
-            return;
-        }
         else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
             if (atts != NULL) {
                 auto tag = last_relation->add_tag(Tag(atts));
+#if 0
                 auto k = tag.key();
                 auto v = tag.value();
-                if (!k.empty()) {
+#endif
+                if (!tag.key().empty()) {
                     if ((last_relation->tag_config().key() == "" && last_relation->tag_config().value() == "")
                             || (
-                                m_rDocument.m_rConfig.has_class(tag) 
-                                && m_rDocument.m_rConfig.has_class(last_relation->tag_config())
-                                && m_rDocument.m_rConfig.class_priority(tag)
-                                < m_rDocument.m_rConfig.class_priority(last_relation->tag_config())
+                                m_rDocument.has_class(tag) 
+                                && m_rDocument.has_class(last_relation->tag_config())
+                                && m_rDocument.class_priority(tag)
+                                < m_rDocument.class_priority(last_relation->tag_config())
                                )) {
                         last_relation->tag_config(tag);
                     }
@@ -208,14 +174,14 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         return;
 
     } else if (strcmp(name, "relation") == 0) {
-        if (m_rDocument.m_rConfig.has_class(last_relation->tag_config())) {
-            for (const auto &way_id: last_relation->m_WayRefs) {
+        if (m_rDocument.has_class(last_relation->tag_config())) {
+            for (const auto &way_id: last_relation->way_refs()) {
 
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
                     way_ptr->tag_config(last_relation->tag_config());
-                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_relation->tag_config());
+                    auto newValue = m_rDocument.class_default_maxspeed(last_relation->tag_config());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);
                     }
