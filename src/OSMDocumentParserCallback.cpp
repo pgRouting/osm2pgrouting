@@ -111,23 +111,22 @@ OSMDocumentParserCallback::StartElement(
              *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
              *     // there is no class name="path"
              */
-            if (m_rDocument.m_rConfig.has_class(k, v)) {
-                if ((last_way->type().compare("") == 0 && last_way->clss().compare("") == 0)
+            if (m_rDocument.m_rConfig.has_class(tag)) {
+                if ((last_way->tag_config().key() == "" && last_way->tag_config().value() == "")
                         || (
-                            m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
-                            && m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())
-                            && m_rDocument.m_rConfig.class_priority(k, v)
-                            < m_rDocument.m_rConfig.class_priority(last_way->type(), last_way->clss())
+                            m_rDocument.m_rConfig.has_class(tag) // k name of the type, v name of the class
+                            && m_rDocument.m_rConfig.has_class(last_way->tag_config())
+                            && m_rDocument.m_rConfig.class_priority(tag)
+                            < m_rDocument.m_rConfig.class_priority(last_way->tag_config())
                            )
                    ) {
-                    last_way->type(k, v);
+                    last_way->tag_config(tag);
 
-                    if (m_rDocument.m_rConfig.has_class(last_way->type(), last_way->clss())) {
+                    if (m_rDocument.m_rConfig.has_class(last_way->tag_config())) {
                         last_way->add_tag(tag);
 
-
                         // set default maxspeed values from classes, if not set previously (default: -1)
-                        auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_way->type(), last_way->clss());
+                        auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_way->tag_config());
                         if (last_way->maxspeed_forward() <= 0) {
                             last_way->maxspeed_forward(newValue);
                         }
@@ -176,19 +175,18 @@ OSMDocumentParserCallback::StartElement(
         }
         else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
             if (atts != NULL) {
-                std::string k;
-                std::string v;
-                last_relation->add_tag(atts, k, v);
+                auto tag = last_relation->add_tag(Tag(atts));
+                auto k = tag.key();
+                auto v = tag.value();
                 if (!k.empty()) {
-                    if ((last_relation->type().compare("") == 0 && last_relation->clss().compare("") == 0)
+                    if ((last_relation->tag_config().key() == "" && last_relation->tag_config().value() == "")
                             || (
-                                m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
-                                && m_rDocument.m_rConfig.has_class(last_relation->type(), last_relation->clss())
-                                && m_rDocument.m_rConfig.class_priority(k, v)
-                                < m_rDocument.m_rConfig.class_priority(last_relation->type(), last_relation->clss())
-                               )
-                       ) {
-                        last_relation->type(k, v);
+                                m_rDocument.m_rConfig.has_class(tag) 
+                                && m_rDocument.m_rConfig.has_class(last_relation->tag_config())
+                                && m_rDocument.m_rConfig.class_priority(tag)
+                                < m_rDocument.m_rConfig.class_priority(last_relation->tag_config())
+                               )) {
+                        last_relation->tag_config(tag);
                     }
                 }
             }
@@ -210,14 +208,14 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         return;
 
     } else if (strcmp(name, "relation") == 0) {
-        if (m_rDocument.m_rConfig.has_class(last_relation->type(), last_relation->clss())) {
+        if (m_rDocument.m_rConfig.has_class(last_relation->tag_config())) {
             for (const auto &way_id: last_relation->m_WayRefs) {
 
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
-                    way_ptr->type(last_relation->type(), last_relation->clss());
-                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_relation->type(), last_relation->clss());
+                    way_ptr->tag_config(last_relation->tag_config());
+                    auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_relation->tag_config());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);
                     }

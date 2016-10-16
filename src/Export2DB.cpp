@@ -489,11 +489,11 @@ void Export2DB::exportRelations(
         //  std::pair<std::string, std::string> pair = *it_tag++;
         std::string row_data = TO_STR(relation.osm_id());
         row_data += "\t";
-        row_data += TO_STR(config.FindType(relation.type()).id());
+        row_data += TO_STR(config.FindType(relation.tag_config().key()).id());
         row_data += "\t";
-        row_data += TO_STR(config.FindClass(relation.type(), relation.clss()).id());
+        row_data += TO_STR(config.FindClass(relation.tag_config()).id());
         row_data += "\t";
-        row_data = row_data + relation.type() + "=" + relation.clss();
+        row_data = row_data + relation.tag_config().key() + "=" + relation.tag_config().value();
 
 #if 0
         if (!relation->name.empty()) {
@@ -553,7 +553,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
             row_data += "\t";
             row_data += TO_STR(way_id);
             row_data += "\t";
-            row_data += TO_STR(config.FindType(relation.type()).id());
+            row_data += TO_STR(config.FindType(relation.tag_config().key()).id());
             row_data += "\n";
             PQputline(mycon, row_data.c_str());
         }
@@ -606,7 +606,7 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
         auto way = it->second;
         for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
             auto tag = *it_tag;
-            std::string row_data = TO_STR(config.FindClass(tag.first, tag.second).id());
+            std::string row_data = TO_STR(config.FindClass(Tag(tag.first, tag.second)).id());
             row_data += "\t";
             row_data += TO_STR(way.osm_id());
             row_data += "\n";
@@ -684,7 +684,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             print_progress(ways.size(), count);
         }
         ++count;
-        if (way.clss() == "" || way.type() == "") continue;
+        if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
 
         if ((count % chunck_size) == 0) {
             PQputline(mycon, "\\.\n");
@@ -698,7 +698,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
 
         // common information of the split ways
         auto way_data =
-            TO_STR(config.FindClass(way.type(), way.clss()).id())  + "\t"
+            TO_STR(config.FindClass(way.tag_config()).id())  + "\t"
             + TO_STR(way.osm_id()) + "\t"
             // maxspeed
             + way.maxspeed_forward_str() + "\t"
@@ -706,7 +706,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             // one_way
             + way.oneWayType_str() + "\t"
             // priority
-            + config.priority_str(way.type(), way.clss()) + "\t";
+            + config.priority_str(way.tag_config()) + "\t";
 
         // name
         std::string name_data;

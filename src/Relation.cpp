@@ -83,6 +83,7 @@ Relation::add_member(const char **atts) {
 }
 
 
+#if 0
 void
 Relation::add_tag(const char **atts, std::string &key, std::string &value) {
     auto **attribut = atts;
@@ -98,7 +99,7 @@ Relation::add_tag(const char **atts, std::string &key, std::string &value) {
     /* store the tag as originaly recieved*/
     m_tags[key] = value;
 }
-
+#endif
 
 void Relation::AddWayRef(int64_t osm_id, const std::string &k, const std::string &v) {
     if (k == "way") {

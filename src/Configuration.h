@@ -24,10 +24,10 @@
 #include <string>
 #include <map>
 #include "Type.h"
+#include "osm_tag.h"
 #include "Class.h"
 
 namespace osm2pgr {
-
 
 /**
 A configuration document.
@@ -41,21 +41,21 @@ class Configuration {
      void AddType(Type t);
      Type FindType(std::string typeName) const;
      Type& FindType(std::string typeName);
-     Class FindClass(const std::string &typeName, const std::string &className) const;
-     std::string priority_str(const std::string &typeName, const std::string &className) const;
+     Class FindClass(const Tag &tag) const;
+     std::string priority_str(const Tag &tag) const;
 
 
-     inline size_t has_class(const std::string &type_name, const std::string &class_name) const {
-         return has_type(type_name)
-             && m_Types.at(type_name).has_class(class_name);
+     inline size_t has_class(const Tag &tag) const {
+         return has_type(tag.key())
+             && m_Types.at(tag.key()).has_class(tag.value());
      }
 
-     double class_default_maxspeed(const std::string &type_name, const std::string &class_name) const {
-         return m_Types.at(type_name).classes().at(class_name).default_maxspeed();
+     double class_default_maxspeed(const Tag &tag) const {
+         return m_Types.at(tag.key()).classes().at(tag.value()).default_maxspeed();
      }
 
-     double class_priority(const std::string &type_name, const std::string &class_name) const {
-         return m_Types.at(type_name).classes().at(class_name).priority();
+     double class_priority(const Tag &tag) const {
+         return m_Types.at(tag.key()).classes().at(tag.value()).priority();
      }
 
      const std::map<std::string, Type>& types() const {return m_Types;}

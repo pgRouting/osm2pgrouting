@@ -34,8 +34,6 @@ namespace osm2pgr {
 Way::Way(const char **atts) :
     Element(atts),
     m_visible(true),
-    m_type(""),
-    m_clss(""),
     m_maxspeed_forward(-1),
     m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") {
@@ -328,8 +326,7 @@ Way::insert_tags(const std::map<std::string, std::string> &tags) {
 std::ostream& operator<<(std::ostream &os, const Way &way) {
     std::cout << "\nWay"
         << "\t m_osm_id: " << way.m_osm_id
-        << "\t m_type: " << way.m_type
-        << "\t m_class: " << way.m_clss
+        << "\t m_tag_config: " << way.m_tag_config
         << "\t m_visible: " << way.m_visible
         << "\t m_maxspeed_forward: " << way.m_maxspeed_forward
         << "\t m_maxspeed_backward: " << way.m_maxspeed_backward

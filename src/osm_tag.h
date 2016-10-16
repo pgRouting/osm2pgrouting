@@ -53,6 +53,10 @@ class Tag {
       *    @param atts atributes pointer returned by the XML parser
       */
      explicit Tag(const char **atts);
+     Tag(const std::string &k, const std::string &v) {
+         m_key = k;
+         m_value =v;
+     }
 
      inline std::string key() const {return m_key;}
      inline std::string value() const {return m_value;}

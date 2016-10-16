@@ -1,6 +1,4 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt                                    *
- *   gentoo.murray@gmail.com                                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,5 +87,48 @@ OSMDocument::add_node(Way &way, const char **atts) {
     }
 }
 
+#if 0
+void
+OSMDocument::add_config(Way &way, const Tag &tag) {
+            auto  k = tag.key();
+            auto  v = tag.value();
+            /*
+             * for example
+             *  <tag highway=motorway>    // k = highway  v = motorway
+             *  <tag highway=path>    // k = highway  v = motorway
+             *
+             * And the configuration file has:
+             * <type name="highway" id="1">
+             *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
+             *     // there is no class name="path"
+             */
+            if (m_rDocument.m_rConfig.has_class(k, v)) {
+                if ((way->type().compare("") == 0 && last_way->clss().compare("") == 0)
+                        || (
+                            m_rDocument.m_rConfig.has_class(k, v) // k name of the type, v name of the class
+                            && m_rDocument.m_rConfig.has_class(way->type(), way->clss())
+                            && m_rDocument.m_rConfig.class_priority(k, v)
+                            < m_rDocument.m_rConfig.class_priority(way->type(), way->clss())
+                           )
+                   ) {
+                    way->type(k, v);
 
-}  // end namespace osm2pgr
+                    if (m_rDocument.m_rConfig.has_class(way->type(), way->clss())) {
+                        last_way->add_tag(tag);
+
+                        // set default maxspeed values from classes, if not set previously (default: -1)
+                        auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(way->type(), way->clss());
+                        if (way->maxspeed_forward() <= 0) {
+                            way->maxspeed_forward(newValue);
+                        }
+                        if (way->maxspeed_backward() <= 0) {
+                            way->maxspeed_backward(newValue);
+                        }
+                    }
+                }
+            }
+}
+#endif
+
+
+}  // namespace osm2pgr
