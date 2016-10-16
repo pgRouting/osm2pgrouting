@@ -24,6 +24,7 @@
 
 #include <string>
 #include <map>
+#include "osm_tag.h"
 
 namespace osm2pgr {
 
@@ -40,7 +41,6 @@ namespace osm2pgr {
 
       */
 
-class Tag;
 class Element {
     public:
         Element() = default;
@@ -53,6 +53,11 @@ class Element {
         Tag add_tag(const Tag &);
 
         inline int64_t osm_id() const {return m_osm_id;}
+        inline bool visible() const {return m_visible;}
+        inline void tag_config(const Tag &tag) {m_tag_config = tag;}
+        inline Tag tag_config() const {return m_tag_config;}
+
+
 
         std::string attributes_str() const; 
         std::string tags_str() const; 
@@ -71,6 +76,9 @@ class Element {
     protected:
         // ! OSM ID of the element
         int64_t m_osm_id;
+        bool m_visible;
+        Tag m_tag_config;
+
 
         std::map<std::string, std::string> m_tags;
         std::map<std::string, std::string> m_attributes;

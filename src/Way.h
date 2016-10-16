@@ -24,7 +24,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <osm_tag.h>
 #include <osm_element.h>
 #include <Node.h>
 namespace osm2pgr {
@@ -65,16 +64,12 @@ class Way : public Element {
      std::vector<Node*>& nodeRefs() {return m_NodeRefs;}
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
 
-     inline bool visible() const {return m_visible;}
-     inline void tag_config(const Tag &tag) {m_tag_config = tag;}
-
 
  public:
      inline void maxspeed_forward(double p_max) {m_maxspeed_forward = p_max;}
      inline void maxspeed_backward(double p_max) {m_maxspeed_backward = p_max;}
 
      inline std::string name() const {return has_tag("name")? get_tag("name") : "";}
-     inline Tag tag_config() const {return m_tag_config;}
 
 
      std::string oneWay() const;
@@ -136,11 +131,6 @@ class Way : public Element {
       * <tag k="yh:WIDTH" v="5.5m〜13.0m"/>
       */
 
-
-     bool m_visible;
-     //! relevant tag
-     Tag m_tag_config;
-     std::string m_clss;
 
      double m_maxspeed_forward;
      double m_maxspeed_backward;

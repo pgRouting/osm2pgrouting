@@ -23,7 +23,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "osm_tag.h"
+// #include "osm_tag.h"
 #include "osm_element.h"
 
 namespace osm2pgr {
@@ -65,24 +65,9 @@ class Relation : public Element{
          *    saves the nodes of the way  
          *    @param pNode node
          */
-        void AddWayRef(int64_t osm_id,  const std::string &k, const std::string &v);
-        void AddWayRef(int64_t wID);
         int64_t add_member(const char **atts);
 
-#if 0
-        void add_tag(const char **atts, std::string &key, std::string &value);
-#endif
-        void AddTag(std::string key, std::string value);
-        inline int64_t visible(bool p_visible) {return m_visible = p_visible;}
-
-        inline void tag_config(const Tag &tag) {m_tag_config = tag;}
-        inline Tag tag_config() const {return m_tag_config;}
-        inline std::string clss() const {return m_clss;}
-
     public:
-        bool m_visible;
-        Tag m_tag_config;
-        std::string m_clss;
         std::vector<int64_t> m_WayRefs;
 };
 

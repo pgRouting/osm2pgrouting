@@ -26,44 +26,46 @@
 namespace osm2pgr {
 
 
-Element::Element(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name == "id") {
-            m_osm_id = boost::lexical_cast<int64_t>(value);
-        } else {
+Element::Element(const char **atts) :
+    m_visible(true) {
+        auto **attribut = atts;
+        while (*attribut != NULL) {
+            std::string name = *attribut++;
+            std::string value = *attribut++;
+            if (name == "id") {
+                m_osm_id = boost::lexical_cast<int64_t>(value);
+            } if (name == "visible") {
+                m_osm_id = boost::lexical_cast<bool>(value);
+            };
             m_attributes[name] = value;
         }
     }
-}
 
 Tag
-Element::add_tag(const Tag &tag) {
-    m_tags[tag.key()] = tag.value();
-    return tag;
-}
+    Element::add_tag(const Tag &tag) {
+        m_tags[tag.key()] = tag.value();
+        return tag;
+    }
 
 bool
-Element::has_tag(const std::string& key) const {
-    return m_tags.find(key) != m_tags.end();
-}
+    Element::has_tag(const std::string& key) const {
+        return m_tags.find(key) != m_tags.end();
+    }
 
 std::string
-Element::get_tag(const std::string& key) const {
-    return m_tags.find(key)->second;
-}
+    Element::get_tag(const std::string& key) const {
+        return m_tags.find(key)->second;
+    }
 
 bool
-Element::has_attribute(const std::string& key) const {
-    return m_attributes.find(key) != m_attributes.end();
-}
+    Element::has_attribute(const std::string& key) const {
+        return m_attributes.find(key) != m_attributes.end();
+    }
 
 std::string
-Element::get_attribute(const std::string& key) const {
-    return m_attributes.find(key)->second;
-}
+    Element::get_attribute(const std::string& key) const {
+        return m_attributes.find(key)->second;
+    }
 
 std::string Element::attributes_str() const {
     if (m_tags.empty()) return "\"\"";
