@@ -35,7 +35,7 @@
 #include "./Configuration.h"
 #include "./prog_options.h"
 
-using namespace osm2pgr;
+namespace osm2pgr {
 
 /**
  * This class connects to a postgresql database. For using this class,
@@ -72,12 +72,20 @@ class Export2DB {
      void processSectionExportNodes(const std::string nodes_columns) const;
 
      //! exports ways to the database
-     void exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const;
-     void exportRelations(const std::vector<Relation> &relations, const Configuration &config) const;
-     void exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const;
+     void exportTags(
+             const std::map<int64_t, Way> &ways,
+             const Configuration &config) const;
+     void exportRelations(
+             const std::vector<Relation> &relations,
+             const Configuration &config) const;
+     void exportRelationsWays(
+             const std::vector<Relation> &relations,
+             const Configuration &config) const;
      void exportTypes(const std::map<std::string, Type>& types) const;
      void exportClasses(const std::map<std::string, Type>& types) const;
-     void exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const;
+     void exportWays(
+             const std::map<int64_t, Way> &ways,
+             const Configuration &config) const;
 
      //! Be careful! It deletes the created tables!
      void dropTables() const;
@@ -89,32 +97,48 @@ class Export2DB {
      void prepare_table(const std::string &ways_columns) const;
      void process_section(const std::string &ways_columns) const;
 
-     void dropTempTable(const std::string &table) const;
-     bool createTempTable(const std::string &sql,
+     void dropTempTable(
+             const std::string &table) const;
+     bool createTempTable(
+             const std::string &sql,
              const std::string &table) const;
      void dropTable(const std::string &table) const;
-     bool createTempTable(const std::string &sql,
+     bool createTempTable(
+             const std::string &sql,
              const std::string &table);
-     bool createTable(const std::string &sql,
+     bool createTable(
+             const std::string &sql,
              const std::string &table,
              const std::string &constraint = std::string("")) const;
-     void addTempGeometry(const std::string &table,
+     void addTempGeometry(
+             const std::string &table,
              const std::string &geometry_type) const;
-     void addGeometry(const std::string &schema, const std::string &table,
+     void addGeometry(
+             const std::string &schema,
+             const std::string &table,
              const std::string &geometry_type) const;
-     void create_gindex(const std::string &index, const std::string &table) const;
-     void create_idindex(const std::string &colname, const std::string &table) const;
+     void create_gindex(
+             const std::string &index,
+             const std::string &table) const;
+     void create_idindex(
+             const std::string &colname,
+             const std::string &table) const;
      inline std::string full_table_name(const std::string &table) const {
          return tables_prefix + table + tables_suffix;
      }
      inline std::string addSchema(const std::string &table) const {
-         return  (default_tables_schema() == "" ? "" : default_tables_schema() + ".") + table;
+         return  (default_tables_schema() == "" ? ""
+                 : default_tables_schema() + ".") + table;
      }
      inline std::string default_tables_schema() const {
          return tables_schema;
      }
-     void fill_vertices_table(const std::string &table, const std::string &vertices_tab) const;
-     void fill_source_target(const std::string &table, const std::string &vertices_tab) const;
+     void fill_vertices_table(
+             const std::string &table,
+             const std::string &vertices_tab) const;
+     void fill_source_target(
+             const std::string &table,
+             const std::string &vertices_tab) const;
 
  private:
      PGconn *mycon;
@@ -133,5 +157,6 @@ class Export2DB {
      std::string create_types;
      std::string create_vertices;
 };
+}  // namespace osm2pgr
 
 #endif  // SRC_EXPORT2DB_H_

@@ -37,13 +37,11 @@ namespace osm2pgr {
 void ConfigurationParserCallback::StartElement(
         const char *name,
         const char** atts) {
-
     if (strcmp(name, "class") == 0) {
          m_current->add_class(atts);
     } else if (strcmp(name, "type") == 0) {
         m_current = new Type(atts);
-    }
-    else if (strcmp(name, "configuration") == 0) {
+    } else if (strcmp(name, "configuration") == 0) {
     }
 }
 

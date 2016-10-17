@@ -33,18 +33,18 @@
 #endif
 
 #include "./ConfigurationParserCallback.h"
-#include "./OSMDocument.h"
 #include "./OSMDocumentParserCallback.h"
+#include "./OSMDocument.h"
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
 static
-size_t lines_in_file(const std::string file_name) { 
+size_t lines_in_file(const std::string file_name) {
     FILE *in;
     char buff[512];
     std::string command = "wc -l  " + file_name;
 
-    if(!(in = popen(command.c_str(), "r"))){
+    if (!(in = popen(command.c_str(), "r"))) {
         exit(1);
     }
 
@@ -70,11 +70,10 @@ int main(int argc, char* argv[]) {
      */
     clock_t begin = clock();
     std::time_t start_t = std::time(NULL);
-    std::chrono::steady_clock::time_point begin_elapsed = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point begin_elapsed =
+        std::chrono::steady_clock::now();
 #endif
-#if 0
     try {
-#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -114,7 +113,7 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Connecting to the database"  << endl;
-        Export2DB dbConnection(vm);
+        osm2pgr::Export2DB dbConnection(vm);
         if (dbConnection.connect() == 1)
             return 1;
         if (!dbConnection.has_postGIS()) {
@@ -124,23 +123,29 @@ int main(int argc, char* argv[]) {
 
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
-        Configuration config;
-        ConfigurationParserCallback cCallback(config);
+        osm2pgr::Configuration config;
+        osm2pgr::ConfigurationParserCallback cCallback(config);
 
 
         std::cout << "    Parsing configuration\n" << endl;
         xml::XMLParser parser;
         int ret = parser.Parse(cCallback, confFile.c_str());
         if (ret != 0) {
-            cout << "Failed to open / parse config file " << confFile.c_str() << endl;
+            cout << "Failed to open / parse config file "
+                << confFile.c_str()
+                << endl;
             return 1;
         }
 
         auto total_lines = lines_in_file(dataFile);
 
-        std::cout << "Opening data file: " << dataFile << " total lines " << total_lines << endl;
-        OSMDocument document = OSMDocument(config, total_lines);
-        OSMDocumentParserCallback callback(document);
+        std::cout << "Opening data file: "
+            << dataFile
+            << " total lines "
+            << total_lines
+            << endl;
+        osm2pgr::OSMDocument document(config, total_lines);
+        osm2pgr::OSMDocumentParserCallback callback(document);
 
         std::cout << "    Parsing data\n" << endl;
         ret = parser.Parse(callback, dataFile.c_str());
@@ -192,23 +197,28 @@ int main(int argc, char* argv[]) {
 
 #ifdef WITH_TIME
         clock_t end = clock();
-        double elapsed_secs = static_cast<double>(end - begin) / static_cast<double>(CLOCKS_PER_SEC);
+        double elapsed_secs =
+            static_cast<double>(end - begin)
+            / static_cast<double>(CLOCKS_PER_SEC);
 
         std::time_t end_t = std::time(NULL);
-        std::chrono::steady_clock::time_point end_elapsed = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point end_elapsed =
+            std::chrono::steady_clock::now();
 
         typedef std::chrono::duration<int, std::milli> millisecs_t;
-        millisecs_t duration = std::chrono::duration_cast<millisecs_t>(end_elapsed - begin_elapsed);
+        millisecs_t duration = std::chrono::duration_cast<millisecs_t>(
+                end_elapsed - begin_elapsed);
 
         std::cout << "Execution started at: " << std::ctime(&start_t);
         std::cout << "Execution ended at:   " << std::ctime(&end_t);
-        std::cout << "Elapsed time: " << static_cast<double>(duration.count())/static_cast<double>(1000) << " Seconds.\n";
+        std::cout << "Elapsed time: "
+            << static_cast<double>(duration.count())/static_cast<double>(1000)
+            << " Seconds.\n";
         std::cout << "User CPU time: -> " << elapsed_secs << " seconds\n";
 #endif
 
         std::cout << "#########################" << endl;
         return 0;
-#if 0
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -222,5 +232,4 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
-#endif
 }

@@ -21,10 +21,12 @@
 
 #ifndef SRC_NODE_H_
 #define SRC_NODE_H_
+#pragma once
+
+#include <boost/lexical_cast.hpp>
 #include <cstdint>
 #include <string>
 #include <map>
-#include <boost/lexical_cast.hpp>
 #include "./osm_element.h"
 
 namespace osm2pgr {
@@ -33,7 +35,7 @@ class Tag;
 class Node : public Element {
     /**
       @code
-      <node id="122603925" lat="53.0780875" lon="8.1351704" 
+      <node id="122603925" lat="53.0780875" lon="8.1351704"
       user="artus70" visible="true" timestamp="2007-11-18T22:18:59+00:00"/>
       </node>
 
@@ -57,39 +59,39 @@ class Node : public Element {
       @endcode
       */
 
-    public:
-        Node() = default;
-        Node(const Node&) = default;
-        /**
-         *    Construktor
-         *    @param id ID of the node
-         */
-        explicit Node(const char **attributes);
-        inline std::string geom_str(std::string separator) {
-            return get_attribute("lon") + separator +  get_attribute("lat");
-        }
+ public:
+     Node() = default;
+     Node(const Node&) = default;
+     /**
+      *    Construktor
+      *    @param id ID of the node
+      */
+     explicit Node(const char **attributes);
+     inline std::string geom_str(std::string separator) {
+         return get_attribute("lon") + separator +  get_attribute("lat");
+     }
 
-        inline std::string point_geometry() {
-            return
-                std::string("srid=4326; POINT(") 
-                + geom_str(" ") + ")";
-        }
+     inline std::string point_geometry() {
+         return
+             std::string("srid=4326; POINT(")
+             + geom_str(" ") + ")";
+     }
 
-        inline std::string osm_id_str() {
-            return boost::lexical_cast<std::string>(m_osm_id); 
-        }
-        double getLength(const Node &previous) const;
+     inline std::string osm_id_str() {
+         return boost::lexical_cast<std::string>(m_osm_id);
+     }
+     double getLength(const Node &previous) const;
 
 
-        inline uint16_t incrementUse() {return ++m_numsOfUse;}
-        inline uint16_t numsOfUse() const {return m_numsOfUse;}
-        inline void numsOfUse(uint16_t val)  {m_numsOfUse = val;}
+     inline uint16_t incrementUse() {return ++m_numsOfUse;}
+     inline uint16_t numsOfUse() const {return m_numsOfUse;}
+     inline void numsOfUse(uint16_t val)  {m_numsOfUse = val;}
 
-    private:
-        /**
-         *    counts the rate, how much this node is used in different ways
-         */
-        uint16_t m_numsOfUse;
+ private:
+     /**
+      *    counts the rate, how much this node is used in different ways
+      */
+     uint16_t m_numsOfUse;
 };
 
 

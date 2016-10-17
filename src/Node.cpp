@@ -36,22 +36,22 @@ Node::Node(const char **atts) :
     }
 
 
-double 
-    Node::getLength(const Node &previous) const {
-        typedef boost::geometry::model::d2::point_xy<double> point_type;
+double
+Node::getLength(const Node &previous) const {
+    typedef boost::geometry::model::d2::point_xy<double> point_type;
 
-        /* converted point to fit boost.geomtery
-         *      * (`p` and `q` are same as `a ` and `b`)
-         *           */
-        point_type p(
-                boost::lexical_cast<double>(get_attribute("lat")),
-                boost::lexical_cast<double>(get_attribute("lon")));
+    /* converted point to fit boost.geomtery
+     *      * (`p` and `q` are same as `a ` and `b`)
+     *           */
+    point_type p(
+            boost::lexical_cast<double>(get_attribute("lat")),
+            boost::lexical_cast<double>(get_attribute("lon")));
 
-        point_type q(
-                boost::lexical_cast<double>(previous.get_attribute("lat")),
-                boost::lexical_cast<double>(previous.get_attribute("lon")));
+    point_type q(
+            boost::lexical_cast<double>(previous.get_attribute("lat")),
+            boost::lexical_cast<double>(previous.get_attribute("lon")));
 
-        return boost::geometry::distance(p, q);
-    }
+    return boost::geometry::distance(p, q);
+}
 
 }  // namespace osm2pgr

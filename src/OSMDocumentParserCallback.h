@@ -64,7 +64,7 @@ class OSMDocumentParserCallback :
  private:
     void show_progress();
 
- private:   
+ private:
     Node *last_node;
     Way *last_way;
     Relation* last_relation;

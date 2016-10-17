@@ -53,9 +53,7 @@ class ConfigurationParserCallback : public xml::XMLParserCallback {
     virtual void StartElement(const char *name, const char** atts);
 
     virtual void EndElement(const char* name);
-
-
-};  // class
+};
 
 }  // namespace osm2pgr
 

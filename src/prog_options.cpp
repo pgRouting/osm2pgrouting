@@ -48,7 +48,6 @@ void get_option_description(po::options_description &od_desc) {
         // general
         ("file,f", po::value<std::string>()->required(), "REQUIRED: Name of the osm file.")
         ("conf,c", po::value<std::string>()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of the configuration xml file.")
-        // ("conf,c", po::value<std::string>()->required()->default_value("/usr/share/osm2pgrouting/mapconfig.xml"), "Name of the configuration xml file.")
         ("schema", po::value<std::string>()->default_value(""), "Database schema to put tables.\n  blank:\t defaults to default schema dictated by PostgreSQL search_path.")
         ("prefix", po::value<std::string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")

@@ -18,6 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef SRC_PRINT_PROGRESS_H_
+#define SRC_PRINT_PROGRESS_H_
+#pragma once
 
 
 #include <iostream>
@@ -46,3 +49,4 @@ print_progress(T1 wantProgress, T2 currentProgress) {
         << " (" << static_cast<int>(100 * percent) << "%)"
         << std::flush;
 }
+#endif  // SRC_PRINT_PROGRESS_H_

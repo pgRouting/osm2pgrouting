@@ -32,7 +32,7 @@
 
 namespace osm2pgr {
 
-OSMDocument::OSMDocument(Configuration &config, size_t lines) :
+OSMDocument::OSMDocument(const Configuration &config, size_t lines) :
     m_rConfig(config),
     m_lines(lines) {
 }
@@ -82,7 +82,8 @@ OSMDocument::add_node(Way &way, const char **atts) {
     auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
     if (!has_node(node_id)) {
         std::cout << "Reference nd=" << node_id
-            << " has no corresponding Node Entry (Maybe Node entry after Reference?)" << std::endl;
+            << " has no corresponding Node Entry (Maybe Node entry after Reference?)"
+            << std::endl;
     } else {
         auto node = FindNode(node_id);
         node->incrementUse();
@@ -107,7 +108,7 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
     if (m_rConfig.has_class(tag)) {
         if ((way.tag_config().key() == "" && way.tag_config().value() == "")
                 || (
-                    m_rConfig.has_class(tag) // k name of the type, v name of the class
+                    m_rConfig.has_class(tag)
                     && m_rConfig.has_class(way.tag_config())
                     && m_rConfig.class_priority(tag)
                     < m_rConfig.class_priority(way.tag_config())
@@ -118,7 +119,6 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
             if (m_rConfig.has_class(way.tag_config())) {
                 way.add_tag(tag);
 
-                // set default maxspeed values from classes, if not set previously (default: -1)
                 auto newValue = m_rConfig.class_default_maxspeed(way.tag_config());
                 if (way.maxspeed_forward() <= 0) {
                     way.maxspeed_forward(newValue);
@@ -129,7 +129,6 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
             }
         }
     }
-
 }
 
 

@@ -21,10 +21,12 @@
 
 #include "Way.h"
 #include <string>
+#include <map>
+#include <vector>
 #include "boost/lexical_cast.hpp"
-#include "OSMDocument.h"
-#include "osm_tag.h"
-#include "Node.h"
+#include "./OSMDocument.h"
+#include "./osm_tag.h"
+#include "./Node.h"
 
 
 
@@ -78,7 +80,6 @@ Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
 
         geometry += node_ptr->geom_str(" ");
         geometry += ", ";
-
     }
     geometry[geometry.size() - 2] = ')';
     return geometry;
@@ -97,7 +98,6 @@ Way::length_str(const std::vector<Node*> &nodeRefs) const {
 
         length  += node_ptr->getLength(*prev_node_ptr);
         prev_node_ptr = node_ptr;
-
     }
 
     return boost::lexical_cast<std::string>(length);
@@ -112,7 +112,7 @@ Way::split_me() {
          * The way is ill formed
          */
         return std::vector<std::vector<Node*>>();
-    };
+    }
 
     std::vector<std::vector<Node*>> m_split_ways;
     auto it_node(nodeRefs().begin());
@@ -172,7 +172,7 @@ Way::oneWay(const Tag &tag) {
     // check reversible condition
     if (value == "reversible") {
         m_oneWay = "REVERSIBLE";
-    } 
+    }
 
     // check revers conditions: -1
     if (value == "-1") {
@@ -209,7 +209,7 @@ Way::implied_oneWay(const Tag &tag) {
 #if 0
 void
 Way::pedestrian(const std::string &key, const std::string &value) {
-    // TODO
+    // TODO(vicky) for 3.0
     // m_pedestrian("UNKNOWN") <-- the default in the constructor
     if ((key == "sidewak" && value == "no")
             || (key == "foot" && value == "no")) {
@@ -217,13 +217,13 @@ Way::pedestrian(const std::string &key, const std::string &value) {
     }
 
     if ((key == "highway" && value == "pedestrian") {
-            || (key == "highway" && value == "footway") 
-            || (key == "highway" && value == "cycleway") 
-            || (key == "highway" && value == "bridleway") 
-            || (key == "highway" && value == "track") 
+            || (key == "highway" && value == "footway")
+            || (key == "highway" && value == "cycleway")
+            || (key == "highway" && value == "bridleway")
+            || (key == "highway" && value == "track")
             || (key == "sidewak" && value != "no")  )
         || (key == "foot" && value != "no")  )
-            || (key == "highway" && value == "steps") { 
+            || (key == "highway" && value == "steps") {
                 m_pedestrian = "YES";
                 return
             }
@@ -232,12 +232,12 @@ Way::pedestrian(const std::string &key, const std::string &value) {
 #endif
 
 bool
-Way::is_number(const std::string& s) const{
+Way::is_number(const std::string& s) const {
     auto str = s;
     remove_if(str.begin(), str.end(), isspace);
     auto it = str.begin();
     for (; it != str.end() && std::isdigit(*it);
-            ++it) {};
+            ++it) {}
     return !str.empty() && it == s.end();
 }
 
@@ -264,7 +264,7 @@ Way::get_kph(const std::string &value) const {
             return boost::lexical_cast<double>(newstr) * 1.852;
         }
     }
-    if (is_number(value)) { 
+    if (is_number(value)) {
         return boost::lexical_cast<double>(value);
     }
     // TODO(vicky): handle non-numeric values, ex.: RO:urban
@@ -300,7 +300,7 @@ Way::max_speed(const Tag &tag) {
 
 
 std::string
-Way::oneWayType_str() const{  
+Way::oneWayType_str() const {
     if (m_oneWay == "YES") return "1";
     if (m_oneWay == "NO") return  "2";
     if (m_oneWay == "REVERSIBLE") return  "3";
@@ -318,6 +318,7 @@ Way::insert_tags(const std::map<std::string, std::string> &tags) {
 
 
 
+#if NDEF NDEBUG
 std::ostream& operator<<(std::ostream &os, const Way &way) {
     std::cout << "\nWay"
         << "\t m_osm_id: " << way.m_osm_id
@@ -335,6 +336,7 @@ std::ostream& operator<<(std::ostream &os, const Way &way) {
 
     return os;
 }
+#endif
 
 
 }  // namespace osm2pgr

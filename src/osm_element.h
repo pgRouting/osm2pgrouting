@@ -19,13 +19,13 @@
  ***************************************************************************/
 
 
-#ifndef SRC_ELEMENT_H
-#define SRC_ELEMENT_H
+#ifndef SRC_OSM_ELEMENT_H_
+#define SRC_OSM_ELEMENT_H_
 #pragma once
 
 #include <string>
 #include <map>
-#include "osm_tag.h"
+#include "./osm_tag.h"
 
 namespace osm2pgr {
 
@@ -37,54 +37,56 @@ namespace osm2pgr {
       @code
       <node
       <way
-      <relation 
+      <relation
       @endcode
 
       */
 
 class Element {
-    public:
-        Element() = default;
-        Element(const Element&) = default;
-        /**
-         *    Constructor
-         *    @param atts atributes pointer returned by the XML parser
-         */
-        explicit Element(const char **atts);
-        Tag add_tag(const Tag &);
+ public:
+     Element() = default;
+     Element(const Element&) = default;
+     /**
+      *    Constructor
+      *    @param atts atributes pointer returned by the XML parser
+      */
+     explicit Element(const char **atts);
+     Tag add_tag(const Tag &);
 
-        inline int64_t osm_id() const {return m_osm_id;}
-        inline bool visible() const {return m_visible;}
-        inline void tag_config(const Tag &tag) {m_tag_config = tag;}
-        inline Tag tag_config() const {return m_tag_config;}
-
-
-
-        std::string attributes_str() const; 
-        std::string tags_str() const; 
-
-        bool has_attribute(const std::string&) const;
-        std::string get_attribute(const std::string&) const;
-        std::map<std::string, std::string>& attributes() {return m_attributes;}
-        const std::map<std::string, std::string> attributes() const {return m_attributes;}
+     inline int64_t osm_id() const {return m_osm_id;}
+     inline bool visible() const {return m_visible;}
+     inline void tag_config(const Tag &tag) {m_tag_config = tag;}
+     inline Tag tag_config() const {return m_tag_config;}
 
 
-        bool has_tag(const std::string&) const;
-        std::string get_tag(const std::string&) const;
-        std::map<std::string, std::string>& tags() {return m_tags;}
-        const std::map<std::string, std::string> tags() const {return m_tags;}
 
-    protected:
-        // ! OSM ID of the element
-        int64_t m_osm_id;
-        bool m_visible;
-        Tag m_tag_config;
+     std::string attributes_str() const;
+     std::string tags_str() const;
+
+     bool has_attribute(const std::string&) const;
+     std::string get_attribute(const std::string&) const;
+     std::map<std::string, std::string>& attributes() {return m_attributes;}
+     const std::map<std::string, std::string> attributes() const {
+         return m_attributes;
+     }
 
 
-        std::map<std::string, std::string> m_tags;
-        std::map<std::string, std::string> m_attributes;
+     bool has_tag(const std::string&) const;
+     std::string get_tag(const std::string&) const;
+     std::map<std::string, std::string>& tags() {return m_tags;}
+     const std::map<std::string, std::string> tags() const {return m_tags;}
+
+ protected:
+     // ! OSM ID of the element
+     int64_t m_osm_id;
+     bool m_visible;
+     Tag m_tag_config;
+
+
+     std::map<std::string, std::string> m_tags;
+     std::map<std::string, std::string> m_attributes;
 };
 
 
 }  // namespace osm2pgr
-#endif  // SRC_ELEMENT_H
+#endif  // SRC_OSM_ELEMENT_H_

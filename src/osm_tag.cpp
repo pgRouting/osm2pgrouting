@@ -20,6 +20,7 @@
 
 
 #include "./osm_tag.h"
+#include <string>
 
 namespace osm2pgr {
 
@@ -38,7 +39,7 @@ Tag::Tag(const char **atts) {
 }
 
 std::ostream& operator<<(std::ostream &os, const Tag& tag) {
-    os << tag.m_key << "=>" << tag.m_value ;
+    os << tag.m_key << "=>" << tag.m_value;
     return os;
 }
 

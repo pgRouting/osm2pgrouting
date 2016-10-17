@@ -21,6 +21,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <map>
+#include <string>
 #include "./osm_tag.h"
 #include "./osm_element.h"
 
@@ -35,9 +36,10 @@ Element::Element(const char **atts) :
             std::string value = *attribut++;
             if (name == "id") {
                 m_osm_id = boost::lexical_cast<int64_t>(value);
-            } if (name == "visible") {
+            }
+            if (name == "visible") {
                 m_osm_id = boost::lexical_cast<bool>(value);
-            };
+            }
             m_attributes[name] = value;
         }
     }
@@ -74,19 +76,19 @@ std::string Element::attributes_str() const {
     for (auto it = m_attributes.begin(); it != m_attributes.end(); ++it) {
         auto attribute = *it;
         str +=  attribute.first + "=>" + attribute.second + ",";
-    };
+    }
     str.pop_back();
     str += "\"";
     return str;
 }
 
-std::string Element::tags_str()  const{
+std::string Element::tags_str() const {
     if (m_tags.empty()) return "";
     std::string str("\"");
     for (auto it = m_tags.begin(); it != m_tags.end(); ++it) {
         auto tag = *it;
         str +=  tag.first + "=>" + tag.second + ",";
-    };
+    }
     str.pop_back();
     str += "\"";
     return str;

@@ -25,8 +25,9 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <osm_element.h>
-#include <Node.h>
+#include "./osm_element.h"
+#include "./Node.h"
+
 namespace osm2pgr {
 
 
@@ -52,13 +53,13 @@ namespace osm2pgr {
   */
 class Way : public Element {
  public:
-     /** 
+     /**
       *  Constructor
       *  @param id ID of the way
       */
      Way() = default;
 
-     Way(const char **atts);
+     explicit Way(const char **atts);
      Tag add_tag(const Tag &tag);
      void add_node(Node* node);
 
@@ -103,14 +104,15 @@ class Way : public Element {
       */
      void insert_tags(const std::map<std::string, std::string> &tags);
 
-     // TODO this is not usefull in production
+#ifndef NDEBUG
      friend
      std::ostream& operator<<(std::ostream &, const Way &);
+#endif
 
 
  private:
      bool is_number(const std::string& s) const;
-     double get_kph(const std::string &value) const; 
+     double get_kph(const std::string &value) const;
      void max_speed(const Tag& tag);
      void oneWay(const Tag& tag);
      void implied_oneWay(const Tag& tag);

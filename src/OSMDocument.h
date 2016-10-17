@@ -39,12 +39,18 @@ class Relation;
 class OSMDocument {
  public:
     //! Constructor
-    explicit OSMDocument(Configuration& config, size_t lines);
+    OSMDocument(const Configuration& config, size_t lines);
 
     inline size_t lines() const {return m_lines;}
-    inline bool has_class(const Tag &tag) const {return m_rConfig.has_class(tag);}
-    inline double class_priority(const Tag &tag) const {return m_rConfig.class_priority(tag);}
-    inline double class_default_maxspeed(const Tag &tag) const {return m_rConfig.class_default_maxspeed(tag);}
+    inline bool has_class(const Tag &tag) const {
+        return m_rConfig.has_class(tag);
+    }
+    inline double class_priority(const Tag &tag) const {
+        return m_rConfig.class_priority(tag);
+    }
+    inline double class_default_maxspeed(const Tag &tag) const {
+        return m_rConfig.class_default_maxspeed(tag);
+    }
 
     const std::map<int64_t, Node>& nodes() const {return m_Nodes;}
     const std::map<int64_t, Way>& ways() const {return m_Ways;}
@@ -81,7 +87,7 @@ class OSMDocument {
     std::vector<Relation> m_Relations;
 
 
-    Configuration& m_rConfig;
+    const Configuration& m_rConfig;
     size_t m_lines;
 };
 

@@ -31,7 +31,7 @@ namespace osm2pgr {
 
 class Type {
  public:
-    /** 
+    /**
      *    Constructor
      *    @param name name of the type
      */
@@ -55,7 +55,7 @@ class Type {
 
     inline bool has_class(const std::string &class_name) const {
         return m_Classes.count(class_name);
-    } 
+    }
 
  private:
     /**

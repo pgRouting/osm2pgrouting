@@ -34,6 +34,7 @@
 
 #include "./prog_options.h"
 
+namespace osm2pgr {
 
 template <typename T>
 static
@@ -622,7 +623,7 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
 void Export2DB::prepare_table(const std::string &ways_columns) const {
     if (createTempTable(create_ways, "__ways_temp")) {
         addTempGeometry("__ways_temp", "LINESTRING");
-    } else { 
+    } else {
         std::cerr << "could not createTempTable\n";
     }
 
@@ -702,12 +703,12 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             boost::replace_all(escaped_name, "\n", "");
             boost::replace_all(escaped_name, "\r", "");
             name_data = escaped_name.substr(0, 199);
-        };
+        }
 
         auto splits = way.split_me();
         split_count +=  splits.size();
 
-        for (size_t i = 0; i < splits.size(); ++i){
+        for (size_t i = 0; i < splits.size(); ++i) {
             auto length = way.length_str(splits[i]);
 
             // length (degrees)
@@ -720,7 +721,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
                 + TO_STR(splits[i].front()->osm_id()) + "\t"
                 // target_osm
                 + TO_STR(splits[i].back()->osm_id()) + "\t"
-                //geometry
+                // geometry
                 + "srid=4326;" + way.geometry_str(splits[i]) + "\t";
 
             // cost based on oneway
@@ -951,5 +952,6 @@ void Export2DB::createFKeys() {
     } else {
         std::cout << "Foreign keys for Ways table created" << std::endl;
     }
-
 }
+
+}  // namespace osm2pgr

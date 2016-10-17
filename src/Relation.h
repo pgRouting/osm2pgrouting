@@ -24,8 +24,7 @@
 #include <vector>
 #include <map>
 #include <string>
-// #include "osm_tag.h"
-#include "osm_element.h"
+#include "./ osm_element.h"
 
 namespace osm2pgr {
 class Way;
@@ -53,25 +52,25 @@ class Way;
 \endcode
 */
 class Relation : public Element{
-    public:
-        /** 
-         *    Constructor
-         *    @param id ID of the way
-         */
-        explicit Relation(const char ** atts);
-        Relation() = delete;
-        Relation(const Relation&) = default;
-        std::vector<int64_t> way_refs() const {return m_WayRefs;}
-        std::vector<int64_t>& way_refs() {return m_WayRefs;}
+ public:
+     /** 
+      *    Constructor
+      *    @param id ID of the way
+      */
+     explicit Relation(const char ** atts);
+     Relation() = delete;
+     Relation(const Relation&) = default;
+     std::vector<int64_t> way_refs() const {return m_WayRefs;}
+     std::vector<int64_t>& way_refs() {return m_WayRefs;}
 
-        /**
-         *    saves the nodes of the way  
-         *    @param pNode node
-         */
-        int64_t add_member(const char **atts);
+     /**
+      *    saves the nodes of the way  
+      *    @param pNode node
+      */
+     int64_t add_member(const char **atts);
 
-    private:
-        std::vector<int64_t> m_WayRefs;
+ private:
+     std::vector<int64_t> m_WayRefs;
 };
 
 

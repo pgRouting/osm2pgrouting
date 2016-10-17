@@ -19,12 +19,12 @@
  ***************************************************************************/
 
 
-#include <string>
+#include "./Configuration.h"
 #include <boost/lexical_cast.hpp>
-#include "Configuration.h"
-#include "osm_tag.h"
-#include "Type.h"
-#include "Class.h"
+#include <string>
+#include "./osm_tag.h"
+#include "./Type.h"
+#include "./Class.h"
 
 
 namespace osm2pgr {
@@ -32,8 +32,8 @@ namespace osm2pgr {
 
 void Configuration::AddType(Type t) {
     if (has_type(t.name())) {
-        // TODO should be looking for id
-        std::cerr << "duplicate Type found in condfiguration file" << t.name() << "\n";
+        std::cerr << "duplicate Type found in condfiguration file"
+            << t.name() << "\n";
         return;
     }
     m_Types[t.name()] = t;

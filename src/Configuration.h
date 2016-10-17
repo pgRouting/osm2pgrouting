@@ -25,8 +25,8 @@
 #include <string>
 #include <map>
 #include "Type.h"
-#include "osm_tag.h"
-#include "Class.h"
+#include "./osm_tag.h"
+#include "./Class.h"
 
 namespace osm2pgr {
 
@@ -52,7 +52,8 @@ class Configuration {
      }
 
      double class_default_maxspeed(const Tag &tag) const {
-         return m_Types.at(tag.key()).classes().at(tag.value()).default_maxspeed();
+         return m_Types.at(
+                 tag.key()).classes().at(tag.value()).default_maxspeed();
      }
 
      double class_priority(const Tag &tag) const {
@@ -66,7 +67,6 @@ class Configuration {
      }
 
  private:
-
      //! Map, which saves the parsed types
      std::map<std::string, Type> m_Types;
 };

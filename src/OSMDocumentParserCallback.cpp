@@ -34,9 +34,6 @@
 #include "./Way.h"
 #include "./Node.h"
 
-// define here, which streetstype you want to parse
-// for applying this filter, compile with "DISTRICT" as flag (g++ -DRESTRICT)
-// #define _FILTER if (m_pActWay->highway == "motorway" || m_pActWay->highway == "primary" || m_pActWay->highway == "secondary")
 
 namespace osm2pgr {
 
@@ -73,7 +70,6 @@ void
 OSMDocumentParserCallback::StartElement(
         const char *name,
         const char** atts) {
-
     show_progress();
     if ((m_section == 1 && (strcmp(name, "way") == 0))
             || (m_section == 2 && (strcmp(name, "relation") == 0))) {
@@ -84,9 +80,9 @@ OSMDocumentParserCallback::StartElement(
     if (m_section == 1) {
         if (strcmp(name, "node") == 0) {
             last_node = new Node(atts);
-        };
-#if 1
-        // TODO to be used in V.2.2 for a hstore column
+        }
+#if 0
+        // TODO(vicky) to be used in V.3 for a hstore column
         if (strcmp(name, "tag") == 0) {
             last_node->add_tag(Tag(atts));
         }
@@ -97,7 +93,7 @@ OSMDocumentParserCallback::StartElement(
     if (m_section == 2) {
         if (strcmp(name, "way") == 0) {
             last_way = new Way(atts);
-        };
+        }
         if (strcmp(name, "tag") == 0) {
             auto tag = last_way->add_tag(Tag(atts));
             m_rDocument.add_config(*last_way, tag);
@@ -105,7 +101,7 @@ OSMDocumentParserCallback::StartElement(
 
         if (strcmp(name, "nd") == 0) {
             m_rDocument.add_node(*last_way, atts);
-        }    
+        }
         return;
     }
 
@@ -137,22 +133,15 @@ OSMDocumentParserCallback::StartElement(
 
             return;
         }
-
-        else if (strcmp(name, "tag") == 0) {  // END OF THE RELATIONS CODE
+        if (strcmp(name, "tag") == 0) {
             if (atts != NULL) {
                 auto tag = last_relation->add_tag(Tag(atts));
-#if 0
-                auto k = tag.key();
-                auto v = tag.value();
-#endif
                 if (!tag.key().empty()) {
                     if ((last_relation->tag_config().key() == "" && last_relation->tag_config().value() == "")
-                            || (
-                                m_rDocument.has_class(tag) 
+                            || (m_rDocument.has_class(tag)
                                 && m_rDocument.has_class(last_relation->tag_config())
-                                && m_rDocument.class_priority(tag)
-                                < m_rDocument.class_priority(last_relation->tag_config())
-                               )) {
+                                && (m_rDocument.class_priority(tag)
+                                    < m_rDocument.class_priority(last_relation->tag_config())))) {
                         last_relation->tag_config(tag);
                     }
                 }
@@ -176,13 +165,13 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
 
     } else if (strcmp(name, "relation") == 0) {
         if (m_rDocument.has_class(last_relation->tag_config())) {
-            for (const auto &way_id: last_relation->way_refs()) {
-
+            for (const auto &way_id : last_relation->way_refs()) {
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
                     way_ptr->tag_config(last_relation->tag_config());
-                    auto newValue = m_rDocument.class_default_maxspeed(last_relation->tag_config());
+                    auto newValue = m_rDocument.class_default_maxspeed(
+                            last_relation->tag_config());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);
                     }

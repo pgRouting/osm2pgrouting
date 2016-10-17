@@ -19,12 +19,15 @@
  ***************************************************************************/
 
 
-#ifndef SRC_OSM_TAG_
-#define SRC_OSM_TAG_
+#ifndef SRC_OSM_TAG_H_
+#define SRC_OSM_TAG_H_
+#pragma once
+
+#include <boost/lexical_cast.hpp>
 #include <cstdint>
 #include <string>
 #include <map>
-#include <boost/lexical_cast.hpp>
+
 
 namespace osm2pgr {
 
@@ -56,7 +59,7 @@ class Tag {
      explicit Tag(const char **atts);
      Tag(const std::string &k, const std::string &v) {
          m_key = k;
-         m_value =v;
+         m_value = v;
      }
 
      inline std::string key() const {return m_key;}
@@ -72,4 +75,4 @@ class Tag {
 
 
 }  // end namespace osm2pgr
-#endif  // SRC_OSM_TAG_
+#endif  // SRC_OSM_TAG_H_

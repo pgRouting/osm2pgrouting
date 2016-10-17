@@ -48,10 +48,10 @@ Relation::add_member(const char **atts) {
         }
         if (key == "ref") {
             osm_id = boost::lexical_cast<int64_t>(value);
-        };
+        }
         if (key == "role") {
             role = value;
-        };
+        }
     }
     m_WayRefs.push_back(osm_id);
     return osm_id;

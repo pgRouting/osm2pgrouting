@@ -18,25 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
 #include "./Class.h"
 #include "./Type.h"
-#include <boost/lexical_cast.hpp>
 
 namespace osm2pgr {
 
-#if 0
-Type::Type(int64_t id, std::string name) :
-  m_id(id),
-  m_name(name) {
-}
-
-Type::~Type() {
-}
-#endif
 void Type::AddClass(const Class &pClass) {
-   m_Classes[pClass.name()] = pClass;
+    m_Classes[pClass.name()] = pClass;
 }
 
 
