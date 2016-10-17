@@ -1,0 +1,20 @@
+
+* pgRouting Team
+
+Daniel Kastl
+Ko Nagase
+Regina Obe
+Vicky Vergara
+
+* Other Contribuitors
+
+To see the full list of contributors:
+
+https://github.com/pgRouting/osm2pgrouting/graphs/contributors
+
+
+Daniel Wendt
+Jordan Anderson
+Kashif Rasul
+Kishore Kumar
+Sarthak agarwal
