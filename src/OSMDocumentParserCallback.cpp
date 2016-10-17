@@ -160,12 +160,12 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "way") == 0) {
         m_rDocument.AddWay(*last_way);
         delete last_way;
-        last_way = nullptr;
         return;
 
     } else if (strcmp(name, "relation") == 0) {
         if (m_rDocument.has_class(last_relation->tag_config())) {
-            for (const auto &way_id : last_relation->way_refs()) {
+            for (auto it = last_relation->way_refs().begin();  it != last_relation->way_refs().end(); ++it) {
+                auto way_id = *it;
                 assert(m_rDocument.has_way(way_id));
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
@@ -183,7 +183,6 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
             m_rDocument.AddRelation(*last_relation);
         }
         delete last_relation;
-        last_relation = nullptr;
 
     } else if (strcmp(name, "osm") == 0) {
         show_progress();

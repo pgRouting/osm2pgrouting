@@ -311,7 +311,8 @@ Way::oneWayType_str() const {
 
 void
 Way::insert_tags(const std::map<std::string, std::string> &tags) {
-    for (const auto &tag : tags) {
+    for (auto it = tags.begin(); it != tags.end(); ++it) {
+        auto tag = *it;
         m_tags[tag.first] = tag.second;
     }
 }
@@ -330,7 +331,8 @@ std::ostream& operator<<(std::ostream &os, const Way &way) {
     std::cout << "\n\n ************ attributes: " << way.attributes_str();
     std::cout << "\n\n ************ tags: " << way.tags_str();
     std::cout << "\n nodes: \n";
-    for (auto const &e : way.m_NodeRefs) {
+    for (auto it = way.m_NodeRefs.begin(); it != way.m_NodeRefs.end(); ++it) {
+        auto e = *it;
         std::cout << e->osm_id() << ", ";
     }
 

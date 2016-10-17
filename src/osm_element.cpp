@@ -77,8 +77,12 @@ std::string Element::attributes_str() const {
         auto attribute = *it;
         str +=  attribute.first + "=>" + attribute.second + ",";
     }
+#if 0
     str.pop_back();
     str += "\"";
+#else
+    str[str.size()-1] = '\"';
+#endif
     return str;
 }
 
@@ -89,8 +93,12 @@ std::string Element::tags_str() const {
         auto tag = *it;
         str +=  tag.first + "=>" + tag.second + ",";
     }
+#if 0
     str.pop_back();
     str += "\"";
+#else
+    str[str.size()-1] = '\"';
+#endif
     return str;
 }
 

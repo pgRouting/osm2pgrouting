@@ -24,7 +24,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "./ osm_element.h"
+#include "./osm_element.h"
 
 namespace osm2pgr {
 class Way;
