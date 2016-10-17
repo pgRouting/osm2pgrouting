@@ -318,7 +318,7 @@ Way::insert_tags(const std::map<std::string, std::string> &tags) {
 
 
 
-#if NDEF NDEBUG
+#ifndef NDEBUG
 std::ostream& operator<<(std::ostream &os, const Way &way) {
     std::cout << "\nWay"
         << "\t m_osm_id: " << way.m_osm_id

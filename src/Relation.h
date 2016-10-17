@@ -54,8 +54,7 @@ class Way;
 class Relation : public Element{
  public:
      /** 
-      *    Constructor
-      *    @param id ID of the way
+      *    @param atts attributes read py the parser
       */
      explicit Relation(const char ** atts);
      Relation() = delete;
@@ -65,7 +64,7 @@ class Relation : public Element{
 
      /**
       *    saves the nodes of the way  
-      *    @param pNode node
+      *    @param atts memeber attributes read py the parser
       */
      int64_t add_member(const char **atts);
 

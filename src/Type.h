@@ -31,18 +31,12 @@ namespace osm2pgr {
 
 class Type {
  public:
-    /**
-     *    Constructor
-     *    @param name name of the type
-     */
     Type() = default;
     Type(const Type &) = default;
+    /**
+     *    @param atts attributes read py the parser
+     */
     explicit Type(const char **atts);
-#if 0
-    Type(int64_t id, std::string);
-    //! Destructor
-    ~Type();
-#endif
     inline int64_t id() const {return m_id;}
     inline std::string name() const {return m_name;}
     void add_class(const char **atts);

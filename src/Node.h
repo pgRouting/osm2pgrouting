@@ -32,7 +32,6 @@
 namespace osm2pgr {
 
 class Tag;
-class Node : public Element {
     /**
       @code
       <node id="122603925" lat="53.0780875" lon="8.1351704"
@@ -59,14 +58,14 @@ class Node : public Element {
       @endcode
       */
 
+class Node : public Element {
  public:
      Node() = default;
      Node(const Node&) = default;
      /**
-      *    Construktor
-      *    @param id ID of the node
+      *    @param atts attributes read py the parser
       */
-     explicit Node(const char **attributes);
+     explicit Node(const char **atts);
      inline std::string geom_str(std::string separator) {
          return get_attribute("lon") + separator +  get_attribute("lat");
      }

@@ -53,12 +53,11 @@ namespace osm2pgr {
   */
 class Way : public Element {
  public:
-     /**
-      *  Constructor
-      *  @param id ID of the way
-      */
      Way() = default;
 
+     /**
+      *  @param atts attributes read py the parser
+      */
      explicit Way(const char **atts);
      Tag add_tag(const Tag &tag);
      void add_node(Node* node);

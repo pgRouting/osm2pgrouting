@@ -45,13 +45,11 @@ namespace osm2pgr {
 class Export2DB {
  public:
      /**
-      * Construktor
-      * @param host Host address of the database
-      * @param user a user, who has write access to the database
-      * @param dbname name of the database
+      * Constructor 
+      * @param vm variable map holding the configuration
       *
       */
-     explicit Export2DB(const  po::variables_map &vm);
+     explicit Export2DB(const po::variables_map &vm);
 
      /**
       * Destructor
