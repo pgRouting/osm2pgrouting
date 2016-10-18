@@ -26,11 +26,6 @@ env: POSTGRESQL_VERSION=9.6   PG_USER=postgres
       
 matrix:
   include:
-    - os: linux
-      sudo: required
-      dist: precise
-      env: POSTGRESQL_VERSION=9.6   PG_USER=postgres
-
 
     - os: linux
       sudo: required
@@ -90,11 +85,11 @@ before_script:
   - export PATH=/usr/lib/postgresql/$POSTGRESQL_VERSION/bin:$PATH
 
   # initialize databases
-  - createdb  -U $PG_USER ___pgr___test___
+  #- createdb  -U $PG_USER ___pgr___test___
 
 
 script: 
-  - ./tools/ci/osm2pgrouting_build.sh $POSTGRESQL_VERSION $POSTGIS_VERSION
+  - ./tools/ci/osm2pgrouting_build.sh $POSTGRESQL_VERSION
 
 #after_script: 
   # blank
