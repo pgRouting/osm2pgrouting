@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt                                    *
- *   gentoo.murray@gmail.com                                               *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,7 +10,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -18,8 +18,17 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+
 #ifndef SRC_OSMDOCUMENTPARSERCALLBACK_H_
 #define SRC_OSMDOCUMENTPARSERCALLBACK_H_
+#pragma once
+
+#if __GNUC__ > 4 || \
+            (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
+#else
+#define nullptr NULL
+#endif
+
 
 #include <string.h>
 #include "./XMLParser.h"
@@ -27,6 +36,7 @@
 namespace osm2pgr {
 
 class OSMDocument;
+class Node;
 class Way;
 class Relation;
 
@@ -38,32 +48,36 @@ class OSMDocumentParserCallback :
     //! reference to a OSMDocument object
     OSMDocument& m_rDocument;
     //! current way, which will be parsed
-    Way* m_pActWay;
+    // Way* m_pActWay;
     Relation* m_pActRelation;
 
     virtual void StartElement(const char *name, const char** atts);
 
     virtual void EndElement(const char* name);
 
-#if 0
-    virtual void SetContent(const char* ch, int len)=0;
-
-    virtual void ProcessingInstruction(const char* target, const char* data)=0;
-
-    virtual void CDataBlockInternal(const char *value, int len)=0;
-#endif
  public:
     /**
      *    Constructor
      */
-    OSMDocumentParserCallback(OSMDocument& doc)
+    explicit OSMDocumentParserCallback(OSMDocument& doc)
     :
         m_rDocument(doc),
-        m_pActWay(0),
-        m_pActRelation(0)
-
-    {
+        m_pActRelation(0),
+        last_node(nullptr),
+        last_way(nullptr),
+        last_relation(nullptr),
+        m_line(0),
+        m_section(1) {
     }
+ private:
+    void show_progress();
+
+ private:
+    Node *last_node;
+    Way *last_way;
+    Relation* last_relation;
+    size_t m_line;
+    int m_section;
 };  // class OSMDocumentParserCallback
 
 }  // end namespace osm2pgr

@@ -1,7 +1,6 @@
-
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -11,7 +10,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -19,39 +18,29 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <math.h>
-#include "math_functions.h"
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
+#include "./osm_tag.h"
+#include <string>
 
-#if 0
-// calculation of the lenght is correct???
-double getLength(Node* a, Node* b)
-{
-	int R = 6371; //km
-	double PI =3.141592653589793238462643;
+namespace osm2pgr {
 
-	double dLat=(b->lat -a->lat)*PI/180;
-	double dLon=(b->lon -a->lon)*PI/180;
 
-	double c = sin(dLat/2) * sin(dLat/2) + cos(a->lat*PI/180) * cos(b->lat*PI/180) * sin(dLon/2) * sin(dLon/2);
-
-	double d = 2 * atan2(sqrt(c), sqrt(1-c)); 
-
-	return R*d;
-
+Tag::Tag(const char **atts) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name  == "k") {
+            m_key = value;
+        } else if (name == "v") {
+            m_value = value;
+        }
+    }
 }
-#endif
 
-//boost fucntion to calculate the distance
-double getLength(Node* a, Node *b)
-{
-	typedef boost::geometry::model::d2::point_xy<double> point_type;
-    
-    //converted point to fit boost.geomtery (`p` and `q` are same as `a ` and `b`)
-    point_type p(a->lat , a->lon);
-    point_type q(b->lat , b->lon);
-
-    return boost::geometry::distance(p, q);
+std::ostream& operator<<(std::ostream &os, const Tag& tag) {
+    os << tag.m_key << "=>" << tag.m_value;
+    return os;
 }
+
+}  // namespace osm2pgr

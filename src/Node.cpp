@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,7 +10,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -18,29 +18,53 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+
+#if 0
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#endif
+
+#include <boost/lexical_cast.hpp>
+#include <map>
+#include <cassert>
+#include <math.h>
+#include "./osm_tag.h"
 #include "./Node.h"
 
 namespace osm2pgr {
 
-Node::Node(int64_t id, double lat, double lon) :
-    id(id),
-    lat(lat),
-    lon(lon) {
-    this->numsOfUse = 0;
-//TODO Add version & date information here
+
+Node::Node(const char **atts) :
+    Element(atts),
+    m_numsOfUse(0) {
+        assert(has_attribute("lat"));
+        assert(has_attribute("lon"));
+    }
+
+
+double
+Node::getLength(const Node &previous) const {
+     auto y1 = boost::lexical_cast<double>(get_attribute("lat"));
+     auto x1 = boost::lexical_cast<double>(get_attribute("lon"));
+     auto y2 = boost::lexical_cast<double>(previous.get_attribute("lat"));
+     auto x2 = boost::lexical_cast<double>(previous.get_attribute("lon"));
+     return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+#if 0
+    typedef boost::geometry::model::d2::point_xy<double> point_type;
+
+    /* converted point to fit boost.geomtery
+     *      * (`p` and `q` are same as `a ` and `b`)
+     *           */
+    point_type p(
+            boost::lexical_cast<double>(get_attribute("lat")),
+            boost::lexical_cast<double>(get_attribute("lon")));
+
+    point_type q(
+            boost::lexical_cast<double>(previous.get_attribute("lat")),
+            boost::lexical_cast<double>(previous.get_attribute("lon")));
+
+    return boost::geometry::distance(p, q);
+#endif
 }
 
-Node::Node(int64_t id, double lat, double lon, int version, std::string timestamp) :
-    id(id),
-    lat(lat),
-    version(version),
-	timestamp(timestamp),
-    lon(lon) {
-    this->numsOfUse = 0;
-//TODO Add version & date information here
-}
-
-
-
-
-}  // end namespace osm2pgr
+}  // namespace osm2pgr

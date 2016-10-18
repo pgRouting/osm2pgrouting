@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt                                    *
- *   gentoo.murray@gmail.com                                               *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,143 +10,127 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
+
+
+#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <map>
 #include <utility>
 #include <string>
+#include <iostream>
 #include "./OSMDocument.h"
 #include "./Configuration.h"
 #include "./Node.h"
 #include "./Relation.h"
 #include "./Way.h"
-#include "./math_functions.h"
 
 namespace osm2pgr {
 
-OSMDocument::OSMDocument(Configuration &config) : m_rConfig(config) {
+OSMDocument::OSMDocument(const Configuration &config, size_t lines) :
+    m_rConfig(config),
+    m_lines(lines) {
 }
 
-OSMDocument::~OSMDocument() {
-    ez_mapdelete(m_Nodes);
-    ez_vectordelete(m_Ways);
-    ez_vectordelete(m_Relations);
-    ez_vectordelete(m_SplitWays);
-}
-void OSMDocument::AddNode(Node* n) {
-    m_Nodes[n->id] = n;
+
+void OSMDocument::AddNode(Node n) {
+    m_Nodes[n.osm_id()] = n;
 }
 
-void OSMDocument::AddWay(Way* w) {
-    m_Ways.push_back(w);
+void OSMDocument::AddWay(Way w) {
+    m_Ways[w.osm_id()] = w;
 }
 
-void OSMDocument::AddRelation(Relation* r) {
+void OSMDocument::AddRelation(const Relation &r) {
     m_Relations.push_back(r);
 }
 
-Node* OSMDocument::FindNode(long long nodeRefId)
-const {
-    std::map<long long, Node*>::const_iterator  it = m_Nodes.find(nodeRefId);
-    return (it != m_Nodes.end()) ? it->second : 0;
+Node*
+OSMDocument::FindNode(int64_t nodeRefId) {
+    auto it = m_Nodes.find(nodeRefId);
+    return &(it->second);
 }
 
-void OSMDocument::SplitWays() {
-    std::vector<Way*>::const_iterator it(m_Ways.begin());
-    std::vector<Way*>::const_iterator last(m_Ways.end());
+bool
+OSMDocument::has_node(int64_t nodeRefId) const {
+    auto it = m_Nodes.find(nodeRefId);
+    return (it != m_Nodes.end());
+}
 
-    //  split ways get a new ID
-    long long id = 0;
+Way*
+OSMDocument::FindWay(int64_t way_id) {
+    auto it = m_Ways.find(way_id);
+    return &(it->second);
+}
 
-    while (it != last) {
-        Way* currentWay = *it++;
+bool
+OSMDocument::has_way(int64_t way_id) const {
+    auto it = m_Ways.find(way_id);
+    return (it != m_Ways.end());
+}
 
-        // ITERATE THROUGH THE NODES
-        std::vector<Node*>::const_iterator it_node(currentWay->m_NodeRefs.begin());
-        std::vector<Node*>::const_iterator last_node(currentWay->m_NodeRefs.end());
+void
+OSMDocument::add_node(Way &way, const char **atts) {
+    auto **attribut = atts;
+    std::string key = *attribut++;
+    std::string value = *attribut++;
+    auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
+    if (!has_node(node_id)) {
+        std::cout << "Reference nd=" << node_id
+            << " has no corresponding Node Entry (Maybe Node entry after Reference?)"
+            << std::endl;
+    } else {
+        auto node = FindNode(node_id);
+        node->incrementUse();
+        way.add_node(node);
+    }
+}
 
-        Node* backNode = currentWay->m_NodeRefs.back();
+void
+OSMDocument::add_config(Way &way, const Tag &tag) const {
+    auto  k = tag.key();
+    auto  v = tag.value();
+    /*
+     * for example
+     *  <tag highway=motorway>    // k = highway  v = motorway
+     *  <tag highway=path>    // k = highway  v = motorway
+     *
+     * And the configuration file has:
+     * <type name="highway" id="1">
+     *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
+     *     // there is no class name="path"
+     */
+    if (m_rConfig.has_class(tag)) {
+        if ((way.tag_config().key() == "" && way.tag_config().value() == "")
+                || (
+                    m_rConfig.has_class(tag)
+                    && m_rConfig.has_class(way.tag_config())
+                    && m_rConfig.class_priority(tag)
+                    < m_rConfig.class_priority(way.tag_config())
+                   )
+           ) {
+            way.tag_config(tag);
 
-        while (it_node != last_node) {
-            Node* node = *it_node++;
-            Node* secondNode = 0;
-            Node* lastNode = 0;
+            if (m_rConfig.has_class(way.tag_config())) {
+                way.add_tag(tag);
 
-            Way* split_way = new Way(++id, currentWay->visible,
-                currentWay->osm_id,
-                currentWay->maxspeed_forward,
-                currentWay->maxspeed_backward);
-            split_way->name = currentWay->name;
-            split_way->type = currentWay->type;
-            split_way->clss = currentWay->clss;
-            split_way->oneWayType = currentWay->oneWayType;
-			split_way->version = currentWay->version;
-//TODO Add version & date information here
-            split_way->timestamp = currentWay->timestamp;
-            std::map<std::string, std::string>::iterator it_tag(currentWay->m_Tags.begin());
-            std::map<std::string, std::string>::iterator last_tag(currentWay->m_Tags.end());
-//            std::cout << "Number of tags: " << currentWay->m_Tags.size() << std::endl;
-//            std::cout << "First tag: " << currentWay->m_Tags.front()->key << ":" << currentWay->m_Tags.front()->value << std::endl;
-
-            // ITERATE THROUGH THE TAGS
-
-            while (it_tag != last_tag) {
-                std::pair<std::string, std::string> pair = *it_tag++;
-
-                split_way->AddTag(pair.first, pair.second);
-            }
-
-    // GeometryFromText('LINESTRING('||x1||' '||y1||','||x2||' '||y2||')',4326);
-
-            split_way->geom = "LINESTRING("+ boost::lexical_cast<std::string>(node->lon) + " " + boost::lexical_cast<std::string>(node->lat) +",";
-
-            split_way->AddNodeRef(node);
-
-            bool found = false;
-
-            if (it_node != last_node) {
-                while (it_node != last_node && !found) {
-                    split_way->AddNodeRef(*it_node);
-                    if ((*it_node)->numsOfUse > 1) {
-                        found = true;
-                        secondNode = *it_node;
-                        split_way->AddNodeRef(secondNode);
-                        double length = getLength(node, secondNode);
-                        if (length < 0)
-                            length*=-1;
-                        split_way->length+=length;
-                        split_way->geom+= boost::lexical_cast<std::string>(secondNode->lon) + " " + boost::lexical_cast<std::string>(secondNode->lat) + ")";
-                    } else if (backNode == (*it_node)) {
-                        lastNode =*it_node++;
-                        split_way->AddNodeRef(lastNode);
-                        double length = getLength(node, lastNode);
-                        if (length < 0)
-                            length*=-1;
-                        split_way->length+=length;
-                        split_way->geom+= boost::lexical_cast<std::string>(lastNode->lon) + " " + boost::lexical_cast<std::string>(lastNode->lat) + ")";
-                    } else {
-                        split_way->geom+= boost::lexical_cast<std::string>((*it_node)->lon) + " " + boost::lexical_cast<std::string>((*it_node)->lat) + ",";
-                        *it_node++;
-                    }
+                auto newValue = m_rConfig.class_default_maxspeed(way.tag_config());
+                if (way.maxspeed_forward() <= 0) {
+                    way.maxspeed_forward(newValue);
                 }
-            }
-
-            if (split_way->m_NodeRefs.front() != split_way->m_NodeRefs.back()) {
-                m_SplitWays.push_back(split_way);
-            } else {
-                delete split_way;
-                split_way = 0;
+                if (way.maxspeed_backward() <= 0) {
+                    way.maxspeed_backward(newValue);
+                }
             }
         }
     }
-}  // end SplitWays
+}
 
-}  // end namespace osm2pgr
+
+}  // namespace osm2pgr
