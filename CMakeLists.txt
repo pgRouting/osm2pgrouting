@@ -6,8 +6,15 @@ set (SHARE_DIR "/usr/share/osm2pgrouting")
 
 FIND_PACKAGE(PostgreSQL REQUIRED)
 FIND_PACKAGE(EXPAT REQUIRED)
+
 FIND_PACKAGE(Boost REQUIRED)
-FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED )
+if(Boost_INCLUDE_DIRS)
+    message(STATUS "Boost headers were found here: ${Boost_INCLUDE_DIRS}")
+else(Boost_INCLUDE_DIRS)
+    message(FATAL_ERROR " Please check your Boost installation ") 
+endif(Boost_INCLUDE_DIRS)
+
+# FIND_PACKAGE(Boost 1.40 COMPONENTS program_options REQUIRED)
 
 FILE(GLOB SRC "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/src/*.h")
 
@@ -33,8 +40,8 @@ ADD_EXECUTABLE(osm2pgrouting ${SRC})
 TARGET_LINK_LIBRARIES(osm2pgrouting ${POSTGRESQL_LIBRARIES} ${EXPAT_LIBRARIES} ${Boost_LIBRARIES} )
 
 INSTALL(TARGETS osm2pgrouting
-  RUNTIME DESTINATION "/usr/bin"
-)
+    RUNTIME DESTINATION "/usr/bin"
+    )
 
 INSTALL(FILES
     "${CMAKE_SOURCE_DIR}/COPYING"
