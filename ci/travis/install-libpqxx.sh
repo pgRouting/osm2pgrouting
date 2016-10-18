@@ -18,7 +18,7 @@ fi
 
 if [[ "$DISTRIBUTION" = "precise" ]] ; then
     sudo apt-get install -y libpqxx3-dev
-elif [[ "$DISTRIBUTION" = "travis" ]] ; then
+elif [[ "$DISTRIBUTION" = "trusty" ]] ; then
     sudo sudo sudo apt-get install -y libpqxx-dev
 else 
     exit 1
