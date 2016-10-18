@@ -21,6 +21,7 @@
 
 #include "./Configuration.h"
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <string>
 #include "./osm_tag.h"
 #include "./Type.h"
