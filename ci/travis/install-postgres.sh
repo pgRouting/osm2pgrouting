@@ -51,7 +51,7 @@ if [[ "$POSTGRESQL_VERSION" = "9.5" ||  "$POSTGRESQL_VERSION" = "9.6"  ]] ; then
     sudo cat /etc/postgresql/$POSTGRESQL_VERSION/main/pg_hba.conf
 
     sudo sed -i -e 's/port = 5433/port = 5432/g' /etc/postgresql/$POSTGRESQL_VERSION/main/postgresql.conf
-    sudo cp $TRAVIS_BUILD_DIR/tools/travis/pg_hba.conf /etc/postgresql/$POSTGRESQL_VERSION/main/pg_hba.conf
+    #sudo cp $TRAVIS_BUILD_DIR/tools/travis/pg_hba.conf /etc/postgresql/$POSTGRESQL_VERSION/main/pg_hba.conf
 
     ps -fea | grep postgres
 fi
