@@ -26,6 +26,8 @@
 
 #include <boost/lexical_cast.hpp>
 #include <map>
+#include <cassert>
+#include <math.h>
 #include "./osm_tag.h"
 #include "./Node.h"
 
