@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,7 +10,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -18,30 +18,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "Configuration.h"
-#include "Type.h"
-#include "Class.h"
+
+#include "./Configuration.h"
+#include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <string>
+#include "./osm_tag.h"
+#include "./Type.h"
+#include "./Class.h"
 
 
 namespace osm2pgr {
 
-	Configuration::Configuration() {
-	}
 
-	Configuration::~Configuration() {
-		ez_mapdelete( m_Types );
-	}
+void Configuration::AddType(Type t) {
+    if (has_type(t.name())) {
+        std::cerr << "duplicate Type found in condfiguration file"
+            << t.name() << "\n";
+        return;
+    }
+    m_Types[t.name()] = t;
+}
 
-	void Configuration::AddType( Type* t ) {
-		m_Types[t->name] = t;
-	}
+Type& Configuration::FindType(std::string name) {
+    return m_Types.at(name);
+}
+Type Configuration::FindType(std::string name) const {
+    return m_Types.at(name);
+}
 
-	Type* Configuration::FindType( std::string name ) {
-		return m_Types[name];
-	}
+Class Configuration::FindClass(const Tag &tag) const {
+    return m_Types.at(tag.key()).classes()[tag.value()];
+}
 
-	Class* Configuration::FindClass( std::string typeName, std::string className ) {
-		return m_Types[typeName]->m_Classes[className];
-	}
+std::string Configuration::priority_str(const Tag &tag) const {
+    return  boost::lexical_cast<std::string>(FindClass(tag).priority());
+}
 
-} // end namespace osm
+}  // end namespace osm2pgr

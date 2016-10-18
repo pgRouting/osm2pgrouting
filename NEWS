@@ -1,5 +1,5 @@
 
-osm2pgRouting 2.1.0-alpha
+osm2pgRouting 2.1.0
 
    New "ways" table structure:
       Column       |           Type            |  Modifications
