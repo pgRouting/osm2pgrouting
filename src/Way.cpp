@@ -23,6 +23,7 @@
 #include "boost/lexical_cast.hpp"
 #include <algorithm>
 #include <string>
+#include <cassert>
 #include <map>
 #include <vector>
 #include <iostream>
