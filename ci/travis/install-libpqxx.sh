@@ -21,6 +21,6 @@ if [[ "$DISTRIBUTION" = "precise" ]] ; then
 elif [[ "$DISTRIBUTION" = "travis" ]] ; then
     sudo sudo sudo apt-get install -y libpqxx-dev
 else 
-    return 1
+    exit 1
 fi
 
