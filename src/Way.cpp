@@ -19,8 +19,9 @@
  ***************************************************************************/
 
 
-#include "boost/lexical_cast.hpp"
 #include "Way.h"
+#include "boost/lexical_cast.hpp"
+#include <algoritm>
 #include <string>
 #include <map>
 #include <vector>
