@@ -69,7 +69,7 @@ addons:
       # For cmake
       - kubuntu-backports
       - boost-latest
-      - libboost-iprogram-options-dev
+      - libboost-program-options-dev
     packages:
       - cmake
 
