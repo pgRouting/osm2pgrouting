@@ -10,7 +10,7 @@
 set -e 
 
 # build osm2pgrouting
-mdkir build
+mkdir build
 cd build
 cmake .. 
 make
