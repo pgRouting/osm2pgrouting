@@ -92,7 +92,7 @@ before_script:
 
 
 script: 
-  - ./ci/travis/osm2pgrouting_build.sh $POSTGRESQL_VERSION
+  - ./ci/travis/osm2pgrouting_build.sh
 
 #after_script: 
   # blank

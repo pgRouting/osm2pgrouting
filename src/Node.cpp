@@ -24,6 +24,7 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #endif
 
+#include <boost/lexical_cast.hpp>
 #include <map>
 #include "./osm_tag.h"
 #include "./Node.h"
@@ -41,11 +42,11 @@ Node::Node(const char **atts) :
 
 double
 Node::getLength(const Node &previous) const {
-     y1 = boost::lexical_cast<double>(get_attribute("lat")),
-     x1 = boost::lexical_cast<double>(get_attribute("lon"));
-     y2 = boost::lexical_cast<double>(previous.get_attribute("lat")),
-     x2 = boost::lexical_cast<double>(previous.get_attribute("lon")));
-     return sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2);
+     auto y1 = boost::lexical_cast<double>(get_attribute("lat"));
+     auto x1 = boost::lexical_cast<double>(get_attribute("lon"));
+     auto y2 = boost::lexical_cast<double>(previous.get_attribute("lat"));
+     auto x2 = boost::lexical_cast<double>(previous.get_attribute("lon"));
+     return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 #if 0
     typedef boost::geometry::model::d2::point_xy<double> point_type;
 
