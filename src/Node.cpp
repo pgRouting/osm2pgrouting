@@ -19,8 +19,11 @@
  ***************************************************************************/
 
 
+#if 0
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
+#endif
+
 #include <map>
 #include "./osm_tag.h"
 #include "./Node.h"
@@ -38,6 +41,12 @@ Node::Node(const char **atts) :
 
 double
 Node::getLength(const Node &previous) const {
+     y1 = boost::lexical_cast<double>(get_attribute("lat")),
+     x1 = boost::lexical_cast<double>(get_attribute("lon"));
+     y2 = boost::lexical_cast<double>(previous.get_attribute("lat")),
+     x2 = boost::lexical_cast<double>(previous.get_attribute("lon")));
+     return sqrt((x1 - x2) ^ 2 + (y1 - y2) ^ 2);
+#if 0
     typedef boost::geometry::model::d2::point_xy<double> point_type;
 
     /* converted point to fit boost.geomtery
@@ -52,6 +61,7 @@ Node::getLength(const Node &previous) const {
             boost::lexical_cast<double>(previous.get_attribute("lon")));
 
     return boost::geometry::distance(p, q);
+#endif
 }
 
 }  // namespace osm2pgr
