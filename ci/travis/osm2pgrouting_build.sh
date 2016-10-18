@@ -10,7 +10,9 @@
 set -e 
 
 # build osm2pgrouting
-cmake  
+mdkir build
+cd build
+cmake .. 
 make
 sudo make install
-
+cd ..
