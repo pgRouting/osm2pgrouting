@@ -78,10 +78,10 @@ addons:
 
 before_install:
   - sudo sudo apt-get install -y libboost-program-options-dev
+  - sudo ./ci/travis/install-libpqxx.sh $DIST
 
 install:
   - sudo ./ci/travis/install-postgres.sh $POSTGRESQL_VERSION $PG_USER
-  - sudo ./ci/travis/install-libpqxx.sh $DIST
 
 before_script:
 
