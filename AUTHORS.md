@@ -9,8 +9,9 @@
 
 ## Other contributors:
 
-* Daniel Wendt (Initial author) 
+* Aakash Sharma
 * Anton Patrushev
+* Daniel Wendt (Initial author) 
 * Jordan Anderson
 * J Kishore Kumar
 * Sarthak Agarwal

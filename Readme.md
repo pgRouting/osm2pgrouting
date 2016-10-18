@@ -1,10 +1,4 @@
 # osm2pgrouting
-##Changes in this version
-
-1. Functionality to extract version & timestamp from OSM objects and push them to postgresql database 
-2. Works for osm_nodes & osm_ways
-3. Related data is added to tables `osm_nodes` & `ways` while importing
-4. `--addnodes` is required parameter for enabling import of osm_node data along with version & timestamp
 
 [![Join the chat at https://gitter.im/pgRouting/osm2pgrouting](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pgRouting/osm2pgrouting?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 

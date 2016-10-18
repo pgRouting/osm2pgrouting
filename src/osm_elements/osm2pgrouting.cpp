@@ -31,11 +31,13 @@
 #include <ctime>
 #include <chrono>
 #endif
+#include <pqxx/pqxx>
 
 #include "parser/ConfigurationParserCallback.h"
 #include "parser/OSMDocumentParserCallback.h"
 #include "osm_elements/OSMDocument.h"
 #include "database/Export2DB.h"
+#include "utilities/handle_pgpass.h"
 #include "utilities/prog_options.h"
 
 static
@@ -111,6 +113,30 @@ int main(int argc, char* argv[]) {
         auto skipnodes(!vm.count("addnodes"));
         auto clean(vm.count("clean"));
 
+        handle_pgpass(vm);
+        try {
+            cout << "Testing database connection: "
+                << vm["dbname"].as<std::string>()
+                << endl;
+            pqxx::connection C(
+                    "host=" + vm["host"].as<std::string>()
+                    + " user=" +  vm["username"].as<std::string>()
+                    + " dbname=" + vm["dbname"].as<std::string>()
+                    + " port=" + vm["port"].as<std::string>()
+                    + ((vm["password"].as<std::string>().empty()) ? " prompt_password=1" :
+                      " password=" + vm["password"].as<std::string>())
+                    );
+            if (C.is_open()) {
+                cout << "database connection successfull: " << C.dbname() << endl;
+            } else {
+                cout << "Can't open database" << endl;
+                return 1;
+            }
+            C.disconnect ();
+        }catch (const std::exception &e){
+            cerr << e.what() << std::endl;
+            return 1;
+        } 
 
         std::cout << "Connecting to the database"  << endl;
         osm2pgr::Export2DB dbConnection(vm);
