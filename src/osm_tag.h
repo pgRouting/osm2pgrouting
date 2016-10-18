@@ -54,7 +54,7 @@ class Tag {
      Tag(const Tag&) = default;
      /**
       *    Constructor
-      *    @param atts atributes pointer returned by the XML parser
+      *    @param atts attributes pointer returned by the XML parser
       */
      explicit Tag(const char **atts);
      Tag(const std::string &k, const std::string &v) {

@@ -48,7 +48,7 @@ class Element {
      Element(const Element&) = default;
      /**
       *    Constructor
-      *    @param atts atributes pointer returned by the XML parser
+      *    @param atts attributes pointer returned by the XML parser
       */
      explicit Element(const char **atts);
      Tag add_tag(const Tag &);

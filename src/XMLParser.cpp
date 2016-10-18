@@ -66,7 +66,7 @@ int XMLParser::Parse(XMLParserCallback& rCallback, const char* chFileName) {
       // end of file reached if buffer not completely filled
       done = len < sizeof(buf);
       if (!XML_Parse(parser, buf, static_cast<int>(len), done)) {
-        // a parse error occured:
+        // a parse error occurred:
           std::cerr <<
             XML_ErrorString(XML_GetErrorCode(parser))
             << " at line "

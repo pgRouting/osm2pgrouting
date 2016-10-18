@@ -31,15 +31,15 @@ void
 print_progress(T1 wantProgress, T2 currentProgress) {
     int length = 50;
     double percent = static_cast <double> (currentProgress) /  static_cast <double>(wantProgress);
-    int fillerLenght = static_cast<int>(percent * length);
+    int fillerLength = static_cast<int>(percent * length);
 
     std::string bar = "[";
-    for (int i = 0; i < fillerLenght; i++) {
+    for (int i = 0; i < fillerLength; i++) {
         bar += "*";
     }
 
     bar += "|";
-    for (int i = 0; i < length - fillerLenght; i++) {
+    for (int i = 0; i < length - fillerLength; i++) {
         bar += " ";
     }
 

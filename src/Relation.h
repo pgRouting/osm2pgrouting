@@ -64,7 +64,7 @@ class Relation : public Element{
 
      /**
       *    saves the nodes of the way  
-      *    @param atts memeber attributes read py the parser
+      *    @param atts member attributes read py the parser
       */
      int64_t add_member(const char **atts);
 

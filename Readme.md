@@ -17,7 +17,7 @@ and to prepare a database.
 
 ## Documentation
 
-See in the documentation of the pgrouting website for more informations: http://pgrouting.org
+See in the documentation of the pgrouting website for more information: http://pgrouting.org
 
 ## Installation
 

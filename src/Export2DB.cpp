@@ -326,7 +326,7 @@ void Export2DB::dropTables() const {
   Inserts the data into a temporary table
   Inserts the data to the final table only if
  **osm_id**
- doesnt exist already
+ doesn't exist already
 
 */
 void  Export2DB::prepareExportNodes(const std::string nodes_columns) const {
@@ -923,7 +923,7 @@ void Export2DB::createFKeys() {
             "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
     result = PQexec(mycon, fk_relations.c_str());
 #if 0
-    // its not wroking as there are several ways with the same osm_id
+    // its not working as there are several ways with the same osm_id
     // the gid is not possible because that is "on the fly" sequential
      "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
 #endif
