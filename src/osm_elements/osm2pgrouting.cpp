@@ -123,9 +123,7 @@ int main(int argc, char* argv[]) {
                     + " user=" +  vm["username"].as<std::string>()
                     + " dbname=" + vm["dbname"].as<std::string>()
                     + " port=" + vm["port"].as<std::string>()
-                    + ((vm["password"].as<std::string>().empty()) ? " prompt_password=1" :
-                      " password=" + vm["password"].as<std::string>())
-                    );
+                    + " password=" + vm["password"].as<std::string>());
             if (C.is_open()) {
                 cout << "database connection successfull: " << C.dbname() << endl;
             } else {

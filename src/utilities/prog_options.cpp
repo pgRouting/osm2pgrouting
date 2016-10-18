@@ -57,7 +57,7 @@ void get_option_description(po::options_description &od_desc) {
     db_options_od_desc.add_options()
         // database options
         ("dbname,d", po::value<std::string>()->required(), "Name of your database (Required).")
-        ("username,U", po::value<std::string>()->default_value("postgres"), "Name of the user, which have write access to the database.")
+        ("username,U", po::value<std::string>()->default_value(""), "Name of the user, which have write access to the database.")
         ("host,h", po::value<std::string>()->default_value("localhost"), "Host of your postgresql database.")
         ("port,p", po::value<std::string>()->default_value("5432"), "db_port of your database.")
         ("password,W", po::value<std::string>()->default_value(""), "Password for database access.");
