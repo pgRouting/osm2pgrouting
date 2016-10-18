@@ -76,7 +76,7 @@ addons:
 
 
 
-before-install:
+before_install:
   - sudo sudo apt-get install -y libboost-program-options-dev
 
 install:
