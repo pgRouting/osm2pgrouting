@@ -25,11 +25,11 @@
 #include <utility>
 #include <string>
 #include <iostream>
-#include "./OSMDocument.h"
-#include "./Configuration.h"
-#include "./Node.h"
-#include "./Relation.h"
-#include "./Way.h"
+#include "osm_elements/OSMDocument.h"
+#include "configuration/Configuration.h"
+#include "osm_elements/Node.h"
+#include "osm_elements/Relation.h"
+#include "osm_elements/Way.h"
 
 namespace osm2pgr {
 

@@ -19,28 +19,40 @@
  ***************************************************************************/
 
 
-#include "./osm_tag.h"
+#include "configuration/Configuration.h"
+#include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <string>
+#include "osm_elements/osm_tag.h"
+#include "configuration/Type.h"
+#include "configuration/Class.h"
+
 
 namespace osm2pgr {
 
 
-Tag::Tag(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name  == "k") {
-            m_key = value;
-        } else if (name == "v") {
-            m_value = value;
-        }
+void Configuration::AddType(Type t) {
+    if (has_type(t.name())) {
+        std::cerr << "duplicate Type found in condfiguration file"
+            << t.name() << "\n";
+        return;
     }
+    m_Types[t.name()] = t;
 }
 
-std::ostream& operator<<(std::ostream &os, const Tag& tag) {
-    os << tag.m_key << "=>" << tag.m_value;
-    return os;
+Type& Configuration::FindType(std::string name) {
+    return m_Types.at(name);
+}
+Type Configuration::FindType(std::string name) const {
+    return m_Types.at(name);
 }
 
-}  // namespace osm2pgr
+Class Configuration::FindClass(const Tag &tag) const {
+    return m_Types.at(tag.key()).classes()[tag.value()];
+}
+
+std::string Configuration::priority_str(const Tag &tag) const {
+    return  boost::lexical_cast<std::string>(FindClass(tag).priority());
+}
+
+}  // end namespace osm2pgr

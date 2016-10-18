@@ -32,11 +32,11 @@
 #include <chrono>
 #endif
 
-#include "./ConfigurationParserCallback.h"
-#include "./OSMDocumentParserCallback.h"
-#include "./OSMDocument.h"
-#include "./Export2DB.h"
-#include "./prog_options.h"
+#include "parser/ConfigurationParserCallback.h"
+#include "parser/OSMDocumentParserCallback.h"
+#include "osm_elements/OSMDocument.h"
+#include "database/Export2DB.h"
+#include "utilities/prog_options.h"
 
 static
 size_t lines_in_file(const std::string file_name) {

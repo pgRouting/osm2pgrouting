@@ -24,7 +24,7 @@
 
 #include <map>
 #include <vector>
-#include "./Configuration.h"
+#include "configuration/Configuration.h"
 
 namespace osm2pgr {
 

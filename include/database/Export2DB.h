@@ -27,13 +27,13 @@
 #include <vector>
 #include <string>
 
-#include "./Node.h"
-#include "./Way.h"
-#include "./Relation.h"
-#include "./Type.h"
-#include "./Class.h"
-#include "./Configuration.h"
-#include "./prog_options.h"
+#include "osm_elements/Node.h"
+#include "osm_elements/Way.h"
+#include "osm_elements/Relation.h"
+#include "configuration/Type.h"
+#include "configuration/Class.h"
+#include "configuration/Configuration.h"
+#include "utilities/prog_options.h"
 
 namespace osm2pgr {
 

@@ -18,40 +18,38 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "parser/ConfigurationParserCallback.h"
+
 #include <boost/lexical_cast.hpp>
+
 #include <string>
-
-#include "./Class.h"
-
+#include "osm_elements/OSMDocument.h"
+#include "configuration/Configuration.h"
+#include "configuration/Type.h"
+#include "configuration/Class.h"
 
 namespace osm2pgr {
 
-
-Class::Class(const char **atts) :
-    m_priority(0),
-    m_default_maxspeed(50) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name ==  "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else if (name == "priority") {
-            m_priority = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed") {
-            m_default_maxspeed = boost::lexical_cast<int>(value);
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
+/*!
+    Parser callback for configuration files
+*/
+void ConfigurationParserCallback::StartElement(
+        const char *name,
+        const char** atts) {
+    if (strcmp(name, "class") == 0) {
+         m_current->add_class(atts);
+    } else if (strcmp(name, "type") == 0) {
+        m_current = new Type(atts);
+    } else if (strcmp(name, "configuration") == 0) {
     }
 }
 
 
+void ConfigurationParserCallback::EndElement(const char* name) {
+    if (strcmp(name, "type") == 0) {
+        m_config.AddType(*m_current);
+        delete m_current;
+    }
+}
 
-
-
-}  // end namespace osm2pgr
+}  // namespace osm2pgr

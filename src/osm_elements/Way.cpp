@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 
-#include "Way.h"
+#include "osm_elements/Way.h"
 #include "boost/lexical_cast.hpp"
 #include <algorithm>
 #include <string>
@@ -27,9 +27,9 @@
 #include <map>
 #include <vector>
 #include <iostream>
-#include "./OSMDocument.h"
-#include "./osm_tag.h"
-#include "./Node.h"
+#include "osm_elements/OSMDocument.h"
+#include "osm_elements/osm_tag.h"
+#include "osm_elements/Node.h"
 
 
 

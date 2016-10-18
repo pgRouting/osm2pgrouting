@@ -18,59 +18,40 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
-#ifndef SRC_CONFIGURATION_H_
-#define SRC_CONFIGURATION_H_
-
+#include <boost/lexical_cast.hpp>
 #include <string>
-#include <map>
-#include "Type.h"
-#include "./osm_tag.h"
-#include "./Class.h"
+
+#include "configuration/Class.h"
+
 
 namespace osm2pgr {
 
-/**
-A configuration document.
-*/
-class Configuration {
- public:
-     //! Constructor
-     Configuration() = default;
 
-     //! add node to the map
-     void AddType(Type t);
-     Type FindType(std::string typeName) const;
-     Type& FindType(std::string typeName);
-     Class FindClass(const Tag &tag) const;
-     std::string priority_str(const Tag &tag) const;
+Class::Class(const char **atts) :
+    m_priority(0),
+    m_default_maxspeed(50) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name ==  "id") {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (name == "name") {
+            m_name = value;
+        } else if (name == "priority") {
+            m_priority = boost::lexical_cast<double>(value);
+        } else if (name == "maxspeed") {
+            m_default_maxspeed = boost::lexical_cast<int>(value);
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            m_tags[tag_key] = tag_value;
+        }
+    }
+}
 
 
-     inline size_t has_class(const Tag &tag) const {
-         return has_type(tag.key())
-             && m_Types.at(tag.key()).has_class(tag.value());
-     }
 
-     double class_default_maxspeed(const Tag &tag) const {
-         return m_Types.at(
-                 tag.key()).classes().at(tag.value()).default_maxspeed();
-     }
-
-     double class_priority(const Tag &tag) const {
-         return m_Types.at(tag.key()).classes().at(tag.value()).priority();
-     }
-
-     const std::map<std::string, Type>& types() const {return m_Types;}
-
-     inline bool has_type(const std::string &type_name) const {
-         return m_Types.count(type_name) != 0;
-     }
-
- private:
-     //! Map, which saves the parsed types
-     std::map<std::string, Type> m_Types;
-};
 
 
 }  // end namespace osm2pgr
-#endif  // SRC_CONFIGURATION_H_

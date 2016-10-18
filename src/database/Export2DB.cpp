@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 
-#include "./Export2DB.h"
+#include "database/Export2DB.h"
 
 #include <unistd.h>
 
@@ -28,11 +28,11 @@
 #include <string>
 #include <vector>
 
-#include "./print_progress.h"
+#include "utilities/print_progress.h"
+#include "utilities/prog_options.h"
+
 #include "boost/algorithm/string/replace.hpp"
 
-
-#include "./prog_options.h"
 
 namespace osm2pgr {
 

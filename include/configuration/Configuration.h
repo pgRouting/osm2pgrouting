@@ -19,40 +19,58 @@
  ***************************************************************************/
 
 
-#include "./Configuration.h"
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-#include <string>
-#include "./osm_tag.h"
-#include "./Type.h"
-#include "./Class.h"
+#ifndef SRC_CONFIGURATION_H_
+#define SRC_CONFIGURATION_H_
 
+#include <string>
+#include <map>
+#include "configuration/Type.h"
+#include "osm_elements/osm_tag.h"
+#include "configuration/Class.h"
 
 namespace osm2pgr {
 
+/**
+A configuration document.
+*/
+class Configuration {
+ public:
+     //! Constructor
+     Configuration() = default;
 
-void Configuration::AddType(Type t) {
-    if (has_type(t.name())) {
-        std::cerr << "duplicate Type found in condfiguration file"
-            << t.name() << "\n";
-        return;
-    }
-    m_Types[t.name()] = t;
-}
+     //! add node to the map
+     void AddType(Type t);
+     Type FindType(std::string typeName) const;
+     Type& FindType(std::string typeName);
+     Class FindClass(const Tag &tag) const;
+     std::string priority_str(const Tag &tag) const;
 
-Type& Configuration::FindType(std::string name) {
-    return m_Types.at(name);
-}
-Type Configuration::FindType(std::string name) const {
-    return m_Types.at(name);
-}
 
-Class Configuration::FindClass(const Tag &tag) const {
-    return m_Types.at(tag.key()).classes()[tag.value()];
-}
+     inline size_t has_class(const Tag &tag) const {
+         return has_type(tag.key())
+             && m_Types.at(tag.key()).has_class(tag.value());
+     }
 
-std::string Configuration::priority_str(const Tag &tag) const {
-    return  boost::lexical_cast<std::string>(FindClass(tag).priority());
-}
+     double class_default_maxspeed(const Tag &tag) const {
+         return m_Types.at(
+                 tag.key()).classes().at(tag.value()).default_maxspeed();
+     }
+
+     double class_priority(const Tag &tag) const {
+         return m_Types.at(tag.key()).classes().at(tag.value()).priority();
+     }
+
+     const std::map<std::string, Type>& types() const {return m_Types;}
+
+     inline bool has_type(const std::string &type_name) const {
+         return m_Types.count(type_name) != 0;
+     }
+
+ private:
+     //! Map, which saves the parsed types
+     std::map<std::string, Type> m_Types;
+};
+
 
 }  // end namespace osm2pgr
+#endif  // SRC_CONFIGURATION_H_

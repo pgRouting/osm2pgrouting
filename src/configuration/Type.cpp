@@ -18,53 +18,40 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
-#if 0
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
-#endif
-
 #include <boost/lexical_cast.hpp>
+#include <string>
 #include <map>
-#include <cassert>
-#include <math.h>
-#include "./osm_tag.h"
-#include "./Node.h"
+#include "configuration/Class.h"
+#include "configuration/Type.h"
 
 namespace osm2pgr {
 
-
-Node::Node(const char **atts) :
-    Element(atts),
-    m_numsOfUse(0) {
-        assert(has_attribute("lat"));
-        assert(has_attribute("lon"));
-    }
-
-
-double
-Node::getLength(const Node &previous) const {
-     auto y1 = boost::lexical_cast<double>(get_attribute("lat"));
-     auto x1 = boost::lexical_cast<double>(get_attribute("lon"));
-     auto y2 = boost::lexical_cast<double>(previous.get_attribute("lat"));
-     auto x2 = boost::lexical_cast<double>(previous.get_attribute("lon"));
-     return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-#if 0
-    typedef boost::geometry::model::d2::point_xy<double> point_type;
-
-    /* converted point to fit boost.geomtery
-     *      * (`p` and `q` are same as `a ` and `b`)
-     *           */
-    point_type p(
-            boost::lexical_cast<double>(get_attribute("lat")),
-            boost::lexical_cast<double>(get_attribute("lon")));
-
-    point_type q(
-            boost::lexical_cast<double>(previous.get_attribute("lat")),
-            boost::lexical_cast<double>(previous.get_attribute("lon")));
-
-    return boost::geometry::distance(p, q);
-#endif
+void Type::AddClass(const Class &pClass) {
+    m_Classes[pClass.name()] = pClass;
 }
 
-}  // namespace osm2pgr
+
+Type::Type(const char **atts) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name == "id") {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (name == "name") {
+            m_name = value;
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            m_tags[tag_key] = tag_value;
+        }
+    }
+}
+
+void
+Type::add_class(const char **atts) {
+    AddClass(Class(atts));
+}
+
+
+}  // end namespace osm2pgr

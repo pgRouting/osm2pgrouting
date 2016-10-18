@@ -18,40 +18,29 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <boost/lexical_cast.hpp>
+
+#include "osm_elements/osm_tag.h"
 #include <string>
-#include <map>
-#include "./Class.h"
-#include "./Type.h"
 
 namespace osm2pgr {
 
-void Type::AddClass(const Class &pClass) {
-    m_Classes[pClass.name()] = pClass;
-}
 
-
-Type::Type(const char **atts) {
+Tag::Tag(const char **atts) {
     auto **attribut = atts;
     while (*attribut != NULL) {
         std::string name = *attribut++;
         std::string value = *attribut++;
-        if (name == "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
+        if (name  == "k") {
+            m_key = value;
+        } else if (name == "v") {
+            m_value = value;
         }
     }
 }
 
-void
-Type::add_class(const char **atts) {
-    AddClass(Class(atts));
+std::ostream& operator<<(std::ostream &os, const Tag& tag) {
+    os << tag.m_key << "=>" << tag.m_value;
+    return os;
 }
 
-
-}  // end namespace osm2pgr
+}  // namespace osm2pgr
