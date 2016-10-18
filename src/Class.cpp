@@ -32,15 +32,15 @@ Class::Class(const char **atts) :
     m_default_maxspeed(50) {
     auto **attribut = atts;
     while (*attribut != NULL) {
-        const char* name = *attribut++;
-        const char* value = *attribut++;
-        if (std::strcmp(name, "id") == 0) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name ==  "id") {
             m_id = boost::lexical_cast<int64_t>(value);
-        } else if (std::strcmp(name, "name") == 0) {
+        } else if (name == "name") {
             m_name = value;
-        } else if (strcmp(name, "priority") == 0) {
+        } else if (name == "priority") {
             m_priority = boost::lexical_cast<double>(value);
-        } else if (strcmp(name, "maxspeed") == 0) {
+        } else if (name == "maxspeed") {
             m_default_maxspeed = boost::lexical_cast<int>(value);
         } else {
             auto tag_key = boost::lexical_cast<std::string>(name);
