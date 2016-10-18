@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
+
+#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <map>
 #include <utility>
