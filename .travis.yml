@@ -69,13 +69,15 @@ addons:
       # For cmake
       - kubuntu-backports
       - boost-latest
-      - libboost-program-options-dev
     packages:
       - cmake
 
 
 
 
+
+before-install:
+  - sudo sudo apt-get install -y libboost-program-options-dev
 
 install:
   - sudo ./ci/travis/install-postgres.sh $POSTGRESQL_VERSION $PG_USER
