@@ -19,11 +19,12 @@
  ***************************************************************************/
 
 
+#include "boost/lexical_cast.hpp"
 #include "Way.h"
 #include <string>
 #include <map>
 #include <vector>
-#include "boost/lexical_cast.hpp"
+#include <iostream>
 #include "./OSMDocument.h"
 #include "./osm_tag.h"
 #include "./Node.h"
