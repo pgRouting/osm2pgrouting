@@ -21,8 +21,8 @@
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
-#include "./Class.h"
-#include "./Type.h"
+#include "configuration/Class.h"
+#include "configuration/Type.h"
 
 namespace osm2pgr {
 

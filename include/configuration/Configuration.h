@@ -24,9 +24,9 @@
 
 #include <string>
 #include <map>
-#include "Type.h"
-#include "./osm_tag.h"
-#include "./Class.h"
+#include "configuration/Type.h"
+#include "osm_elements/osm_tag.h"
+#include "configuration/Class.h"
 
 namespace osm2pgr {
 

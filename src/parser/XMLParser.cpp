@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 
-#include "./XMLParser.h"
+#include "parser/XMLParser.h"
 
 #include <errno.h>
 #include <string.h>

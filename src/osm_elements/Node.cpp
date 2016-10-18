@@ -28,8 +28,8 @@
 #include <map>
 #include <cassert>
 #include <math.h>
-#include "./osm_tag.h"
-#include "./Node.h"
+#include "osm_elements/osm_tag.h"
+#include "osm_elements/Node.h"
 
 namespace osm2pgr {
 

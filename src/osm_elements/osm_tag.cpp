@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 
-#include "./osm_tag.h"
+#include "osm_elements/osm_tag.h"
 #include <string>
 
 namespace osm2pgr {

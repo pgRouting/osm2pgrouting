@@ -20,19 +20,19 @@
 
 
 
-#include "./OSMDocumentParserCallback.h"
+#include "parser/OSMDocumentParserCallback.h"
 
 #include <math.h>
 #include <string>
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include "./OSMDocument.h"
-#include "./print_progress.h"
-#include "./Relation.h"
-#include "./osm_tag.h"
-#include "./Way.h"
-#include "./Node.h"
+#include "osm_elements/OSMDocument.h"
+#include "osm_elements/Relation.h"
+#include "osm_elements/osm_tag.h"
+#include "osm_elements/Way.h"
+#include "osm_elements/Node.h"
+#include "utilities/print_progress.h"
 
 
 namespace osm2pgr {

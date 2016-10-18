@@ -22,8 +22,8 @@
 #include <boost/lexical_cast.hpp>
 #include <map>
 #include <string>
-#include "./osm_tag.h"
-#include "./osm_element.h"
+#include "osm_elements/osm_tag.h"
+#include "osm_elements/osm_element.h"
 
 namespace osm2pgr {
 

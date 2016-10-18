@@ -19,13 +19,13 @@
  ***************************************************************************/
 
 
-#include "./Configuration.h"
+#include "configuration/Configuration.h"
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
-#include "./osm_tag.h"
-#include "./Type.h"
-#include "./Class.h"
+#include "osm_elements/osm_tag.h"
+#include "configuration/Type.h"
+#include "configuration/Class.h"
 
 
 namespace osm2pgr {
