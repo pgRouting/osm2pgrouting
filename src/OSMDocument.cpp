@@ -24,6 +24,7 @@
 #include <map>
 #include <utility>
 #include <string>
+#include <iostream>
 #include "./OSMDocument.h"
 #include "./Configuration.h"
 #include "./Node.h"
