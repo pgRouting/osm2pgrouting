@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt   								   *
- *   gentoo.murray@gmail.com   											   *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,7 +10,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
@@ -18,14 +18,35 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef MATH_FUNCTIONS_H
-#define MATH_FUNCTIONS_H
-
-#include "Node.h"
-
-using namespace osm2pgr;
-
-double getLength(Node* a, Node* b);
+#ifndef SRC_PRINT_PROGRESS_H_
+#define SRC_PRINT_PROGRESS_H_
+#pragma once
 
 
-#endif
+#include <iostream>
+#include <string>
+
+template < typename T1 , typename T2>
+void
+print_progress(T1 wantProgress, T2 currentProgress) {
+    int length = 50;
+    double percent = static_cast <double> (currentProgress) /  static_cast <double>(wantProgress);
+    int fillerLength = static_cast<int>(percent * length);
+
+    std::string bar = "[";
+    for (int i = 0; i < fillerLength; i++) {
+        bar += "*";
+    }
+
+    bar += "|";
+    for (int i = 0; i < length - fillerLength; i++) {
+        bar += " ";
+    }
+
+    bar += "]";
+    std::cout << "\r"
+        << bar
+        << " (" << static_cast<int>(100 * percent) << "%)"
+        << std::flush;
+}
+#endif  // SRC_PRINT_PROGRESS_H_

@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Daniel Wendt                                    *
- *   gentoo.murray@gmail.com                                               *
+ *   Copyright (C) 2016 by pgRouting developers                            *
+ *   project@pgrouting.org                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -10,64 +10,66 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public License t &or more details.                        *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+
 #ifndef SRC_RELATION_H_
 #define SRC_RELATION_H_
 
 #include <vector>
 #include <map>
 #include <string>
+#include "./osm_element.h"
 
 namespace osm2pgr {
 class Way;
 
 /**
 \code
- <way id="20215432" visible="true" timestamp="2008-01-09T22:35:16+00:00" user="Pferdo">
-    <nd ref="213794929"/>
-    <nd ref="213795470"/>
-    <nd ref="213795483"/>
-    <nd ref="213795493"/>
-    <nd ref="213795506"/>
-    <nd ref="213795517"/>
-    <nd ref="213795527"/>
-    <nd ref="213795541"/>
-    <nd ref="213795552"/>
-    <nd ref="213795561"/>
-    <nd ref="213795571"/>
-    <tag k="name" v="Pf�nderweg"/>
-    <tag k="created_by" v="JOSM"/>
-    <tag k="highway" v="residential"/>
-  </way>
+
+<relation id="2781938" version="1" timestamp="2013-02-24T05:24:08Z" changeset="15143772" uid="621319" user="hayashi">
+<member type="way" ref="206946707" role="outer"/>
+<member type="way" ref="206946714" role="inner"/>
+<tag k="building" v="yes"/>
+<tag k="type" v="multipolygon"/>
+</relation>
+
+<relation id="6127135" version="2" timestamp="2016-04-11T03:26:53Z" changeset="38464643" uid="624003" user="eugenebata">
+<member type="way" ref="184275824" role="link"/>
+<member type="way" ref="374341622" role=""/>
+<tag k="name" v="阪神高速31号神戸山手線"/>
+<tag k="name:en" v="Hanshin Expressway Route 31"/>
+<tag k="ref" v="31"/>
+<tag k="route" v="road"/>
+<tag k="type" v="route"/>
+</relation>
+
 \endcode
 */
-class Relation {
+class Relation : public Element{
  public:
-    long long id;
-    std::string name;
-    std::vector<int64_t> m_WayRefs;
-    std::map<std::string, std::string> m_Tags;
+     /** 
+      *    @param atts attributes read py the parser
+      */
+     explicit Relation(const char ** atts);
+     Relation() = delete;
+     Relation(const Relation&) = default;
+     std::vector<int64_t> way_refs() const {return m_WayRefs;}
+     std::vector<int64_t>& way_refs() {return m_WayRefs;}
 
- public:
-    /** 
-     *    Constructor
-     *    @param id ID of the way
-     */
-    Relation(int64_t id);
-    //! Destructor
-    ~Relation();
-    /**
-     *    saves the nodes of the way  
-     *    @param pNode node
-     */
-    void AddWayRef(int64_t pID);
-    void AddTag(std::string key, std::string value);
+     /**
+      *    saves the nodes of the way  
+      *    @param atts member attributes read py the parser
+      */
+     int64_t add_member(const char **atts);
+
+ private:
+     std::vector<int64_t> m_WayRefs;
 };
 
 

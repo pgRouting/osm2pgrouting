@@ -19,44 +19,60 @@
  ***************************************************************************/
 
 
+#ifndef SRC_OSM_TAG_H_
+#define SRC_OSM_TAG_H_
+#pragma once
+
 #include <boost/lexical_cast.hpp>
+#include <cstdint>
 #include <string>
-#include "./Relation.h"
+#include <map>
+
 
 namespace osm2pgr {
 
 
-Relation::Relation(const char **atts) :
-    Element(atts) { }
+/**
+  @code
+  <tag k="highway" v="crossing"/>
+  <tag k="exit_to" v="OR 217;Tigard;Salem"/>
+  <tag k="highway" v="motorway_junction"/>
+  <tag k="ref" v="69A"/>
+  <tag k="name" v="Southwest Park &amp; Market"/>
+  <tag k="public_transport" v="stop_position"/>
+  <tag k="railway" v="tram_stop"/>
+  <tag k="ref" v="11011"/>
+  <tag k="tram" v="yes"/>
+  <tag k="highway" v="turning_circle"/>
 
+  @endcode
+  */
 
+class Tag {
+ public:
+     Tag() = default;
+     Tag(const Tag&) = default;
+     /**
+      *    Constructor
+      *    @param atts attributes pointer returned by the XML parser
+      */
+     explicit Tag(const char **atts);
+     Tag(const std::string &k, const std::string &v) {
+         m_key = k;
+         m_value = v;
+     }
 
-int64_t
-Relation::add_member(const char **atts) {
-    auto **attribut = atts;
-    std::string type;
-    int64_t osm_id(0);
-    std::string role;
-    while (*attribut != NULL) {
-        std::string key = *attribut++;
-        std::string value = *attribut++;
-        /*
-         * currently only adding way
-         */
-        if (key == "type") {
-            if (value != "way") return -1;
-        }
-        if (key == "ref") {
-            osm_id = boost::lexical_cast<int64_t>(value);
-        }
-        if (key == "role") {
-            role = value;
-        }
-    }
-    m_WayRefs.push_back(osm_id);
-    return osm_id;
-}
+     inline std::string key() const {return m_key;}
+     inline std::string value() const {return m_value;}
+     friend std::ostream& operator<<(std::ostream &os, const Tag& tag);
+
+ private:
+     // ! key
+     std::string m_key;
+     // ! value
+     std::string m_value;
+};
 
 
 }  // end namespace osm2pgr
-
+#endif  // SRC_OSM_TAG_H_

@@ -19,58 +19,74 @@
  ***************************************************************************/
 
 
-#ifndef SRC_CONFIGURATION_H_
-#define SRC_CONFIGURATION_H_
+#ifndef SRC_OSM_ELEMENT_H_
+#define SRC_OSM_ELEMENT_H_
+#pragma once
 
 #include <string>
 #include <map>
-#include "Type.h"
 #include "./osm_tag.h"
-#include "./Class.h"
 
 namespace osm2pgr {
 
-/**
-A configuration document.
-*/
-class Configuration {
+
+    /** @brief osm elements
+
+      osm elements can be:
+
+      @code
+      <node
+      <way
+      <relation
+      @endcode
+
+      */
+
+class Element {
  public:
-     //! Constructor
-     Configuration() = default;
+     Element() = default;
+     Element(const Element&) = default;
+     /**
+      *    Constructor
+      *    @param atts attributes pointer returned by the XML parser
+      */
+     explicit Element(const char **atts);
+     Tag add_tag(const Tag &);
 
-     //! add node to the map
-     void AddType(Type t);
-     Type FindType(std::string typeName) const;
-     Type& FindType(std::string typeName);
-     Class FindClass(const Tag &tag) const;
-     std::string priority_str(const Tag &tag) const;
+     inline int64_t osm_id() const {return m_osm_id;}
+     inline bool visible() const {return m_visible;}
+     inline void tag_config(const Tag &tag) {m_tag_config = tag;}
+     inline Tag tag_config() const {return m_tag_config;}
 
 
-     inline size_t has_class(const Tag &tag) const {
-         return has_type(tag.key())
-             && m_Types.at(tag.key()).has_class(tag.value());
+
+     std::string attributes_str() const;
+     std::string tags_str() const;
+
+     bool has_attribute(const std::string&) const;
+     std::string get_attribute(const std::string&) const;
+     std::map<std::string, std::string>& attributes() {return m_attributes;}
+     const std::map<std::string, std::string> attributes() const {
+         return m_attributes;
      }
 
-     double class_default_maxspeed(const Tag &tag) const {
-         return m_Types.at(
-                 tag.key()).classes().at(tag.value()).default_maxspeed();
-     }
 
-     double class_priority(const Tag &tag) const {
-         return m_Types.at(tag.key()).classes().at(tag.value()).priority();
-     }
+     bool has_tag(const std::string&) const;
+     std::string get_tag(const std::string&) const;
+     std::map<std::string, std::string>& tags() {return m_tags;}
+     const std::map<std::string, std::string> tags() const {return m_tags;}
 
-     const std::map<std::string, Type>& types() const {return m_Types;}
+ protected:
+     // ! OSM ID of the element
+     int64_t m_osm_id;
+     bool m_visible;
+     Tag m_tag_config;
 
-     inline bool has_type(const std::string &type_name) const {
-         return m_Types.count(type_name) != 0;
-     }
 
- private:
-     //! Map, which saves the parsed types
-     std::map<std::string, Type> m_Types;
+     std::map<std::string, std::string> m_tags;
+     std::map<std::string, std::string> m_attributes;
 };
 
 
-}  // end namespace osm2pgr
-#endif  // SRC_CONFIGURATION_H_
+}  // namespace osm2pgr
+#endif  // SRC_OSM_ELEMENT_H_
