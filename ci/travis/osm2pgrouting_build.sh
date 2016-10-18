@@ -9,8 +9,8 @@
 # exit script on error
 set -e 
 
-# build pgRouting
-cmake  -DPOSTGRESQL_VERSION=$POSTGRESQL_VERSION
+# build osm2pgrouting
+cmake  
 make
 sudo make install
 
