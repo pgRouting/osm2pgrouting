@@ -1,3 +1,12 @@
+osm2pgRouting 2.2.0
+
+* Adding foreign keys to the tables.
+* Added a progress bar.
+* New mapconfig_for_bicycles.xml
+* Improved the C++ code.
+  * remove the use of pointers to avoid leaks.
+
+
 
 osm2pgRouting 2.1.0
 
