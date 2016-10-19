@@ -73,7 +73,9 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed =
         std::chrono::steady_clock::now();
 #endif
+#if 1
     try {
+#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -222,6 +224,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "#########################" << endl;
         return 0;
+#if 1
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -235,4 +238,5 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
+#endif
 }
