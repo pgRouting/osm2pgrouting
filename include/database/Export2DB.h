@@ -22,6 +22,7 @@
 #ifndef SRC_EXPORT2DB_H_
 #define SRC_EXPORT2DB_H_
 
+#include <pqxx/pqxx>
 #include <libpq-fe.h>
 #include <map>
 #include <vector>
@@ -49,7 +50,7 @@ class Export2DB {
       * @param vm variable map holding the configuration
       *
       */
-     explicit Export2DB(const po::variables_map &vm);
+     explicit Export2DB(const po::variables_map &vm, const std::string &db_conn);
 
      /**
       * Destructor
@@ -60,14 +61,13 @@ class Export2DB {
      //! connects to database
      int connect();
      bool has_postGIS() const;
+     bool install_postGIS() const;
 
      //! creates needed tables and geometries
      void createTables() const;
      void createTempTables() const;
      //! exports nodes to the database
-     void prepareExportNodes(const std::string nodes_columns) const;
      void exportNodes(const std::map<int64_t, Node>& nodes) const;
-     void processSectionExportNodes(const std::string nodes_columns) const;
 
      //! exports ways to the database
      void exportTags(
@@ -87,20 +87,25 @@ class Export2DB {
 
      //! Be careful! It deletes the created tables!
      void dropTables() const;
-     void dropTempTables() const;
      void createFKeys();
 
  private:
      //! to use with creating the ways
      void prepare_table(const std::string &ways_columns) const;
-     void process_section(const std::string &ways_columns) const;
+     void prepareExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
 
+     void process_section(const std::string &ways_columns) const;
+     void processSectionExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
+
+     void dropTempTables() const;
      void dropTempTable(
              const std::string &table) const;
      bool createTempTable(
              const std::string &sql,
-             const std::string &table) const;
-     void dropTable(const std::string &table) const;
+             const std::string &table,
+             pqxx::work &Xaction) const;
+
+     void dropTable(const std::string &table, pqxx::work &Xaction) const;
      bool createTempTable(
              const std::string &sql,
              const std::string &table);
@@ -108,6 +113,10 @@ class Export2DB {
              const std::string &sql,
              const std::string &table,
              const std::string &constraint = std::string("")) const;
+     void addTempGeometry(
+             const std::string &table,
+             const std::string &geometry_type,
+             pqxx::work &Xaction) const;
      void addTempGeometry(
              const std::string &table,
              const std::string &geometry_type) const;
@@ -121,9 +130,11 @@ class Export2DB {
      void create_idindex(
              const std::string &colname,
              const std::string &table) const;
+
      inline std::string full_table_name(const std::string &table) const {
          return tables_prefix + table + tables_suffix;
      }
+
      inline std::string addSchema(const std::string &table) const {
          return  (default_tables_schema() == "" ? ""
                  : default_tables_schema() + ".") + table;
@@ -139,7 +150,10 @@ class Export2DB {
              const std::string &vertices_tab) const;
 
  private:
+#if 1
      PGconn *mycon;
+#endif
+     mutable pqxx::connection db_conn;
      std::string conninf;
      std::string tables_schema;
      std::string tables_prefix;

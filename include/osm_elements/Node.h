@@ -69,6 +69,8 @@ class Node : public Element {
      inline std::string geom_str(std::string separator) {
          return get_attribute("lon") + separator +  get_attribute("lat");
      }
+     inline std::string lat() {return get_attribute("lat");}
+     inline std::string lon() {return get_attribute("lon");}
 
      inline std::string point_geometry() {
          return

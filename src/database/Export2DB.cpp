@@ -44,17 +44,13 @@ TO_STR(const T &x) {
 }
 
 
-Export2DB::Export2DB(const  po::variables_map &vm) :
+Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection) :
     mycon(0),
-    conninf("host=" + vm["host"].as<std::string>()
-            + " user=" +  vm["username"].as<std::string>()
-            + " dbname=" + vm["dbname"].as<std::string>()
-            + " port=" + vm["port"].as<std::string>()),
+    db_conn(connection),
+    conninf(connection),
     tables_schema(vm["schema"].as<std::string>()),
     tables_prefix(vm["prefix"].as<std::string>()),
     tables_suffix(vm["suffix"].as<std::string>()) {
-        if (!vm["password"].as<std::string>().empty())
-            this->conninf+=" password=" + vm["password"].as<std::string>();
 
         create_types = std::string(
                 " type_id integer PRIMARY KEY,"
@@ -144,91 +140,112 @@ int Export2DB::connect() {
         cout << "connection success"<< endl;
         return 0;
     }
-    /***
-CONNECTION_STARTED: Waiting for connection to be made.
-CONNECTION_MADE: Connection OK; waiting to send.
-CONNECTION_AWAITING_RESPONSE: Waiting for a response from the postmaster.
-CONNECTION_AUTH_OK: Received authentication; waiting for backend start-up.
-CONNECTION_SETENV: Negotiating environment.
-     ***/
 }
 
 
-/*!
+bool
+Export2DB::has_postGIS() const {
+    try {
+        pqxx::work Xaction(db_conn);
+        std::string sql = "SELECT * FROM pg_extension WHERE extname = 'postgis'";
+        auto result = Xaction.exec(sql);
+        return result.size() == 1;
 
-  CREATE TEMP TABLE table (
-  table_description
-  );
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+        return false;
+    }
+}
 
-*/
+bool
+Export2DB::install_postGIS() const {
+    try {
+        pqxx::work Xaction(db_conn);
+        std::string sql = "CREATE EXTENSION postgis";
+        Xaction.exec(sql);
+        Xaction.commit();
+        return true;
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+    }
+    return false;
+}
+
 bool Export2DB::createTempTable(const std::string &table_description,
-        const std::string &table) const {
+        const std::string &table, pqxx::work &Xaction) const {
     std::string sql =
-        "CREATE TEMP TABLE " + table + "("    //  + schema + "." + prefix etc
+        "CREATE TEMP TABLE " + table + "("
         + table_description + ")";
 
+    try {
+    Xaction.exec(sql);
+    return true;
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+    }
+    return false;
 
+#if 0
     PGresult *result = PQexec(mycon, sql.c_str());
     bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
 
     PQclear(result);
     return created;
+#endif
 }
 
-/*!
-
-  CREATE TABLE table (
-  table_description,
-  constraint
-  );
-
-*/
-bool Export2DB::has_postGIS() const {
-    std::string sql = "SELECT * FROM pg_extension WHERE extname = 'postgis'";
-    PGresult *result = PQexec(mycon, sql.c_str());
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-        std::cout << PQresultErrorMessage(result) << "\n";
-        throw;
-    }
-    return  static_cast<bool>(PQntuples(result));
-}
-
-bool Export2DB::createTable(const std::string &table_description,
+bool Export2DB::createTable(
+        const std::string &table_description,
         const std::string &table,
         const std::string &constraint) const {
     std::string sql =
-        "CREATE TABLE " + table + "("
+        "CREATE TABLE " + table + " ("
         + table_description + constraint + ");";
 
-    PGresult *result = PQexec(mycon, sql.c_str());
-    bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
-
-    std::cout << (created? "Creating '" : " Exists: '") << table <<"': OK\n";
-
-    PQclear(result);
-    return created;
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec(sql);
+        Xaction.commit();
+        std::cout << "NOTICE: " << table << " created ... OK." << std::endl;
+        return true;
+    } catch (const std::exception &e) {
+        std::cout << "NOTICE: " << table << " already exists." << std::endl;
+    }
+    return false;
 }
 
 
 void Export2DB::addGeometry(
         const std::string &schema, const std::string &table,
         const std::string &geometry_type) const {
-    std::cout << "   Adding Geometry: ";
     /** PostGIS requires the schema to be specified as separate arg if not default user's schema **/
     std::string sql =
         + " SELECT AddGeometryColumn(" + (schema == "" ? "" : "'" + schema + "' ,") + " '"
         + table + "',"
         + "'the_geom', 4326, '" + geometry_type + "',2);";
 
-
-    PGresult *result = PQexec(mycon, sql.c_str());
-
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-        std::cout << PQresultErrorMessage(result) << "<-------\n";
-        throw std::string(PQresultErrorMessage(result));
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec(sql);
+        std::cout << "    NOTICE: geometry " << addSchema(table) << ".the_geom created ... OK." << std::endl;
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cout << "    NOTICE: geometry " << addSchema(table) << ".the_geom already exists." << std::endl;
     }
-    PQclear(result);
 }
+
+void Export2DB::addTempGeometry(
+        const std::string &table,
+        const std::string &geometry_type,
+        pqxx::work &Xaction) const {
+    std::string sql =
+        " SELECT AddGeometryColumn('"
+        + table + "',"
+        + "'the_geom', 4326, '" + geometry_type + "',2);";
+
+    Xaction.exec(sql);
+}
+
 
 void Export2DB::addTempGeometry(
         const std::string &table,
@@ -305,87 +322,87 @@ void Export2DB::createTables() const {
 
 
 
-void Export2DB::dropTable(const std::string &table) const {
-    std::string drop_tables("DROP TABLE IF EXISTS " +  table);
-    PGresult *result = PQexec(mycon, drop_tables.c_str());
-    PQclear(result);
+void
+Export2DB::dropTable(const std::string &table, pqxx::work &Xaction) const {
+    std::string sql("DROP TABLE IF EXISTS " +  table + " CASCADE");
+    Xaction.exec(sql);
 }
 
 
 
 void Export2DB::dropTables() const {
-    dropTable(addSchema(full_table_name("ways")));
-    dropTable(addSchema(full_table_name("ways_vertices_pgr")));
-    dropTable(addSchema(full_table_name("relations_ways")));
+    try {
+        pqxx::work Xaction(db_conn);
+        dropTable(addSchema(full_table_name("ways")), Xaction);
+        dropTable(addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+        dropTable(addSchema(full_table_name("relations_ways")), Xaction);
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+    }
 
     //  we are not deleting general tables osm_
 }
-
-/*!
-
-  Inserts the data into a temporary table
-  Inserts the data to the final table only if
- **osm_id**
- doesn't exist already
-
-*/
-void  Export2DB::prepareExportNodes(const std::string nodes_columns) const {
-    if (createTempTable(create_nodes, "__nodes_temp"))
-        addTempGeometry("__nodes_temp", "POINT");
-
-    std::string copy_nodes("COPY __nodes_temp (" + nodes_columns + ") FROM STDIN");
-    PGresult* q_result = PQexec(mycon, copy_nodes.c_str());
-    PQclear(q_result);
-}
-
 
 
 void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
     std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
+    std::vector<std::string> columns;
+    columns.push_back("osm_id");
+    columns.push_back("lat");
+    columns.push_back("lon");
+    columns.push_back("numofuse");
+    columns.push_back("the_geom");
 
-    prepareExportNodes(nodes_columns);
+
     uint32_t chunck_size = 20000;
 
 
     int64_t count = 0;
-    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-        auto n = *it;
+    int64_t start = 0;
+    auto it = nodes.begin();
+    while (start < nodes.size()) {
+        auto limit = (start + chunck_size) < nodes.size() ? start + chunck_size : nodes.size();
+        try {
+            pqxx::work Xaction(db_conn);
+            Xaction.exec("CREATE TABLE  __nodes_temp ("
+                    + create_nodes + ")");
 
-        if ((count % (chunck_size / 100)) == 0) {
+            Xaction.exec("SELECT AddGeometryColumn('__nodes_temp', 'the_geom', 4326, 'POINT', 2)");
+            pqxx::tablewriter tw(Xaction, "__nodes_temp", columns.begin(), columns.end());
+            for (auto i = start; i < limit; ++i) {
+                auto n = *it;
+
+                ++count;
+                ++it;
+
+                auto node = n.second;
+                std::vector<std::string> values;
+                values.push_back(TO_STR(node.osm_id()));
+                values.push_back(node.lat());
+                values.push_back(node.lon());
+                values.push_back(TO_STR(node.numsOfUse()));
+                values.push_back(node.point_geometry());
+                tw.insert(values);
+            }
+
             print_progress(nodes.size(), count);
             std::cout << " Total Processed: " << count;
+            tw.complete();
+            processSectionExportNodes(nodes_columns, Xaction);
+            Xaction.commit();
+            start = limit;
+        } catch (const std::exception &e) {
+            std::cerr <<  "\n" << e.what() << std::endl;
+            std::cerr << "While processing from " << start << "th \t to: " << limit << "th node\n";
         }
-
-        if ((++count % chunck_size) == 0) {
-            PQputline(mycon, "\\.\n");
-            PQendcopy(mycon);
-            processSectionExportNodes(nodes_columns);
-            prepareExportNodes(nodes_columns);
-        }
-
-        auto node = n.second;
-        std::string row_data = TO_STR(node.osm_id());
-        row_data += "\t";
-        row_data += node.geom_str("\t");
-        row_data += "\t";
-        row_data += TO_STR(node.numsOfUse());
-        row_data += "\t";
-        row_data += node.point_geometry();
-        row_data += "\n";
-        PQputline(mycon, row_data.c_str());
     }
-
-    print_progress(nodes.size(), count);
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    processSectionExportNodes(nodes_columns);
-    std::cout << "\n";
 }
 
 
-void  Export2DB::processSectionExportNodes(const std::string nodes_columns) const {
-    std::string insert_into_nodes(
+void  Export2DB::processSectionExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const {
+    std::string sql(
             " WITH data AS ("
             " SELECT a.* "
             " FROM  __nodes_temp a LEFT JOIN  " + addSchema("osm_nodes") + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
@@ -393,9 +410,9 @@ void  Export2DB::processSectionExportNodes(const std::string nodes_columns) cons
             " INSERT INTO "  + addSchema("osm_nodes") +
             "(" + nodes_columns + ") "
             " (SELECT " + nodes_columns + " FROM data); ");
-    PGresult* q_result = PQexec(mycon, insert_into_nodes.c_str());
-    PQclear(q_result);
-    dropTable("__nodes_temp");
+
+    auto result = Xaction.exec(sql);
+    Xaction.exec("DROP TABLE __nodes_temp");
 }
 
 
@@ -473,7 +490,8 @@ void Export2DB::exportRelations(
         const std::vector<Relation> &relations,
         const Configuration &config) const {
     std::cout << "    Processing " << relations.size() << " relations:";
-    createTempTable(create_relations, "__relations_temp");
+    pqxx::work Xaction(db_conn);
+    createTempTable(create_relations, "__relations_temp", Xaction);
 
     std::string relations_columns("relation_id, type_id, class_id, name ");
     std::string copy_relations("COPY __relations_temp (" + relations_columns + ") FROM STDIN");
@@ -516,7 +534,8 @@ void Export2DB::exportRelations(
     }
 
     PQclear(q_result);
-    dropTable("__relations_temp");
+    Xaction.exec("DROP Table __relations_temp");
+    Xaction.commit();
 }
 
 
@@ -524,7 +543,8 @@ void Export2DB::exportRelations(
 
 void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const {
     std::cout << "    Processing way's relations: ";
-    createTempTable(create_relations_ways, "__relations_ways_temp");
+    pqxx::work Xaction(db_conn);
+    createTempTable(create_relations_ways, "__relations_ways_temp", Xaction);
 
     std::string relations_ways_columns(" relation_id, way_id, type ");
     std::string copy_relations_ways("COPY __relations_ways_temp (" + relations_ways_columns + ") FROM STDIN");
@@ -559,7 +579,8 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
     q_result = PQexec(mycon, insert_into_relations_ways.c_str());
     std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("relations_ways")) << "\n";
     PQclear(q_result);
-    dropTable("__relations_ways_temp");
+    Xaction.exec(" DROP TABLE __relations_ways_temp");
+    Xaction.commit();
 }
 
 
@@ -584,7 +605,8 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
 void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
 
-    createTempTable(create_way_tag, "__way_tag_temp");
+    pqxx::work Xaction(db_conn);
+    createTempTable(create_way_tag, "__way_tag_temp", Xaction);
     std::string copy_way_tag("COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
     PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
 
@@ -616,12 +638,14 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
     std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_tags") << "\n";
     PQclear(q_result);
 
-    dropTable("__way_tag_temp");
+    Xaction.exec("DROP TABLE __way_tag_temp");
+    Xaction.commit();
 }
 
 
 void Export2DB::prepare_table(const std::string &ways_columns) const {
-    if (createTempTable(create_ways, "__ways_temp")) {
+    pqxx::work Xaction(db_conn);
+    if (createTempTable(create_ways, "__ways_temp", Xaction)) {
         addTempGeometry("__ways_temp", "LINESTRING");
     } else {
         std::cerr << "could not createTempTable\n";
@@ -633,6 +657,7 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
 
     PGresult* q_result = PQexec(mycon, copy_ways.c_str());
     PQclear(q_result);
+    Xaction.commit();
 }
 
 void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const {
@@ -782,7 +807,9 @@ void Export2DB::process_section(const std::string &ways_columns) const {
     q_result = PQexec(mycon, insert_into_ways.c_str());
     std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
     PQclear(q_result);
-    dropTable("__ways_temp");
+    pqxx::work Xaction(db_conn);
+    dropTable("__ways_temp", Xaction);
+    Xaction.commit();
 }
 
 
@@ -794,7 +821,8 @@ void Export2DB::process_section(const std::string &ways_columns) const {
 void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
     std::cout << "    Processing " << types.size() << " way types: ";
 
-    createTempTable(create_types, "__way_types_temp");
+    pqxx::work Xaction(db_conn);
+    createTempTable(create_types, "__way_types_temp", Xaction);
     std::string copy_types("COPY __way_types_temp (type_id, name) FROM STDIN");
 
     PGresult* q_result = PQexec(mycon, copy_types.c_str());
@@ -825,7 +853,8 @@ void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
     std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_types") << "\n";
 
     PQclear(q_result);
-    dropTable("__way_types_temp");
+    Xaction.exec("DROP TABLE __way_types_temp");
+    Xaction.commit();
 }
 
 
@@ -841,7 +870,8 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
             "   (class_id, type_id, name, priority, default_maxspeed)"
             "   FROM STDIN");
 
-    createTempTable(create_classes, "__classes_temp");
+    pqxx::work Xaction(db_conn);
+    createTempTable(create_classes, "__classes_temp", Xaction);
     PGresult *q_result = PQexec(mycon, copy_classes.c_str());
 
     for (auto it = types.begin(); it != types.end(); ++it) {
@@ -881,7 +911,8 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
     std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_classes") << "\n";
 
     PQclear(q_result);
-    dropTable("__classes_temp");
+    Xaction.exec("DROP TABLE __classes_temp");
+    Xaction.commit();
 }
 
 
@@ -925,7 +956,7 @@ void Export2DB::createFKeys() {
 #if 0
     // its not working as there are several ways with the same osm_id
     // the gid is not possible because that is "on the fly" sequential
-     "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
+    "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
 #endif
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(result);

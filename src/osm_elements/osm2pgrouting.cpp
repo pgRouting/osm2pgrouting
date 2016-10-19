@@ -114,16 +114,17 @@ int main(int argc, char* argv[]) {
         auto clean(vm.count("clean"));
 
         handle_pgpass(vm);
-        try {
-            cout << "Testing database connection: "
-                << vm["dbname"].as<std::string>()
-                << endl;
-            pqxx::connection C(
+        std::string connection_str(
                     "host=" + vm["host"].as<std::string>()
                     + " user=" +  vm["username"].as<std::string>()
                     + " dbname=" + vm["dbname"].as<std::string>()
                     + " port=" + vm["port"].as<std::string>()
                     + " password=" + vm["password"].as<std::string>());
+        try {
+            cout << "Testing database connection: "
+                << vm["dbname"].as<std::string>()
+                << endl;
+            pqxx::connection C(connection_str);
             if (C.is_open()) {
                 cout << "database connection successfull: " << C.dbname() << endl;
             } else {
@@ -137,14 +138,22 @@ int main(int argc, char* argv[]) {
         } 
 
         std::cout << "Connecting to the database"  << endl;
-        osm2pgr::Export2DB dbConnection(vm);
+        osm2pgr::Export2DB dbConnection(vm, connection_str);
         if (dbConnection.connect() == 1)
             return 1;
         if (!dbConnection.has_postGIS()) {
-            std::cout << "ERROR: postGIS not found\n";
-            return 1;
+            if (vm.count("postgis")) {
+                dbConnection.install_postGIS();
+            } else {
+                std::cout << "ERROR: postGIS not found\n";
+                return 1;
+            }
         }
 
+        if (clean) {
+            std::cout << "\nDropping tables..." << endl;
+            dbConnection.dropTables();
+        }
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
         osm2pgr::Configuration config;
@@ -198,6 +207,7 @@ int main(int argc, char* argv[]) {
             dbConnection.exportTypes(config.types());
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
+                exit(0);
             std::cout << "\nExport Relations ..." << endl;
             dbConnection.exportRelations(document.relations(), config);
             std::cout << "\nExport RelationsWays ..." << endl;

@@ -51,6 +51,7 @@ void get_option_description(po::options_description &od_desc) {
         ("schema", po::value<std::string>()->default_value(""), "Database schema to put tables.\n  blank:\t defaults to default schema dictated by PostgreSQL search_path.")
         ("prefix", po::value<std::string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")
+        ("postgis", "Instal postgis if not found.")
         ("addnodes", "Import the osm_nodes table.")
         ("clean", "Drop previously created tables.");
 
@@ -89,6 +90,7 @@ process_command_line(po::variables_map &vm) {
     std::cout << "schema= " << vm["schema"].as<std::string>() << "\n";
     std::cout << "prefix = " << vm["prefix"].as<std::string>() << "\n";
     std::cout << "suffix = " << vm["suffix"].as<std::string>() << "\n";
+    std::cout << (vm.count("postgis")? "I" : "Don't I") << "nstall postgis if not found\n";
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
     std::cout << "***************************************************\n";
