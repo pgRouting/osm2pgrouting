@@ -156,6 +156,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         std::cout << "    Finish Parsing data\n" << endl;
+        if (document.nodesErrs()) {
+            std::cerr << "******\nNOTICE:  Found " << document.nodesErrs() << " node references with no <node ... >\n*****";
+        }
 
         //############# Export2DB
         {

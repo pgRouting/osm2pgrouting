@@ -34,6 +34,7 @@
 namespace osm2pgr {
 
 OSMDocument::OSMDocument(const Configuration &config, size_t lines) :
+    m_nodesErrs(0),
     m_rConfig(config),
     m_lines(lines) {
 }
@@ -82,9 +83,7 @@ OSMDocument::add_node(Way &way, const char **atts) {
     std::string value = *attribut++;
     auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
     if (!has_node(node_id)) {
-        std::cout << "Reference nd=" << node_id
-            << " has no corresponding Node Entry (Maybe Node entry after Reference?)"
-            << std::endl;
+        ++m_nodesErrs;
     } else {
         auto node = FindNode(node_id);
         node->incrementUse();
