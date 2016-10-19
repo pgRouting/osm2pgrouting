@@ -171,6 +171,9 @@ Export2DB::install_postGIS() const {
     return false;
 }
 
+
+// to dissapear
+#if 1
 bool Export2DB::createTempTable(const std::string &table_description,
         const std::string &table, pqxx::work &Xaction) const {
     std::string sql =
@@ -185,14 +188,8 @@ bool Export2DB::createTempTable(const std::string &table_description,
     }
     return false;
 
-#if 0
-    PGresult *result = PQexec(mycon, sql.c_str());
-    bool created = (PQresultStatus(result) == PGRES_COMMAND_OK);
-
-    PQclear(result);
-    return created;
-#endif
 }
+#endif
 
 bool Export2DB::createTable(
         const std::string &table_description,
@@ -317,7 +314,7 @@ void Export2DB::createTables() const {
     createTable(create_relations,  addSchema("osm_relations"));
     createTable(create_way_tag, addSchema("osm_way_tags"));
     createTable(create_types, addSchema("osm_way_types"));
-    createTable(create_classes, addSchema("osm_way_classes"));
+    createTable(create_classes, addSchema("config_classes"));
 }
 
 
@@ -863,16 +860,27 @@ void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
 
 
 void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
-    std::cout << "    Processing way's classes: ";
+    std::cout << "    Processing configuration's classes: ";
 
     std::string copy_classes(
             "COPY __classes_temp"
             "   (class_id, type_id, name, priority, default_maxspeed)"
             "   FROM STDIN");
 
+    std::vector<std::string> columns;
+    columns.push_back("class_id");
+    columns.push_back("type_id");
+    columns.push_back("name");
+    columns.push_back("priority");
+    columns.push_back("default_maxspeed");
+    try {
     pqxx::work Xaction(db_conn);
-    createTempTable(create_classes, "__classes_temp", Xaction);
-    PGresult *q_result = PQexec(mycon, copy_classes.c_str());
+
+    Xaction.exec("CREATE TABLE  __classes_temp ("
+            + create_classes + ")");
+
+    pqxx::tablewriter tw(Xaction, "__classes_temp", columns.begin(), columns.end());
+
 
     for (auto it = types.begin(); it != types.end(); ++it) {
         auto t = *it;
@@ -881,38 +889,33 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
         for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
             auto c = *it_c;
             Class clss(c.second);
-            std::string row_data = TO_STR(clss.id());
-            row_data += "\t";
-            row_data += TO_STR(type.id());
-            row_data += "\t";
-            row_data += clss.name();
-            row_data += "\t";
-            row_data += TO_STR(clss.priority());
-            row_data += "\t";
-            row_data += TO_STR(clss.default_maxspeed());
-            row_data += "\n";
-            PQputline(mycon, row_data.c_str());
+            std::vector<std::string> values;
+            values.push_back(TO_STR(clss.id()));
+            values.push_back(TO_STR(type.id()));
+            values.push_back(clss.name());
+            values.push_back(TO_STR(clss.priority()));
+            values.push_back(TO_STR(clss.default_maxspeed()));
+        tw.insert(values);
         }
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    PQclear(q_result);
-
+    tw.complete();
     std::string insert_into_classes(
             " WITH data AS ("
             " SELECT a.* "
-            " FROM  __classes_temp a LEFT JOIN " + addSchema("osm_way_classes") + " b USING (class_id) "
+            " FROM  __classes_temp a LEFT JOIN " + addSchema("config_classes") + " b USING (class_id) "
             "     WHERE (b.class_id IS NULL))"
 
-            " INSERT INTO " + addSchema("osm_way_classes") +
+            " INSERT INTO " + addSchema("config_classes") +
             " SELECT *  FROM data; ");
 
-    q_result = PQexec(mycon, insert_into_classes.c_str());
-    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_classes") << "\n";
-
-    PQclear(q_result);
+    auto result = Xaction.exec(insert_into_classes);
+    std::cout << "\t Inserted: " << result.size() << " in " << addSchema("config_classes") << "\n";
     Xaction.exec("DROP TABLE __classes_temp");
     Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While processing " << addSchema("config_classes") << "\n";
+    }
 }
 
 
@@ -924,16 +927,16 @@ void Export2DB::createFKeys() {
        */
 
     std::string fk_classes(
-            "ALTER TABLE " + addSchema("osm_way_classes")  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema("osm_way_types")  + "(type_id)");
+            "ALTER TABLE " + addSchema("config_classes")  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema("osm_way_types")  + "(type_id)");
     PGresult *result = PQexec(mycon, fk_classes.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for " + addSchema("osm_way_classes")  + " failed:"
+        std::cerr << "foreign keys for " + addSchema("config_classes")  + " failed:"
             << PQerrorMessage(mycon)
             << std::endl;
         PQclear(result);
     } else {
-        std::cout << "Foreign keys for " + addSchema("osm_way_classes")  + " table created" << std::endl;
+        std::cout << "Foreign keys for " + addSchema("config_classes")  + " table created" << std::endl;
     }
 
     std::string fk_way_tag(
