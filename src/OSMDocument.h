@@ -24,6 +24,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 #include "./Configuration.h"
 
 namespace osm2pgr {
@@ -72,6 +73,7 @@ class OSMDocument {
     void AddRelation(const Relation &r);
 
     void add_node(Way &way, const char **atts);
+    size_t nodesErrs() {return m_nodesErrs;}
 
     /**
      * add the configuration tag used for the speeds
@@ -87,6 +89,7 @@ class OSMDocument {
     std::vector<Relation> m_Relations;
 
 
+    size_t m_nodesErrs;
     const Configuration& m_rConfig;
     size_t m_lines;
 };
