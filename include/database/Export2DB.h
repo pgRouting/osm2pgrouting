@@ -70,20 +70,16 @@ class Export2DB {
      void exportNodes(const std::map<int64_t, Node>& nodes) const;
 
      //! exports ways to the database
-#if 0
      void exportTags(
              const std::map<int64_t, Way> &ways,
              const Configuration &config) const;
-#endif
      void exportRelations(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
      void exportRelationsWays(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
-#if 0
      void exportTypes(const std::map<std::string, Type>& types) const;
-#endif
      void exportClasses(const std::map<std::string, Type>& types) const;
      void exportWays(
              const std::map<int64_t, Way> &ways,

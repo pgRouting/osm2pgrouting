@@ -57,7 +57,7 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " name text");
 
         create_way_tag = std::string(
-                " class_id integer PRIMARY KEY,"
+                " class_id integer,"
                 " way_id bigint");
 
         create_nodes = std::string(
@@ -578,47 +578,51 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
 }
 
 
-#if 0
 void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
+    std::vector<std::string> columns;
+    columns.push_back("class_id");
+    columns.push_back("way_id"); // the osm_id
 
-    pqxx::work Xaction(db_conn);
-    createTempTable(create_way_tag, "__way_tag_temp", Xaction);
-    std::string copy_way_tag("COPY  __way_tag_temp (class_id, way_id) FROM STDIN");
-    PGresult* q_result = PQexec(mycon, copy_way_tag.c_str());
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec("CREATE TABLE  __way_tag_temp ("
+                + create_way_tag + ")");
 
-    for (auto it = ways.begin(); it != ways.end(); ++it) {
-        auto way = it->second;
-        for (auto it_tag = way.tags().begin(); it_tag != way.tags().end(); ++it_tag) {
-            auto tag = *it_tag;
-            std::string row_data = TO_STR(config.FindClass(Tag(tag.first, tag.second)).id());
-            row_data += "\t";
-            row_data += TO_STR(way.osm_id());
-            row_data += "\n";
-            PQputline(mycon, row_data.c_str());
+        pqxx::tablewriter tw(Xaction, "__way_tag_temp", columns.begin(), columns.end());
+
+
+        for (auto it = ways.begin(); it != ways.end(); ++it) {
+            auto way = it->second;
+
+                if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
+                std::vector<std::string> values;
+                values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
+                values.push_back(TO_STR(way.osm_id()));
+                tw.insert(values);
         }
+        tw.complete();
+        std::string sql(
+                " WITH data AS ("
+                " SELECT a.class_id, a.way_id "
+                " FROM  __way_tag_temp a LEFT JOIN  " +  addSchema("osm_way_tags") + " b USING (class_id, way_id) "
+                "     WHERE (b.class_id IS NULL OR b.way_id IS NULL))"
+
+                " INSERT INTO " +  addSchema("osm_way_tags") +
+                " SELECT * FROM data; ");
+
+        auto result = Xaction.exec(sql);
+        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
+        Xaction.exec("DROP TABLE __way_tag_temp");
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While processing " << addSchema("osm_way_tags") << "\n";
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    PQclear(q_result);
-
-    std::string insert_into_tags(
-            " WITH data AS ("
-            " SELECT a.class_id, a.way_id "
-            " FROM  __way_tag_temp a LEFT JOIN  " +  addSchema("osm_way_tags") + " b USING (class_id, way_id) "
-            "     WHERE (b.class_id IS NULL OR b.way_id IS NULL))"
-
-            " INSERT INTO " +  addSchema("osm_way_tags") +
-            " SELECT * FROM data; ");
-
-    q_result = PQexec(mycon, insert_into_tags.c_str());
-    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_tags") << "\n";
-    PQclear(q_result);
-
-    Xaction.exec("DROP TABLE __way_tag_temp");
-    Xaction.commit();
 }
 
+
+#if 0
 void Export2DB::prepare_table(const std::string &ways_columns) const {
     pqxx::work Xaction(db_conn);
     if (createTempTable(create_ways, "__ways_temp", Xaction)) {
@@ -804,46 +808,48 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-#if 0
 void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
-    std::cout << "    Processing " << types.size() << " way types: ";
+    std::cout << "    Processing " << types.size() << " types into " <<  addSchema("osm_way_types") << ":";
 
-    pqxx::work Xaction(db_conn);
-    createTempTable(create_types, "__way_types_temp", Xaction);
-    std::string copy_types("COPY __way_types_temp (type_id, name) FROM STDIN");
+    std::vector<std::string> columns;
+    columns.push_back("type_id");
+    columns.push_back("name");
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec("CREATE TABLE  __way_types_temp ("
+                + create_types + ")");
 
-    PGresult* q_result = PQexec(mycon, copy_types.c_str());
+        pqxx::tablewriter tw(Xaction, "__way_types_temp", columns.begin(), columns.end());
 
-    for (auto it = types.begin(); it != types.end(); ++it) {
-        auto e = *it;
-        auto type = e.second;
-        std::string row_data = TO_STR(type.id());
-        row_data += "\t";
-        row_data += type.name();
-        row_data += "\n";
-        PQputline(mycon, row_data.c_str());
+        for (auto it = types.begin(); it != types.end(); ++it) {
+            auto e = *it;
+            auto type = e.second;
+
+            std::vector<std::string> values;
+            values.push_back(TO_STR(type.id()));
+            values.push_back(TO_STR(type.name()));
+            tw.insert(values);
+        }
+        tw.complete();
+
+        std::string insert_into_types(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  __way_types_temp a LEFT JOIN  " + addSchema("osm_way_types") + " b USING (type_id) "
+                "     WHERE (b.type_id IS NULL))"
+
+                " INSERT INTO "  + addSchema("osm_way_types") + " (type_id, name) "
+                " (SELECT *  FROM data); ");
+
+        auto result = Xaction.exec(insert_into_types);
+        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
+        Xaction.exec("DROP TABLE __way_types_temp");
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While processing " << addSchema("config_classes") << "\n";
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    PQclear(q_result);
-
-    std::string insert_into_types(
-            " WITH data AS ("
-            " SELECT a.* "
-            " FROM  __way_types_temp a LEFT JOIN  " + addSchema("osm_way_types") + " b USING (type_id) "
-            "     WHERE (b.type_id IS NULL))"
-
-            " INSERT INTO "  + addSchema("osm_way_types") + " (type_id, name) "
-            " (SELECT *  FROM data); ");
-
-    q_result = PQexec(mycon, insert_into_types.c_str());
-    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_way_types") << "\n";
-
-    PQclear(q_result);
-    Xaction.exec("DROP TABLE __way_types_temp");
-    Xaction.commit();
 }
-#endif
 
 
 
@@ -930,8 +936,11 @@ void Export2DB::createFKeys() {
     }
 
     std::string fk_way_tag(
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(gid); ");
+            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("config_classes") + "(class_id); ");
+#if 0
+    // DOES NOT WORK because osm_id is not unique
+            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(osm_id); ");
+#endif
     result = PQexec(mycon, fk_way_tag.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(result);
@@ -962,7 +971,7 @@ void Export2DB::createFKeys() {
     }
 
     std::string fk_ways(
-            "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id);" +
+            "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("config_classes") + "(class_id);" +
             "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema(full_table_name("ways_vertices_pgr")) + "(id); " +
             "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (target) REFERENCES " + addSchema(full_table_name("ways_vertices_pgr")) + "(id);");
     result = PQexec(mycon, fk_ways.c_str());
