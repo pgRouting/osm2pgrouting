@@ -173,7 +173,7 @@ Export2DB::install_postGIS() const {
 
 
 // to dissapear
-#if 1
+#if 0
 bool Export2DB::createTempTable(const std::string &table_description,
         const std::string &table, pqxx::work &Xaction) const {
     std::string sql =
@@ -353,11 +353,11 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     columns.push_back("the_geom");
 
 
-    uint32_t chunck_size = 20000;
+    size_t chunck_size = 20000;
 
 
-    int64_t count = 0;
-    int64_t start = 0;
+    size_t count = 0;
+    size_t start = 0;
     auto it = nodes.begin();
     while (start < nodes.size()) {
         auto limit = (start + chunck_size) < nodes.size() ? start + chunck_size : nodes.size();
@@ -416,7 +416,10 @@ void  Export2DB::processSectionExportNodes(const std::string nodes_columns, pqxx
 /*!
 
 */
-void Export2DB::fill_vertices_table(const std::string &table, const std::string &vertices_tab) const {
+void Export2DB::fill_vertices_table(
+        const std::string &table,
+        const std::string &vertices_tab,
+        pqxx::work &Xaction) const {
     // std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
     std::string sql(
             "WITH osm_vertex AS ("
@@ -427,44 +430,34 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
             " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * from osm_vertex) a "
             ") "
             " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, the_geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
+    auto result = Xaction.exec(sql);
 
-    PGresult* q_result = PQexec(mycon, sql.c_str());
-    std::cout << "Vertices inserted " << PQcmdTuples(q_result);
-#if 0
-    if (PQresultStatus(q_result) == PGRES_COMMAND_OK)
-        std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
-    else
-        std::cout  << "   " << PQresultErrorMessage(q_result)  << std::endl;
-#endif
-    PQclear(q_result);
+    std::cout << "\t Vertices inserted: " << result.affected_rows();
 }
 
 
 
 
 
-void Export2DB::fill_source_target(const std::string &table, const std::string &vertices_tab) const {
+void Export2DB::fill_source_target(
+        const std::string &table,
+        const std::string &vertices_tab,
+        pqxx::work &Xaction) const {
     // std::cout << "    Filling 'source' column of '" << table << "': ";
     std::string sql1(
             " UPDATE " + table + " AS w"
             " SET source = v.id "
             " FROM " + vertices_tab + " AS v"
             " WHERE w.source is NULL and w.source_osm = v.osm_id;");
-    PGresult* q_result = PQexec(mycon, sql1.c_str());
-    //     std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
-    PQclear(q_result);
+    Xaction.exec(sql1);
 
-    //     std::cout << "    Filling 'target' column of '" << table << "': ";
     std::string sql2(
             " UPDATE " + table + " AS w"
             " SET target = v.id "
             " FROM " + vertices_tab + " AS v"
             " WHERE w.target is NULL and w.target_osm = v.osm_id;");
-    q_result = PQexec(mycon, sql2.c_str());
-    //     std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
-    PQclear(q_result);
+    Xaction.exec(sql2);
 
-    //     std::cout << "    Filling other columns of '" << table << "': ";
     std::string sql3(
             " UPDATE " + table +
             " SET  length_m = st_length(geography(ST_Transform(the_geom, 4326))),"
@@ -477,128 +470,115 @@ void Export2DB::fill_source_target(const std::string &table, const std::string &
             "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
             " WHERE length_m IS NULL;");
-    q_result = PQexec(mycon, sql3.c_str());
-    // std::cout << " Updated: " << PQcmdTuples(q_result) << " rows\n";
-    PQclear(q_result);
+    Xaction.exec(sql3);
 }
 
 
 void Export2DB::exportRelations(
         const std::vector<Relation> &relations,
         const Configuration &config) const {
-    std::cout << "    Processing " << relations.size() << " relations:";
-    pqxx::work Xaction(db_conn);
-    createTempTable(create_relations, "__relations_temp", Xaction);
+    std::cout << "    Processing " << relations.size() << " records into " <<  addSchema(full_table_name("osm_relations"));
 
-    std::string relations_columns("relation_id, type_id, class_id, name ");
-    std::string copy_relations("COPY __relations_temp (" + relations_columns + ") FROM STDIN");
+    std::vector<std::string> columns;
+    columns.push_back("relation_id");
+    columns.push_back("type_id");
+    columns.push_back("class_id");
+    columns.push_back("name");
+
+    try {
+        pqxx::work Xaction(db_conn);
+
+        Xaction.exec("CREATE TABLE  __relations_temp ("
+                + create_relations + ")");
+
+        pqxx::tablewriter tw(Xaction, "__relations_temp", columns.begin(), columns.end());
 
 
-    PGresult* q_result = PQexec(mycon, copy_relations.c_str());
-    for (auto it = relations.begin(); it != relations.end(); ++it) {
-        auto relation = *it;
+        for (auto it = relations.begin(); it != relations.end(); ++it) {
+            auto relation = *it;
 
-        std::string row_data = TO_STR(relation.osm_id());
-        row_data += "\t";
-        row_data += TO_STR(config.FindType(relation.tag_config().key()).id());
-        row_data += "\t";
-        row_data += TO_STR(config.FindClass(relation.tag_config()).id());
-        row_data += "\t";
-        row_data = row_data + relation.tag_config().key() + "=" + relation.tag_config().value();
-        row_data += "\n";
-        PQputline(mycon, row_data.c_str());
+            std::vector<std::string> values;
+            values.push_back(TO_STR(relation.osm_id()));
+            values.push_back(TO_STR(config.FindType(relation.tag_config().key()).id()));
+            values.push_back(TO_STR(config.FindClass(relation.tag_config()).id()));
+            values.push_back(relation.tag_config().key() + "=" + relation.tag_config().value());
+            tw.insert(values);
+        }
+        tw.complete();
+        std::string sql(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  __relations_temp a LEFT JOIN " +  addSchema(full_table_name("osm_relations")) + " b USING (relation_id, type_id, class_id)"
+                "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL OR b.class_id IS NULL))"
+
+                " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
+                "( relation_id, type_id, class_id, name )" 
+                " (SELECT  relation_id, type_id, class_id, name FROM data); ");
+        auto result = Xaction.exec(sql);
+        std::cout << "\tInserted: " << result.affected_rows() << "\n";
+        Xaction.exec("DROP TABLE __relations_temp");
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While processing " << addSchema("config_classes") << "\n";
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    PQclear(q_result);
-    std::string insert_into_relations(
-            " WITH data AS ("
-            " SELECT a.* "
-            " FROM  __relations_temp a LEFT JOIN " +  addSchema(full_table_name("osm_relations")) + " b USING (relation_id, type_id, class_id)"
-            "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL OR b.class_id IS NULL))"
-
-            " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
-            "(" + relations_columns + ") "
-            " (SELECT " + relations_columns + " FROM data); ");
-    q_result = PQexec(mycon, insert_into_relations.c_str());
-    if (PQresultStatus(q_result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(q_result);
-        std::cerr << "Inserting to osm_relations failed \n"
-            << PQerrorMessage(mycon)
-            << std::endl;
-    } else {
-        std::cout << "\tInserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("osm_relations")) << "\n";
-    }
-
-    PQclear(q_result);
-    Xaction.exec("DROP Table __relations_temp");
-    Xaction.commit();
 }
 
 
 // ////////should break into 2 functions
 
 void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const {
-    std::cout << "    Processing way's relations: ";
-    pqxx::work Xaction(db_conn);
-    createTempTable(create_relations_ways, "__relations_ways_temp", Xaction);
-
+    std::cout << "    Processing  " << addSchema(full_table_name("relations_ways")) << ":";
     std::string relations_ways_columns(" relation_id, way_id, type ");
-    std::string copy_relations_ways("COPY __relations_ways_temp (" + relations_ways_columns + ") FROM STDIN");
-    PGresult* q_result = PQexec(mycon, copy_relations_ways.c_str());
+    std::vector<std::string> columns;
+    columns.push_back("relation_id");
+    columns.push_back("way_id");
+    columns.push_back("type");
+
+    try {
+        pqxx::work Xaction(db_conn);
+
+        Xaction.exec("CREATE TABLE  __relations_ways_temp ("
+                + create_relations_ways + ")");
+
+        pqxx::tablewriter tw(Xaction, "__relations_ways_temp", columns.begin(), columns.end());
 
 
-    for (auto it = relations.begin(); it != relations.end(); ++it) {
-        auto relation = *it;
-        for (auto it_ref = relation.way_refs().begin(); it_ref != relation.way_refs().end(); ++it_ref) {
-            auto way_id = *it_ref;
-            std::string row_data = TO_STR(relation.osm_id());
-            row_data += "\t";
-            row_data += TO_STR(way_id);
-            row_data += "\t";
-            row_data += TO_STR(config.FindType(relation.tag_config().key()).id());
-            row_data += "\n";
-            PQputline(mycon, row_data.c_str());
+        for (auto it = relations.begin(); it != relations.end(); ++it) {
+            auto relation = *it;
+            for (auto it_ref = relation.way_refs().begin(); it_ref != relation.way_refs().end(); ++it_ref) {
+                auto way_id = *it_ref;
+                std::vector<std::string> values;
+                values.push_back(TO_STR(relation.osm_id()));
+                values.push_back(TO_STR(way_id));
+                values.push_back(TO_STR(config.FindType(relation.tag_config().key()).id()));
+                tw.insert(values);
+            }
         }
+        tw.complete();
+        std::string sql(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  __relations_ways_temp a LEFT JOIN " + addSchema(full_table_name("relations_ways")) + " b USING (relation_id, way_id)"
+                "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL))"
+
+                " INSERT INTO " + addSchema(full_table_name("relations_ways")) +
+                " SELECT * FROM data; ");
+
+        auto result = Xaction.exec(sql);
+        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
+        Xaction.exec("DROP TABLE __relations_ways_temp");
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While processing "
+            <<  addSchema(full_table_name("relations_ways"))
+            << "\n";
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    PQclear(q_result);
-
-    std::string insert_into_relations_ways(
-            " WITH data AS ("
-            " SELECT a.* "
-            " FROM  __relations_ways_temp a LEFT JOIN " + addSchema(full_table_name("relations_ways")) + " b USING (relation_id, way_id)"
-            "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL))"
-
-            " INSERT INTO " + addSchema(full_table_name("relations_ways")) +
-            " SELECT * FROM data; ");
-    q_result = PQexec(mycon, insert_into_relations_ways.c_str());
-    std::cout << "\t Inserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("relations_ways")) << "\n";
-    PQclear(q_result);
-    Xaction.exec(" DROP TABLE __relations_ways_temp");
-    Xaction.commit();
 }
 
 
-
-/*
-   <relation id="147411" version="5" timestamp="2010-01-22T17:02:14Z" uid="24299" user="james_hiebert" changeset="3684904">
-   <member type="way" ref="25584788" role=""/>
-   <member type="way" ref="35064036" role=""/>
-   <member type="way" ref="35064035" role=""/>
-   <member type="way" ref="35064037" role=""/>
-   <member type="way" ref="35064038" role=""/>
-   <member type="way" ref="35065746" role=""/>
-   <member type="way" ref="48690404" role=""/>
-   <member type="way" ref="24221632" role=""/>
-   <tag k="name" v="Mt. Douglas Park Local Connector"/>
-   <tag k="network" v="rcn"/>
-   <tag k="route" v="bicycle"/>
-   <tag k="type" v="route"/>
-   </relation>
-   */
-
+#if 0
 void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
 
@@ -639,7 +619,6 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
     Xaction.commit();
 }
 
-
 void Export2DB::prepare_table(const std::string &ways_columns) const {
     pqxx::work Xaction(db_conn);
     if (createTempTable(create_ways, "__ways_temp", Xaction)) {
@@ -656,11 +635,11 @@ void Export2DB::prepare_table(const std::string &ways_columns) const {
     PQclear(q_result);
     Xaction.commit();
 }
+#endif
+
 
 void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
-
-    std::string separator("\t");
     std::string ways_columns(
             " class_id, "
             " osm_id, "
@@ -679,121 +658,136 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
 
             " name ");
 
-    prepare_table(ways_columns);
+    std::vector<std::string> columns;
+    columns.push_back("class_id");
+    columns.push_back("osm_id");
+    columns.push_back("maxspeed_forward");
+    columns.push_back("maxspeed_backward");
+    columns.push_back("one_way");
+    columns.push_back("priority");
 
-    uint32_t chunck_size = 20000;
-    int64_t count = 0;
+    columns.push_back("length");
+    columns.push_back("x1"); columns.push_back("y1");
+    columns.push_back("x2"); columns.push_back("y2");
+    columns.push_back("source_osm");
+    columns.push_back("target_osm");
+    columns.push_back("the_geom");
+    columns.push_back("cost");
+    columns.push_back("reverse_cost");
+    columns.push_back("name");
+
+
+    size_t chunck_size = 20000;
+
+
     int64_t split_count = 0;
-    for (auto it = ways.begin(); it != ways.end(); ++it) {
-        auto way = it->second;
+    int64_t count = 0;
+    size_t start = 0;
+    auto it = ways.begin();
+    while (start < ways.size()) {
+        auto limit = (start + chunck_size) < ways.size() ? start + chunck_size : ways.size();
+#if 0
+        try {
+#endif
+            pqxx::work Xaction(db_conn);
+            Xaction.exec("CREATE TABLE  __ways_temp ("
+                    + create_ways + ")");
 
-        // std::cout << way << "\n";
-        if ((count % (chunck_size / 100)) == 0) {
+            Xaction.exec("SELECT AddGeometryColumn('__ways_temp', 'the_geom', 4326, 'LINESTRING', 2)");
+#if 1
+            pqxx::tablewriter tw(Xaction, "__ways_temp", columns.begin(), columns.end());
+#endif
+            for (auto i = start; i < limit; ++i) {
+                auto way = it->second;
+
+                ++count;
+                ++it;
+
+                if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
+
+                std::vector<std::string> common_values;
+                common_values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
+                common_values.push_back(TO_STR(way.osm_id()));
+                common_values.push_back(way.maxspeed_forward_str());
+                common_values.push_back(way.maxspeed_backward_str());
+                common_values.push_back(way.oneWayType_str());
+                common_values.push_back(config.priority_str(way.tag_config()) );
+
+                auto splits = way.split_me();
+                split_count +=  splits.size();
+                for (size_t j = 0; j < splits.size(); ++j) {
+                    auto length = way.length_str(splits[j]);
+
+                    auto values = common_values;
+                    values.push_back(length);
+                    values.push_back(splits[j].front()->lon());
+                    values.push_back(splits[j].front()->lat());
+                    values.push_back(splits[j].back()->lon());
+                    values.push_back(splits[j].back()->lat());
+                    values.push_back(TO_STR(splits[j].front()->osm_id()));
+                    values.push_back(TO_STR(splits[j].back()->osm_id()));
+                    values.push_back(std::string("srid=4326;") + way.geometry_str(splits[j]));
+
+                    // cost based on oneway
+                    if (way.is_reversed())
+                        values.push_back(std::string("-") + length);
+                    else
+                        values.push_back(length);
+
+                    // reverse_cost
+                    if (way.is_oneway())
+                        values.push_back(std::string("-") + length);
+                    else
+                        values.push_back(length);
+
+                    values.push_back(way.name());
+                    tw.insert(values);
+                }
+            }
+
             print_progress(ways.size(), count);
+            std::cout << " Total Processed: " << count;
+            tw.complete();
+            process_section(ways_columns, Xaction);
+            Xaction.exec("DROP TABLE __ways_temp");
+            Xaction.commit();
+#if 0
+        } catch (const std::exception &e) {
+            std::cerr <<  "\n" << e.what() << std::endl;
+            std::cerr << "While processing from " << start << "th \t to: " << limit << "th way\n";
+            std::cerr << "count" << count << " While processing from " << start << "th \t to: " << limit << "th way\n";
         }
-        ++count;
-        if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
+#endif
 
-        if ((count % chunck_size) == 0) {
-            PQputline(mycon, "\\.\n");
-            PQendcopy(mycon);
-            std::cout << "    Ways Processed: " << count << "\t";
-            std::cout << "    Split Ways generated: " << split_count << "\t";
-            process_section(ways_columns);
-            split_count = 0;
-            prepare_table(ways_columns);
-        }
-
-        // common information of the split ways
-        auto way_data =
-            TO_STR(config.FindClass(way.tag_config()).id())  + "\t"
-            + TO_STR(way.osm_id()) + "\t"
-            // maxspeed
-            + way.maxspeed_forward_str() + "\t"
-            + way.maxspeed_backward_str() + "\t"
-            // one_way
-            + way.oneWayType_str() + "\t"
-            // priority
-            + config.priority_str(way.tag_config()) + "\t";
-
-        // name
-        std::string name_data;
-        if (!way.name().empty()) {
-            std::string escaped_name = way.name();
-            boost::replace_all(escaped_name, "\\", "");
-            boost::replace_all(escaped_name, "\t", "\\\t");
-            boost::replace_all(escaped_name, "\n", "");
-            boost::replace_all(escaped_name, "\r", "");
-            name_data = escaped_name.substr(0, 199);
-        }
-
-        auto splits = way.split_me();
-        split_count +=  splits.size();
-
-        for (size_t i = 0; i < splits.size(); ++i) {
-            auto length = way.length_str(splits[i]);
-
-            // length (degrees)
-            auto split_data = length + "\t"
-                // x1, y1
-                + splits[i].front()->geom_str("\t") + "\t"
-                // x2, y2
-                + splits[i].back()->geom_str("\t") + "\t"
-                // source_osm
-                + TO_STR(splits[i].front()->osm_id()) + "\t"
-                // target_osm
-                + TO_STR(splits[i].back()->osm_id()) + "\t"
-                // geometry
-                + "srid=4326;" + way.geometry_str(splits[i]) + "\t";
-
-            // cost based on oneway
-            if (way.is_reversed())
-                split_data += "-" + length;
-            else
-                split_data += length;
-            split_data += "\t";
-
-            // reverse_cost
-            if (way.is_oneway())
-                split_data += "-" + length;
-            else
-                split_data += length;
-            split_data += "\t";
-
-            split_data =  way_data + split_data + name_data + "\n";
-            PQputline(mycon, split_data.c_str());
-        }
+        start = limit;
     }
-    PQputline(mycon, "\\.\n");
-    PQendcopy(mycon);
-    std::cout << "    Ways Processed: " << count << "\t";
-    std::cout << "    Split Ways generated: " << split_count << "\t";
-    process_section(ways_columns);
 }
 
-void Export2DB::process_section(const std::string &ways_columns) const {
+
+
+void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xaction) const {
     //  std::cout << "Creating indices in temporary table\n";
-    create_gindex("__ways_temp", "__ways_temp");
-    create_idindex("source_osm", "__ways_temp");
-    create_idindex("target_osm", "__ways_temp");
+    Xaction.exec("CREATE INDEX __ways_temp_gdx ON __ways_temp using gist(the_geom);");
+    Xaction.exec("CREATE INDEX ON __ways_temp  USING btree (source_osm)");
+    Xaction.exec("CREATE INDEX ON __ways_temp  USING btree (target_osm)");
+
+
 
     //  std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
             " DELETE FROM __ways_temp a "
             "     USING " + addSchema(full_table_name("ways")) + " b "
             "     WHERE a.the_geom ~= b.the_geom AND ST_OrderingEquals(a.the_geom, b.the_geom);");
-    PGresult* q_result = PQexec(mycon, delete_from_temp.c_str());
-    //  std::cout << "     Deleted " << PQcmdTuples(q_result) << " duplicated ways from temporary table\n";
-    PQclear(q_result);
+    Xaction.exec(delete_from_temp);
 
     //  std::cout << "Updating to existing toplology the temporary table\n";
-    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")));
+    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
 
     //  std::cout << "Inserting new vertices in the vertex table\n";
-    fill_vertices_table("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")));
+    fill_vertices_table("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
 
     //  std::cout << "Updating to new toplology the temporary table\n";
-    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")));
+    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
 
 
     //  std::cout << "Inserting new split ways to '" << addSchema(full_table_name("ways")) << "'\n";
@@ -801,12 +795,8 @@ void Export2DB::process_section(const std::string &ways_columns) const {
             " INSERT INTO " + addSchema(full_table_name("ways")) +
             "(" + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s) "
             " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
-    q_result = PQexec(mycon, insert_into_ways.c_str());
-    std::cout << " Inserted " << PQcmdTuples(q_result) << " split ways\n";
-    PQclear(q_result);
-    pqxx::work Xaction(db_conn);
-    dropTable("__ways_temp", Xaction);
-    Xaction.commit();
+    auto result = Xaction.exec(insert_into_ways);
+    std::cout << "\tSplit ways inserted " << result.affected_rows() << "\n";
 }
 
 
@@ -814,7 +804,7 @@ void Export2DB::process_section(const std::string &ways_columns) const {
 
 
 
-
+#if 0
 void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
     std::cout << "    Processing " << types.size() << " way types: ";
 
@@ -853,14 +843,14 @@ void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
     Xaction.exec("DROP TABLE __way_types_temp");
     Xaction.commit();
 }
-
+#endif
 
 
 
 
 
 void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
-    std::cout << "    Processing configuration's classes: ";
+    std::cout << "    Processing " << addSchema("config_classes") << ": ";
 
     std::string copy_classes(
             "COPY __classes_temp"
@@ -874,44 +864,44 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
     columns.push_back("priority");
     columns.push_back("default_maxspeed");
     try {
-    pqxx::work Xaction(db_conn);
+        pqxx::work Xaction(db_conn);
 
-    Xaction.exec("CREATE TABLE  __classes_temp ("
-            + create_classes + ")");
+        Xaction.exec("CREATE TABLE  __classes_temp ("
+                + create_classes + ")");
 
-    pqxx::tablewriter tw(Xaction, "__classes_temp", columns.begin(), columns.end());
+        pqxx::tablewriter tw(Xaction, "__classes_temp", columns.begin(), columns.end());
 
 
-    for (auto it = types.begin(); it != types.end(); ++it) {
-        auto t = *it;
-        auto type(t.second);
+        for (auto it = types.begin(); it != types.end(); ++it) {
+            auto t = *it;
+            auto type(t.second);
 
-        for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
-            auto c = *it_c;
-            Class clss(c.second);
-            std::vector<std::string> values;
-            values.push_back(TO_STR(clss.id()));
-            values.push_back(TO_STR(type.id()));
-            values.push_back(clss.name());
-            values.push_back(TO_STR(clss.priority()));
-            values.push_back(TO_STR(clss.default_maxspeed()));
-        tw.insert(values);
+            for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
+                auto c = *it_c;
+                Class clss(c.second);
+                std::vector<std::string> values;
+                values.push_back(TO_STR(clss.id()));
+                values.push_back(TO_STR(type.id()));
+                values.push_back(clss.name());
+                values.push_back(TO_STR(clss.priority()));
+                values.push_back(TO_STR(clss.default_maxspeed()));
+                tw.insert(values);
+            }
         }
-    }
-    tw.complete();
-    std::string insert_into_classes(
-            " WITH data AS ("
-            " SELECT a.* "
-            " FROM  __classes_temp a LEFT JOIN " + addSchema("config_classes") + " b USING (class_id) "
-            "     WHERE (b.class_id IS NULL))"
+        tw.complete();
+        std::string insert_into_classes(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  __classes_temp a LEFT JOIN " + addSchema("config_classes") + " b USING (class_id) "
+                "     WHERE (b.class_id IS NULL))"
 
-            " INSERT INTO " + addSchema("config_classes") +
-            " SELECT *  FROM data; ");
+                " INSERT INTO " + addSchema("config_classes") +
+                " SELECT *  FROM data; ");
 
-    auto result = Xaction.exec(insert_into_classes);
-    std::cout << "\t Inserted: " << result.size() << " in " << addSchema("config_classes") << "\n";
-    Xaction.exec("DROP TABLE __classes_temp");
-    Xaction.commit();
+        auto result = Xaction.exec(insert_into_classes);
+        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
+        Xaction.exec("DROP TABLE __classes_temp");
+        Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
         std::cerr << "While processing " << addSchema("config_classes") << "\n";

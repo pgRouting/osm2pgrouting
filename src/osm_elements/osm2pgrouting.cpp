@@ -75,7 +75,9 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed =
         std::chrono::steady_clock::now();
 #endif
+#if 0
     try {
+#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -187,6 +189,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         std::cout << "    Finish Parsing data\n" << endl;
+        if (document.nodeErrs()) {
+            std::cerr << "******\nNOTICE:  Found " << document.nodeErrs() << " node references with no <node ... >\n*****";
+        }
 
         //############# Export2DB
         {
@@ -203,14 +208,15 @@ int main(int argc, char* argv[]) {
                 std::cout << "\nExport Nodes ..." << endl;
                 dbConnection.exportNodes(document.nodes());
             }
+#if 0
             std::cout << "\nExport Types ..." << endl;
             dbConnection.exportTypes(config.types());
+#endif
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
             std::cout << "\nExport Relations ..." << endl;
             dbConnection.exportRelations(document.relations(), config);
-                exit(0);
-            std::cout << "\nExport RelationsWays ..." << endl;
+            std::cout << "\nExport Relations Ways ..." << endl;
             dbConnection.exportRelationsWays(document.relations(), config);
 #if 0
             std::cout << "\nexport Tags ..." << endl;
@@ -218,6 +224,7 @@ int main(int argc, char* argv[]) {
 #endif
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
+            exit(0);
 
 
             std::cout << "Creating Foreign Keys ..." << endl;
@@ -253,6 +260,7 @@ int main(int argc, char* argv[]) {
 
         std::cout << "#########################" << endl;
         return 0;
+#if 0
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -266,4 +274,5 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
+#endif
 }

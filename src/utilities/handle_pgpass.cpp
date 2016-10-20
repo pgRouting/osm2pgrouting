@@ -22,14 +22,18 @@ handle_pgpass(po::variables_map &vm) {
     std::string file;
     auto filename(getenv("PGPASSFILE"));
     if (!filename) {
+#if 0
         std::cout << "No PGPASSFILE found \n";
         std::cout << "Looking for .pgpass \n";
+#endif
         auto homedir(getenv("HOME"));
         if (!homedir) {
-            std::cout << "No HOME found \n";
+            std::cout << "No $HOME found \n";
             return;
         }
+#if 0
         std::cout << "home directory" << homedir << "\n";
+#endif
         file = std::string(homedir) + "/.pgpass";
     }
     else {

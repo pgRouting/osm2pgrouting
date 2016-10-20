@@ -70,16 +70,20 @@ class Export2DB {
      void exportNodes(const std::map<int64_t, Node>& nodes) const;
 
      //! exports ways to the database
+#if 0
      void exportTags(
              const std::map<int64_t, Way> &ways,
              const Configuration &config) const;
+#endif
      void exportRelations(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
      void exportRelationsWays(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
+#if 0
      void exportTypes(const std::map<std::string, Type>& types) const;
+#endif
      void exportClasses(const std::map<std::string, Type>& types) const;
      void exportWays(
              const std::map<int64_t, Way> &ways,
@@ -94,17 +98,18 @@ class Export2DB {
      void prepare_table(const std::string &ways_columns) const;
      void prepareExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
 
-     void process_section(const std::string &ways_columns) const;
+     void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
      void processSectionExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
 
      void dropTempTables() const;
      void dropTempTable(
              const std::string &table) const;
+#if 0
      bool createTempTable(
              const std::string &sql,
              const std::string &table,
              pqxx::work &Xaction) const;
-
+#endif
      void dropTable(const std::string &table, pqxx::work &Xaction) const;
      bool createTempTable(
              const std::string &sql,
@@ -144,10 +149,12 @@ class Export2DB {
      }
      void fill_vertices_table(
              const std::string &table,
-             const std::string &vertices_tab) const;
+             const std::string &vertices_tab,
+             pqxx::work &Xaction) const;
      void fill_source_target(
              const std::string &table,
-             const std::string &vertices_tab) const;
+             const std::string &vertices_tab,
+             pqxx::work &Xaction) const;
 
  private:
 #if 1

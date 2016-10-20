@@ -77,6 +77,8 @@ class OSMDocument {
      * add the configuration tag used for the speeds
      */
     void add_config(Way &way, const Tag &tag) const;
+    inline uint16_t nodeErrs() const {return m_nodeErrs;}
+
 
  private:
     // ! parsed nodes
@@ -88,6 +90,7 @@ class OSMDocument {
 
 
     const Configuration& m_rConfig;
+    uint16_t m_nodeErrs;
     size_t m_lines;
 };
 
