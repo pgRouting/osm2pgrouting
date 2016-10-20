@@ -62,7 +62,7 @@ Way::add_node(Node *node) {
 
 
 std::string
-Way::geometry_str() const {
+Way::get_geometry() const {
     return geometry_str(m_NodeRefs);
 }
 
@@ -74,7 +74,7 @@ Way::length_str() const {
 
 std::string
 Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
-    std::string geometry("LINESTRING(");
+    std::string geometry("srid=4326;LINESTRING(");
 
     for (auto it = nodeRefs.begin();
             it != nodeRefs.end();

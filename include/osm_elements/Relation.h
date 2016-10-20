@@ -58,9 +58,11 @@ class Relation : public Element{
       */
      explicit Relation(const char ** atts);
      Relation() = delete;
+     ~Relation() {};
      Relation(const Relation&) = default;
      std::vector<int64_t> way_refs() const {return m_WayRefs;}
      std::vector<int64_t>& way_refs() {return m_WayRefs;}
+     std::string get_geometry() const {return std::string("");}
 
      /**
       *    saves the nodes of the way  

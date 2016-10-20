@@ -45,30 +45,30 @@ Element::Element(const char **atts) :
     }
 
 Tag
-    Element::add_tag(const Tag &tag) {
-        m_tags[tag.key()] = tag.value();
-        return tag;
-    }
+Element::add_tag(const Tag &tag) {
+    m_tags[tag.key()] = tag.value();
+    return tag;
+}
 
 bool
-    Element::has_tag(const std::string& key) const {
-        return m_tags.find(key) != m_tags.end();
-    }
+Element::has_tag(const std::string& key) const {
+    return m_tags.find(key) != m_tags.end();
+}
 
 std::string
-    Element::get_tag(const std::string& key) const {
-        return m_tags.find(key)->second;
-    }
+Element::get_tag(const std::string& key) const {
+    return m_tags.find(key)->second;
+}
 
 bool
-    Element::has_attribute(const std::string& key) const {
-        return m_attributes.find(key) != m_attributes.end();
-    }
+Element::has_attribute(const std::string& key) const {
+    return m_attributes.find(key) != m_attributes.end();
+}
 
 std::string
-    Element::get_attribute(const std::string& key) const {
-        return m_attributes.find(key)->second;
-    }
+Element::get_attribute(const std::string& key) const {
+    return m_attributes.find(key)->second;
+}
 
 std::string Element::attributes_str() const {
     if (m_tags.empty()) return "\"\"";
@@ -77,12 +77,7 @@ std::string Element::attributes_str() const {
         auto attribute = *it;
         str +=  attribute.first + "=>" + attribute.second + ",";
     }
-#if 0
-    str.pop_back();
-    str += "\"";
-#else
     str[str.size()-1] = '\"';
-#endif
     return str;
 }
 
@@ -93,13 +88,113 @@ std::string Element::tags_str() const {
         auto tag = *it;
         str +=  tag.first + "=>" + tag.second + ",";
     }
-#if 0
-    str.pop_back();
-    str += "\"";
-#else
     str[str.size()-1] = '\"';
-#endif
     return str;
+}
+
+static
+std::string
+addquotes(const std::string str) {
+    std::string result;
+
+    for (auto c : str) {
+        if ( c == '"' || c == '\\' ) {
+            result += '\\';
+        }
+        result += c;
+    }
+    for (auto c : result) {
+        if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
+            return std::string("\"") + result + "\"";
+        }
+    }
+    return result;
+}
+
+
+static
+std::string
+getHstore(const std::map<std::string, std::string> &values) {
+    std::string hstore;
+    if (values.empty()) return std::string("");
+    for (const auto item : values) {
+        hstore += item.first 
+            + " => "
+            + addquotes(item.second)  + ",";
+    }
+    if (hstore[hstore.size() - 2] == '"') {
+        hstore += "dummy => dummy::hstore";
+    } else {
+        hstore[hstore.size() - 1] = ':';
+        hstore += ":hstore";
+    }
+    return hstore;
+}
+
+static
+std::string
+getJSON(const std::map<std::string, std::string> &values) {
+    if (values.empty()) return std::string("");
+    std::string json("{");
+    for (const auto item : values) {
+        json += addquotes(item.first) 
+            + ":"
+            + addquotes(item.second)  + ",";
+    }
+    json[json.size() - 1] = '}';
+    json += "::json";
+    return json;
+}
+
+std::vector<std::string>
+Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
+    std::vector<std::string> values;
+    for (const auto column : columns) {
+        if (column == "osm_id") { 
+            values.push_back(boost::lexical_cast<std::string>(osm_id()));
+            continue;
+        }   
+        if (column == "tag_name") {
+            values.push_back(m_tag_config.key());
+            continue;
+        }
+        if (column == "tag_value") {
+            values.push_back(m_tag_config.value());
+            continue;
+        }
+        if (column == "the_geom") {
+            values.push_back(get_geometry());
+            continue;
+        }
+
+        if (column == "attributes") {
+            if (is_hstore) {
+                values.push_back(getHstore(m_attributes));
+            } else {
+                values.push_back(getJSON(m_attributes));
+            }   
+            continue;
+        }   
+        if (column == "tags") {
+            if (is_hstore) {
+                values.push_back(getHstore(m_tags));
+            } else {
+                values.push_back(getJSON(m_tags));
+            }   
+
+            continue;
+        }   
+        if (has_attribute(column)) {
+            values.push_back(get_attribute(column));
+            continue;
+        }
+        if (has_tag(column)) {
+            values.push_back(get_tag(column));
+            continue;
+        }
+        values.push_back(std::string("NULL"));
+    }
+    return values;
 }
 
 }  // namespace osm2pgr

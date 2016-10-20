@@ -30,6 +30,7 @@
 
 #include "utilities/print_progress.h"
 #include "utilities/prog_options.h"
+#include "utilities/utilities.h"
 
 #include "boost/algorithm/string/replace.hpp"
 
@@ -47,6 +48,7 @@ TO_STR(const T &x) {
 Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection) :
     mycon(0),
     db_conn(connection),
+    m_vm(vm),
     conninf(connection),
     tables_schema(vm["schema"].as<std::string>()),
     tables_prefix(vm["prefix"].as<std::string>()),
@@ -65,7 +67,14 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " osm_id bigint,"
                 " lon decimal(11,8),"
                 " lat decimal(11,8),"
+                " tag_name TEXT,"
+                " tag_value TEXT,"
                 " numOfUse int");
+        create_nodes += vm.count("attributes") ?
+                ", attributes hstore" : "";
+        create_nodes += vm.count("tags") ?
+                ", tags hstore" : "";
+
 
         create_vertices = std::string(
                 " id bigserial PRIMARY KEY,"
@@ -144,6 +153,20 @@ int Export2DB::connect() {
 
 
 bool
+Export2DB::has_hstore() const {
+    try {
+        pqxx::work Xaction(db_conn);
+        std::string sql = "SELECT * FROM pg_extension WHERE extname = 'hstore'";
+        auto result = Xaction.exec(sql);
+        return result.size() == 1;
+
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+        return false;
+    }
+}
+
+bool
 Export2DB::has_postGIS() const {
     try {
         pqxx::work Xaction(db_conn);
@@ -157,12 +180,13 @@ Export2DB::has_postGIS() const {
     }
 }
 
+#ifndef NDEBUG
 bool
 Export2DB::install_postGIS() const {
     try {
         pqxx::work Xaction(db_conn);
-        std::string sql = "CREATE EXTENSION postgis";
-        Xaction.exec(sql);
+        Xaction.exec("CREATE EXTENSION postgis");
+        Xaction.exec("CREATE EXTENSION hstore");
         Xaction.commit();
         return true;
     } catch (const std::exception &e) {
@@ -170,26 +194,9 @@ Export2DB::install_postGIS() const {
     }
     return false;
 }
-
-
-// to dissapear
-#if 0
-bool Export2DB::createTempTable(const std::string &table_description,
-        const std::string &table, pqxx::work &Xaction) const {
-    std::string sql =
-        "CREATE TEMP TABLE " + table + "("
-        + table_description + ")";
-
-    try {
-    Xaction.exec(sql);
-    return true;
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-    }
-    return false;
-
-}
 #endif
+
+
 
 bool Export2DB::createTable(
         const std::string &table_description,
@@ -344,14 +351,17 @@ void Export2DB::dropTables() const {
 
 void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
-    std::string nodes_columns(" osm_id, lon, lat, numofuse, the_geom ");
     std::vector<std::string> columns;
     columns.push_back("osm_id");
     columns.push_back("lat");
     columns.push_back("lon");
-    columns.push_back("numofuse");
+    columns.push_back("tag_name");
+    columns.push_back("tag_value");
     columns.push_back("the_geom");
+    if (m_vm.count("attributes")) columns.push_back("attributes");
+    if (m_vm.count("tags")) columns.push_back("tags");
 
+    std::cout << comma_separated(columns) << "\n";
 
     size_t chunck_size = 20000;
 
@@ -375,19 +385,13 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
                 ++it;
 
                 auto node = n.second;
-                std::vector<std::string> values;
-                values.push_back(TO_STR(node.osm_id()));
-                values.push_back(node.lat());
-                values.push_back(node.lon());
-                values.push_back(TO_STR(node.numsOfUse()));
-                values.push_back(node.point_geometry());
-                tw.insert(values);
+                tw.insert(node.values(columns, true));
             }
 
             print_progress(nodes.size(), count);
             std::cout << " Total Processed: " << count;
             tw.complete();
-            processSectionExportNodes(nodes_columns, Xaction);
+            processSectionExportNodes(columns, Xaction);
             Xaction.commit();
             start = limit;
         } catch (const std::exception &e) {
@@ -398,15 +402,15 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
 }
 
 
-void  Export2DB::processSectionExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const {
+void  Export2DB::processSectionExportNodes(const std::vector<std::string> &columns, pqxx::work &Xaction) const {
     std::string sql(
             " WITH data AS ("
             " SELECT a.* "
             " FROM  __nodes_temp a LEFT JOIN  " + addSchema("osm_nodes") + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
 
             " INSERT INTO "  + addSchema("osm_nodes") +
-            "(" + nodes_columns + ") "
-            " (SELECT " + nodes_columns + " FROM data); ");
+            "(" + comma_separated(columns) + ") "
+            " (SELECT " + comma_separated(columns) + " FROM data); ");
 
     auto result = Xaction.exec(sql);
     Xaction.exec("DROP TABLE __nodes_temp");
@@ -595,11 +599,11 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
         for (auto it = ways.begin(); it != ways.end(); ++it) {
             auto way = it->second;
 
-                if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
-                std::vector<std::string> values;
-                values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
-                values.push_back(TO_STR(way.osm_id()));
-                tw.insert(values);
+            if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
+            std::vector<std::string> values;
+            values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
+            values.push_back(TO_STR(way.osm_id()));
+            tw.insert(values);
         }
         tw.complete();
         std::string sql(
@@ -730,7 +734,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
                     values.push_back(splits[j].back()->lat());
                     values.push_back(TO_STR(splits[j].front()->osm_id()));
                     values.push_back(TO_STR(splits[j].back()->osm_id()));
-                    values.push_back(std::string("srid=4326;") + way.geometry_str(splits[j]));
+                    values.push_back(way.geometry_str(splits[j]));
 
                     // cost based on oneway
                     if (way.is_reversed())
@@ -939,7 +943,7 @@ void Export2DB::createFKeys() {
             "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("config_classes") + "(class_id); ");
 #if 0
     // DOES NOT WORK because osm_id is not unique
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(osm_id); ");
+    "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(osm_id); ");
 #endif
     result = PQexec(mycon, fk_way_tag.c_str());
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {

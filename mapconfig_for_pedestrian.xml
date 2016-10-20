@@ -22,7 +22,14 @@
     <class name="unclassified" id="118" priority="3" maxspeed="9"/>
     <class name="road" id="119" priority="5" maxspeed="5" />
   </type>
+
+
   <type name="building" id="2">
     <class name="yes" id="201" priority="1.0" maxspeed="13" />
-</type>
+  </type>
+
+  <type name="barrier" id="3">
+    <class name="kerb" id="301" priority="1.0" maxspeed="13" />
+  </type>
+
 </configuration>

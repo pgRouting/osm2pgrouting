@@ -50,7 +50,7 @@ class Export2DB {
       * @param vm variable map holding the configuration
       *
       */
-     explicit Export2DB(const po::variables_map &vm, const std::string &db_conn);
+     explicit Export2DB(const po::variables_map &p_vm, const std::string &db_conn);
 
      /**
       * Destructor
@@ -61,6 +61,7 @@ class Export2DB {
      //! connects to database
      int connect();
      bool has_postGIS() const;
+     bool has_hstore() const;
      bool install_postGIS() const;
 
      //! creates needed tables and geometries
@@ -90,22 +91,16 @@ class Export2DB {
      void createFKeys();
 
  private:
-     //! to use with creating the ways
-     void prepare_table(const std::string &ways_columns) const;
-     void prepareExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
-     void processSectionExportNodes(const std::string nodes_columns, pqxx::work &Xaction) const;
+     void processSectionExportNodes(
+             const std::vector<std::string> &columns,
+             pqxx::work &Xaction) const;
 
      void dropTempTables() const;
      void dropTempTable(
              const std::string &table) const;
-#if 0
-     bool createTempTable(
-             const std::string &sql,
-             const std::string &table,
-             pqxx::work &Xaction) const;
-#endif
+
      void dropTable(const std::string &table, pqxx::work &Xaction) const;
      bool createTempTable(
              const std::string &sql,
@@ -157,6 +152,8 @@ class Export2DB {
      PGconn *mycon;
 #endif
      mutable pqxx::connection db_conn;
+     po::variables_map m_vm;
+
      std::string conninf;
      std::string tables_schema;
      std::string tables_prefix;

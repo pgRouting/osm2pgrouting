@@ -81,12 +81,10 @@ OSMDocumentParserCallback::StartElement(
         if (strcmp(name, "node") == 0) {
             last_node = new Node(atts);
         }
-#if 0
-        // TODO(vicky) to be used in V.3 for a hstore column
         if (strcmp(name, "tag") == 0) {
-            last_node->add_tag(Tag(atts));
+            auto tag = last_node->add_tag(Tag(atts));
+            m_rDocument.add_config(*last_node, tag);
         }
-#endif
         return;
     }
 

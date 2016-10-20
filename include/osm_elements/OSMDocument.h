@@ -76,6 +76,7 @@ class OSMDocument {
     /**
      * add the configuration tag used for the speeds
      */
+    void add_config(Node &node, const Tag &tag) const;
     void add_config(Way &way, const Tag &tag) const;
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 

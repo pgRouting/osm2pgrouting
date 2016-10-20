@@ -51,8 +51,10 @@ void get_option_description(po::options_description &od_desc) {
         ("schema", po::value<std::string>()->default_value(""), "Database schema to put tables.\n  blank:\t defaults to default schema dictated by PostgreSQL search_path.")
         ("prefix", po::value<std::string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")
-        ("postgis", "Instal postgis if not found.")
+        ("postgis", "Install postgis if not found.")  // TODO(vicky) remove before realesing
         ("addnodes", "Import the osm_nodes table.")
+        ("attributes", "Include attributes information.")
+        ("tags", "Include tag information.")
         ("clean", "Drop previously created tables.");
 
     db_options_od_desc.add_options()

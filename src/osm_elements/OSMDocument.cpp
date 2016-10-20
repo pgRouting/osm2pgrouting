@@ -91,6 +91,34 @@ OSMDocument::add_node(Way &way, const char **atts) {
 }
 
 void
+OSMDocument::add_config(Node &node, const Tag &tag) const {
+    auto  k = tag.key();
+    auto  v = tag.value();
+    /*
+     * for example
+     *  <tag highway="kerb">
+     *  
+     *
+     * And the configuration file has:
+     * <type name="highway" id="1">
+     *     <class name="kerb" id="101" priority="1.0" maxspeed="130" />
+     *
+     * max_speed currently ignored for nodes
+     */
+    if (m_rConfig.has_class(tag)) {
+        if ((node.tag_config().key() == "" && node.tag_config().value() == "")
+                || (
+                    m_rConfig.has_class(tag)
+                    && m_rConfig.has_class(node.tag_config())
+                    && m_rConfig.class_priority(tag)
+                    < m_rConfig.class_priority(node.tag_config())
+                   )) {
+            node.tag_config(tag);
+        }
+    }
+}
+
+void
 OSMDocument::add_config(Way &way, const Tag &tag) const {
     auto  k = tag.key();
     auto  v = tag.value();

@@ -51,6 +51,8 @@ class Element {
       *    @param atts attributes pointer returned by the XML parser
       */
      explicit Element(const char **atts);
+     virtual ~Element() {};
+
      Tag add_tag(const Tag &);
 
      inline int64_t osm_id() const {return m_osm_id;}
@@ -63,6 +65,7 @@ class Element {
      std::string attributes_str() const;
      std::string tags_str() const;
 
+     virtual std::string get_geometry() const = 0;
      bool has_attribute(const std::string&) const;
      std::string get_attribute(const std::string&) const;
      std::map<std::string, std::string>& attributes() {return m_attributes;}
@@ -75,6 +78,10 @@ class Element {
      std::string get_tag(const std::string&) const;
      std::map<std::string, std::string>& tags() {return m_tags;}
      const std::map<std::string, std::string> tags() const {return m_tags;}
+
+     std::vector<std::string> values(
+             const std::vector<std::string> &columns,
+             bool is_hstore) const;
 
  protected:
      // ! OSM ID of the element

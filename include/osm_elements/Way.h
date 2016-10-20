@@ -54,6 +54,7 @@ namespace osm2pgr {
 class Way : public Element {
  public:
      Way() = default;
+     ~Way() {};
 
      /**
       *  @param atts attributes read py the parser
@@ -81,7 +82,7 @@ class Way : public Element {
      inline double maxspeed_forward() const {return m_maxspeed_forward;}
      inline double maxspeed_backward() const { return m_maxspeed_backward;}
 
-     std::string geometry_str() const;
+     std::string get_geometry() const;
      std::string length_str() const;
 
 
