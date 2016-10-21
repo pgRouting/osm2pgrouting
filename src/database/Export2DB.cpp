@@ -69,11 +69,13 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " lat decimal(11,8),"
                 " tag_name TEXT,"
                 " tag_value TEXT,"
+                " name TEXT,"
                 " numOfUse int");
+        std::string kind = vm.count("hstore") ? "hstore" : "json";
         create_nodes += vm.count("attributes") ?
-                ", attributes hstore" : "";
+                ", attributes " + kind  : "";
         create_nodes += vm.count("tags") ?
-                ", tags hstore" : "";
+                ", tags " + kind : "";
 
 
         create_vertices = std::string(
@@ -357,6 +359,7 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     columns.push_back("lon");
     columns.push_back("tag_name");
     columns.push_back("tag_value");
+    columns.push_back("name");
     columns.push_back("the_geom");
     if (m_vm.count("attributes")) columns.push_back("attributes");
     if (m_vm.count("tags")) columns.push_back("tags");
@@ -385,7 +388,13 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
                 ++it;
 
                 auto node = n.second;
-                tw.insert(node.values(columns, true));
+                if (m_vm.count("hstore")) {
+                    tw.insert(node.values(columns, true));
+                    if (count == 6213) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
+                } else {
+                    if (count == 6213) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
+                    tw.insert(node.values(columns, false));
+                }
             }
 
             print_progress(nodes.size(), count);

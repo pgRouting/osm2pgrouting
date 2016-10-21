@@ -55,6 +55,7 @@ void get_option_description(po::options_description &od_desc) {
         ("addnodes", "Import the osm_nodes table.")
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
+        ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
         ("clean", "Drop previously created tables.");
 
     db_options_od_desc.add_options()
