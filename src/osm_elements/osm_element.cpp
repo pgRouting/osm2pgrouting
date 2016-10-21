@@ -20,6 +20,7 @@
 
 
 #include <boost/lexical_cast.hpp>
+#include <boost/locale/encoding_utf.hpp>
 #include <map>
 #include <string>
 #include "osm_elements/osm_tag.h"
@@ -95,7 +96,18 @@ std::string Element::tags_str() const {
 static
 std::string
 addquotes(const std::string str) {
-    std::string result;
+    std::string result("");
+    using boost::locale::conv::utf_to_utf;
+    std::wstring wstr = utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
+    if (wstr.size() != str.size()) {
+        for (const auto c : wstr) {
+            result += "chr(" + boost::lexical_cast<std::string>(static_cast<uint32_t>(c)) +")";
+                if (wstr.back() != c) result += "||";
+        }
+        std::cout << result << "\n";
+        return result;
+    }
+
 
     for (auto c : str) {
         if ( c == '"' || c == '\\' ) {
