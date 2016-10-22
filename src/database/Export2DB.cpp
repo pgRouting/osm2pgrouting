@@ -361,13 +361,16 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     columns.push_back("tag_value");
     columns.push_back("name");
     columns.push_back("the_geom");
+#if 1
     if (m_vm.count("attributes")) columns.push_back("attributes");
     if (m_vm.count("tags")) columns.push_back("tags");
+#endif
 
     std::cout << comma_separated(columns) << "\n";
 
     size_t chunck_size = 20000;
 
+    std::string copy_nodes( "COPY __nodes_temp (" + comma_separated(columns) + ") FROM STDIN");
 
     size_t count = 0;
     size_t start = 0;
@@ -375,12 +378,19 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     while (start < nodes.size()) {
         auto limit = (start + chunck_size) < nodes.size() ? start + chunck_size : nodes.size();
         try {
-            pqxx::work Xaction(db_conn);
+#if 0
             Xaction.exec("CREATE TABLE  __nodes_temp ("
                     + create_nodes + ")");
 
             Xaction.exec("SELECT AddGeometryColumn('__nodes_temp', 'the_geom', 4326, 'POINT', 2)");
             pqxx::tablewriter tw(Xaction, "__nodes_temp", columns.begin(), columns.end());
+#endif
+            pqxx::work Xaction(db_conn);
+            std::string sql1("CREATE TABLE  __nodes_temp (" + create_nodes + ")");
+            std::string sql2("SELECT AddGeometryColumn('__nodes_temp', 'the_geom', 4326, 'POINT', 2)");
+            PGresult *res = PQexec(mycon, sql1.c_str());
+            res = PQexec(mycon, sql2.c_str());
+            res = PQexec(mycon, copy_nodes.c_str());
             for (auto i = start; i < limit; ++i) {
                 auto n = *it;
 
@@ -388,18 +398,25 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
                 ++it;
 
                 auto node = n.second;
+
+                std::string str;
+                
+#if 1
                 if (m_vm.count("hstore")) {
-                    tw.insert(node.values(columns, true));
-                    if (count == 6213) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
+                    str = tab_separated(node.values(columns, true));
+                    if (count == 1) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
                 } else {
-                    if (count == 6213) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
-                    tw.insert(node.values(columns, false));
+                    str = tab_separated(node.values(columns, false));
+                    if (count == 1) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
                 }
+#endif
+                PQputline(mycon, str.c_str());
             }
 
             print_progress(nodes.size(), count);
             std::cout << " Total Processed: " << count;
-            tw.complete();
+            PQputline(mycon, "\\.\n");
+            PQendcopy(mycon);
             processSectionExportNodes(columns, Xaction);
             Xaction.commit();
             start = limit;
@@ -422,7 +439,9 @@ void  Export2DB::processSectionExportNodes(const std::vector<std::string> &colum
             " (SELECT " + comma_separated(columns) + " FROM data); ");
 
     auto result = Xaction.exec(sql);
+#if 1
     Xaction.exec("DROP TABLE __nodes_temp");
+#endif
 }
 
 

@@ -95,19 +95,8 @@ std::string Element::tags_str() const {
 
 static
 std::string
-addquotes(const std::string str) {
+addquotes(const std::string str, bool force) {
     std::string result("");
-    using boost::locale::conv::utf_to_utf;
-    std::wstring wstr = utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
-    if (wstr.size() != str.size()) {
-        for (const auto c : wstr) {
-            result += "chr(" + boost::lexical_cast<std::string>(static_cast<uint32_t>(c)) +")";
-                if (wstr.back() != c) result += "||";
-        }
-        std::cout << result << "\n";
-        return result;
-    }
-
 
     for (auto c : str) {
         if ( c == '"' || c == '\\' ) {
@@ -115,12 +104,15 @@ addquotes(const std::string str) {
         }
         result += c;
     }
-    for (auto c : result) {
-        if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
-            return std::string("\"") + result + "\"";
+    if (!force) {
+        for (auto c : result) {
+            if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
+                return std::string("\"") + result + "\"";
+            }
         }
+        return result;
     }
-    return result;
+    return std::string("\"") + result + "\"";
 }
 
 
@@ -132,29 +124,25 @@ getHstore(const std::map<std::string, std::string> &values) {
     for (const auto item : values) {
         hstore += item.first 
             + " => "
-            + addquotes(item.second)  + ",";
+            + addquotes(item.second, true)  + ",";
     }
-    if (hstore[hstore.size() - 2] == '"') {
-        hstore += "dummy => dummy::hstore";
-    } else {
-        hstore[hstore.size() - 1] = ':';
-        hstore += ":hstore";
-    }
+    hstore[hstore.size() - 1] = ' ';
+    hstore += "";
     return hstore;
 }
 
 static
 std::string
 getJSON(const std::map<std::string, std::string> &values) {
-    if (values.empty()) return std::string("");
+    if (values.empty()) return std::string("{}");
     std::string json("{");
     for (const auto item : values) {
-        json += addquotes(item.first) 
+        json += addquotes(item.first, true) 
             + ":"
-            + addquotes(item.second)  + ",";
+            + addquotes(item.second, true)  + ",";
     }
     json[json.size() - 1] = '}';
-    json += "::json";
+    json += "";
     return json;
 }
 
@@ -204,7 +192,7 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
             values.push_back(get_tag(column));
             continue;
         }
-        values.push_back(std::string("NULL"));
+        values.push_back(std::string(""));
     }
     return values;
 }
