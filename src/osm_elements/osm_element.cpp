@@ -99,8 +99,17 @@ addquotes(const std::string str, bool force) {
     std::string result("");
 
     for (auto c : str) {
-        if ( c == '"' || c == '\\' ) {
+        if ( c == '"' ) {
+            /*
+             * To avoid problems with json & hstore
+             * all quotes are converted to single quotes
+             */
+            result += "\'\'";
+            continue;
+        } else if ( c == '\\' ) {
             result += '\\';
+        } else if (c == '\'') {
+            result += '\'';
         }
         result += c;
     }

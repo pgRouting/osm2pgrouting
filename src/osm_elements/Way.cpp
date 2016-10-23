@@ -236,12 +236,9 @@ Way::pedestrian(const std::string &key, const std::string &value) {
 
 bool
 Way::is_number(const std::string& s) const {
-    auto str = s;
-    remove_if(str.begin(), str.end(), isspace);
-    auto it = str.begin();
-    for (; it != str.end() && std::isdigit(*it);
-            ++it) {}
-    return !str.empty() && it == s.end();
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }
 
 

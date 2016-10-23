@@ -47,6 +47,6 @@ print_progress(T1 wantProgress, T2 currentProgress) {
     std::cout << "\r"
         << bar
         << " (" << static_cast<int>(100 * percent) << "%)"
-        << std::flush;
+        << " Total porcessed: " << currentProgress << std::flush;
 }
 #endif  // SRC_PRINT_PROGRESS_H_

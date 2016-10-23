@@ -139,6 +139,9 @@ int main(int argc, char* argv[]) {
             return 1;
         } 
 
+        /* 
+         * preparing the databasse
+         */
         std::cout << "Connecting to the database"  << endl;
         osm2pgr::Export2DB dbConnection(vm, connection_str);
         if (dbConnection.connect() == 1)
@@ -163,6 +166,11 @@ int main(int argc, char* argv[]) {
             std::cout << "\nDropping tables..." << endl;
             dbConnection.dropTables();
         }
+        std::cout << "\nCreating tables..." << endl;
+        dbConnection.createTables();
+        /* 
+         * End: preparing the databasse
+         */
 
         std::cout << "Opening configuration file: " << confFile.c_str() << endl;
         osm2pgr::Configuration config;
@@ -186,7 +194,7 @@ int main(int argc, char* argv[]) {
             << " total lines "
             << total_lines
             << endl;
-        osm2pgr::OSMDocument document(config, total_lines);
+        osm2pgr::OSMDocument document(config, vm, dbConnection, total_lines);
         osm2pgr::OSMDocumentParserCallback callback(document);
 
         std::cout << "    Parsing data\n" << endl;
@@ -202,19 +210,14 @@ int main(int argc, char* argv[]) {
 
         //############# Export2DB
         {
-            if (clean) {
-                std::cout << "\nDropping tables..." << endl;
-                dbConnection.dropTables();
-            }
-
-            std::cout << "\nCreating tables..." << endl;
-            dbConnection.createTables();
 
             std::cout << "Adding auxiliary tables to database..." << endl;
+#if 0
             if (!skipnodes) {
                 std::cout << "\nExport Nodes ..." << endl;
                 dbConnection.exportNodes(document.nodes());
             }
+#endif
             std::cout << "\nExport Types ..." << endl;
             dbConnection.exportTypes(config.types());
             std::cout << "\nExport Classes ..." << endl;
@@ -263,7 +266,8 @@ int main(int argc, char* argv[]) {
 #endif
 
         std::cout << "#########################" << endl;
-        return 0;
+
+        exit(0);
 #if 0
     }
     catch (exception &e) {

@@ -58,7 +58,6 @@ void
 OSMDocumentParserCallback::show_progress() {
     if ((++m_line % (m_rDocument.lines() / 100)) == 0) {
         print_progress(m_rDocument.lines(), m_line);
-        std::cout << " Total Processed: " << m_line;
     }
 }
 

@@ -351,8 +351,8 @@ void Export2DB::dropTables() const {
 }
 
 
-void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
-    std::cout << "    Processing " <<  nodes.size() <<  " nodes"  << ":\n";
+void Export2DB::exportNodes(const Nodes &nodes) const {
+    std::cout << "    Exporting nodes to DB ";
     std::vector<std::string> columns;
     columns.push_back("osm_id");
     columns.push_back("lat");
@@ -361,87 +361,71 @@ void Export2DB::exportNodes(const std::map<int64_t, Node> &nodes) const {
     columns.push_back("tag_value");
     columns.push_back("name");
     columns.push_back("the_geom");
-#if 1
     if (m_vm.count("attributes")) columns.push_back("attributes");
     if (m_vm.count("tags")) columns.push_back("tags");
-#endif
 
-    std::cout << comma_separated(columns) << "\n";
 
-    size_t chunck_size = 20000;
-
-    std::string copy_nodes( "COPY __nodes_temp (" + comma_separated(columns) + ") FROM STDIN");
+    std::string temp_table("__nodes_temp" + TO_STR(getpid()));
+    std::string sql1("CREATE UNLOGGED TABLE " + temp_table + " (" + create_nodes + ")");
+    std::string sql2("SELECT AddGeometryColumn('" + temp_table + "', 'the_geom', 4326, 'POINT', 2)");
+    std::string copy_nodes( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
     size_t count = 0;
-    size_t start = 0;
-    auto it = nodes.begin();
-    while (start < nodes.size()) {
-        auto limit = (start + chunck_size) < nodes.size() ? start + chunck_size : nodes.size();
-        try {
+    try {
+
+        
+        pqxx::connection db_con(conninf);
+        pqxx::work Xaction(db_con);
+        PGconn *mycon = PQconnectdb(conninf.c_str());
+
+        PGresult *res = PQexec(mycon, sql1.c_str());
+        res = PQexec(mycon, sql2.c_str());
+        res = PQexec(mycon, copy_nodes.c_str());
+
+        for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+            auto node = *it;
+
+            ++count;
+
+            std::string str;
+
+            if (m_vm.count("hstore")) {
+                str = tab_separated(node.values(columns, true));
 #if 0
-            Xaction.exec("CREATE TABLE  __nodes_temp ("
-                    + create_nodes + ")");
-
-            Xaction.exec("SELECT AddGeometryColumn('__nodes_temp', 'the_geom', 4326, 'POINT', 2)");
-            pqxx::tablewriter tw(Xaction, "__nodes_temp", columns.begin(), columns.end());
+                if (node.osm_id() == 365796256) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
 #endif
-            pqxx::work Xaction(db_conn);
-            std::string sql1("CREATE TABLE  __nodes_temp (" + create_nodes + ")");
-            std::string sql2("SELECT AddGeometryColumn('__nodes_temp', 'the_geom', 4326, 'POINT', 2)");
-            PGresult *res = PQexec(mycon, sql1.c_str());
-            res = PQexec(mycon, sql2.c_str());
-            res = PQexec(mycon, copy_nodes.c_str());
-            for (auto i = start; i < limit; ++i) {
-                auto n = *it;
-
-                ++count;
-                ++it;
-
-                auto node = n.second;
-
-                std::string str;
-                
-#if 1
-                if (m_vm.count("hstore")) {
-                    str = tab_separated(node.values(columns, true));
-                    if (count == 1) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
-                } else {
-                    str = tab_separated(node.values(columns, false));
-                    if (count == 1) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
-                }
+            } else {
+                str = tab_separated(node.values(columns, false));
+#if 0
+                if (node.osm_id() == 365796256) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
 #endif
-                PQputline(mycon, str.c_str());
             }
-
-            print_progress(nodes.size(), count);
-            std::cout << " Total Processed: " << count;
-            PQputline(mycon, "\\.\n");
-            PQendcopy(mycon);
-            processSectionExportNodes(columns, Xaction);
-            Xaction.commit();
-            start = limit;
-        } catch (const std::exception &e) {
-            std::cerr <<  "\n" << e.what() << std::endl;
-            std::cerr << "While processing from " << start << "th \t to: " << limit << "th node\n";
+            PQputline(mycon, str.c_str());
         }
+
+        PQputline(mycon, "\\.\n");
+        PQendcopy(mycon);
+        Xaction.exec(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  " + temp_table + " a LEFT JOIN  " + addSchema("osm_nodes") + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
+
+                " INSERT INTO "  + addSchema("osm_nodes") +
+                "(" + comma_separated(columns) + ") "
+                " (SELECT " + comma_separated(columns) + " FROM data); ");
+
+        Xaction.exec("DROP TABLE " + temp_table);
+        PQfinish(mycon);
+        Xaction.commit();
+
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr << "While exporting nodes  TODO insert one by one skip the guilty one\n";
     }
 }
 
 
 void  Export2DB::processSectionExportNodes(const std::vector<std::string> &columns, pqxx::work &Xaction) const {
-    std::string sql(
-            " WITH data AS ("
-            " SELECT a.* "
-            " FROM  __nodes_temp a LEFT JOIN  " + addSchema("osm_nodes") + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
-
-            " INSERT INTO "  + addSchema("osm_nodes") +
-            "(" + comma_separated(columns) + ") "
-            " (SELECT " + comma_separated(columns) + " FROM data); ");
-
-    auto result = Xaction.exec(sql);
-#if 1
-    Xaction.exec("DROP TABLE __nodes_temp");
-#endif
 }
 
 

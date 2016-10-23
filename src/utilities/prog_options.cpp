@@ -56,6 +56,7 @@ void get_option_description(po::options_description &od_desc) {
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
         ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
+        ("chunk", po::value<std::size_t>()->default_value(20000), "Exporting chunk size.")
         ("clean", "Drop previously created tables.");
 
     db_options_od_desc.add_options()

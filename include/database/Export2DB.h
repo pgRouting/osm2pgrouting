@@ -45,6 +45,7 @@ namespace osm2pgr {
 
 class Export2DB {
  public:
+     typedef std::vector<Node> Nodes;
      /**
       * Constructor 
       * @param vm variable map holding the configuration
@@ -68,7 +69,7 @@ class Export2DB {
      void createTables() const;
      void createTempTables() const;
      //! exports nodes to the database
-     void exportNodes(const std::map<int64_t, Node>& nodes) const;
+     void exportNodes(const Nodes &nodes) const;
 
      //! exports ways to the database
      void exportTags(
@@ -151,7 +152,9 @@ class Export2DB {
 #if 1
      PGconn *mycon;
 #endif
+#if 1
      mutable pqxx::connection db_conn;
+#endif
      po::variables_map m_vm;
 
      std::string conninf;

@@ -24,7 +24,10 @@
 
 #include <map>
 #include <vector>
+#include "utilities/utilities.h"
 #include "configuration/Configuration.h"
+#include "utilities/prog_options.h"
+#include "database/Export2DB.h"
 
 namespace osm2pgr {
 
@@ -38,8 +41,14 @@ class Relation;
 */
 class OSMDocument {
  public:
+    typedef std::vector<Node> Nodes;
+
     //! Constructor
-    OSMDocument(const Configuration& config, size_t lines);
+    OSMDocument(
+            const Configuration& config,
+            const po::variables_map &vm,
+            const Export2DB &db_conn,
+            size_t lines);
 
     inline size_t lines() const {return m_lines;}
     inline bool has_class(const Tag &tag) const {
@@ -52,12 +61,13 @@ class OSMDocument {
         return m_rConfig.class_default_maxspeed(tag);
     }
 
-    const std::map<int64_t, Node>& nodes() const {return m_Nodes;}
+    const Nodes& nodes() const {return m_nodes;}
     const std::map<int64_t, Way>& ways() const {return m_Ways;}
     const std::vector<Relation>& relations() const {return m_Relations;}
 
     //! add node to the map
-    void AddNode(Node n);
+    void AddNode(const Node &n);
+    void export_nodes() const;
 
     //! add way to the map
     void AddWay(Way w);
@@ -82,15 +92,17 @@ class OSMDocument {
 
 
  private:
-    // ! parsed nodes
-    std::map<int64_t, Node> m_Nodes;
+    // ! parsed nodes TODO change to sorted vector
+    Nodes m_nodes;
     //! parsed ways
     std::map<int64_t, Way> m_Ways;
     //! parsed relations
     std::vector<Relation> m_Relations;
 
-
     const Configuration& m_rConfig;
+    po::variables_map m_vm;
+    const Export2DB &m_db_conn;
+
     uint16_t m_nodeErrs;
     size_t m_lines;
 };

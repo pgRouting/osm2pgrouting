@@ -25,25 +25,70 @@
 #include <utility>
 #include <string>
 #include <iostream>
+#include <algorithm>
+#include <sys/wait.h>
+#include "utilities/utilities.h"
 #include "osm_elements/OSMDocument.h"
 #include "configuration/Configuration.h"
 #include "osm_elements/Node.h"
 #include "osm_elements/Relation.h"
 #include "osm_elements/Way.h"
+#include "database/Export2DB.h"
 
 namespace osm2pgr {
 
-OSMDocument::OSMDocument(const Configuration &config, size_t lines) :
+OSMDocument::OSMDocument(
+        const Configuration &config,
+        const po::variables_map &vm,
+        const Export2DB &db_conn,
+        size_t lines) :
     m_rConfig(config),
+    m_vm(vm),
+    m_db_conn(db_conn),
+    m_nodeErrs(0),
     m_lines(lines) {
 }
 
 
-void OSMDocument::AddNode(Node n) {
-    m_Nodes[n.osm_id()] = n;
+void OSMDocument::AddNode(const Node &n) {
+    m_nodes.push_back(n);
+    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+        /*
+         * before starting next export wait for last export
+         */
+        while (true) {
+            int status;
+            pid_t done = wait(&status);
+            if (done == -1) {
+                if (errno == ECHILD) break; // no more child processes
+            } else {
+                if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+                    cerr << "pid " << done << " failed" << endl;
+                    exit(1);
+                }
+            }
+        }
+        export_nodes();
+    }
 }
 
 void OSMDocument::AddWay(Way w) {
+    if (m_vm.count("addnodes") && m_Ways.empty()) {
+        while (true) {
+            int status;
+            pid_t done = wait(&status);
+            if (done == -1) {
+                if (errno == ECHILD) break; // no more child processes
+            } else {
+                if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+                    cerr << "pid " << done << " failed" << endl;
+                    exit(1);
+                }
+            }
+        }
+        export_nodes();
+        std::cout << "\nSaving first way\n\n\n";
+    }
     m_Ways[w.osm_id()] = w;
 }
 
@@ -51,16 +96,23 @@ void OSMDocument::AddRelation(const Relation &r) {
     m_Relations.push_back(r);
 }
 
+static
+bool
+less(const Node n, const int64_t &id) {
+    return n.osm_id() < id;
+}
+
+
 Node*
 OSMDocument::FindNode(int64_t nodeRefId) {
-    auto it = m_Nodes.find(nodeRefId);
-    return &(it->second);
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), nodeRefId, less); 
+    return &*it;
 }
 
 bool
 OSMDocument::has_node(int64_t nodeRefId) const {
-    auto it = m_Nodes.find(nodeRefId);
-    return (it != m_Nodes.end());
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), nodeRefId, less); 
+    return (it != m_nodes.end());
 }
 
 Way*
@@ -157,6 +209,50 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
         }
     }
 }
+
+/* @brief fork process to export a chink of nodes 
+ *
+ * TODO steps
+ *
+ * 1) connect to the database using the string connection
+ * 2) copy the code from Export
+ * 3) export finishes then start exit
+ *
+ * @params[in] nodes the chunk of nodes to be exported
+ */
+void
+OSMDocument::export_nodes() const {
+    auto pid = fork();
+    if (pid < 0) {
+        std::cerr << "Failed to fork" << endl;
+        // TODO throw
+        exit(1);
+    }
+    if (pid > 0) return;
+    /*
+     * TODO make it a member
+     */
+    size_t m_chunk_size =  m_vm["chunk"].as<size_t>();
+    /* todo end */
+
+    auto residue = m_nodes.size() % m_chunk_size;
+    size_t start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size; 
+#if 0
+    std::cout << "\n\t" << getpid() << "\t\texporting nodes" << start << " to " << m_nodes.size() << "\t Total" << (m_nodes.size() - start) << "\n";
+#endif
+    auto nodes = Nodes(m_nodes.begin() + start, m_nodes.end());
+
+    m_db_conn.exportNodes(nodes);
+
+
+
+    /*
+     * finish the child process
+     */
+    exit(0);
+}
+
+
 
 
 }  // namespace osm2pgr
