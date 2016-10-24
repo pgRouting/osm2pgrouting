@@ -20,7 +20,6 @@
 
 
 #include <boost/lexical_cast.hpp>
-#include <boost/locale/encoding_utf.hpp>
 #include <map>
 #include <string>
 #include "osm_elements/osm_tag.h"
