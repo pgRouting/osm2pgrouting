@@ -70,14 +70,17 @@ class Export2DB {
      //! creates needed tables and geometries
      void createTables() const;
      void createTempTables() const;
+
      //! exports nodes to the database
-     void export_nodes(const Nodes &nodes) const;
-     void export_ways(const Ways &ways) const;
+     void export_osm_nodes(const Nodes &nodes) const;
+     void export_osm_ways(const Ways &ways) const;
+
 
      //! exports ways to the database
      void exportTags(
-             const std::map<int64_t, Way> &ways,
+             const Ways &ways,
              const Configuration &config) const;
+
      void exportRelations(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
@@ -86,8 +89,9 @@ class Export2DB {
              const Configuration &config) const;
      void exportTypes(const std::map<std::string, Type>& types) const;
      void exportClasses(const std::map<std::string, Type>& types) const;
+
      void exportWays(
-             const std::map<int64_t, Way> &ways,
+             const Ways &ways,
              const Configuration &config) const;
 
      //! Be careful! It deletes the created tables!

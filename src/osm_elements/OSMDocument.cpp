@@ -69,56 +69,63 @@ OSMDocument::wait_child() const {
 void OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
     if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
-        /*
-         * before starting next export wait for last export
-         */
         wait_child();
         export_nodes();
     }
 }
 
-void OSMDocument::AddWay(Way w) {
-    if (m_vm.count("addnodes") && m_Ways.empty()) {
+void OSMDocument::AddWay(const Way &w) {
+    if (m_vm.count("addnodes") && m_ways.empty()) {
         wait_child();
         export_nodes();
         std::cout << "\nSaving first way\n\n\n";
     }
-    m_Ways[w.osm_id()] = w;
+    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+        wait_child();
+        export_ways();
+    }
+    m_ways.push_back(w);
 }
 
 void OSMDocument::AddRelation(const Relation &r) {
+    if (m_vm.count("addnodes") && m_Relations.empty()) {
+        wait_child();
+        export_ways();
+        std::cout << "\nSaving first relation\n\n\n";
+    }
     m_Relations.push_back(r);
 }
 
+template <typename T>
 static
 bool
-less(const Node n, const int64_t &id) {
-    return n.osm_id() < id;
+less(const T &item, const int64_t &id) {
+    return item.osm_id() < id;
 }
 
 
 Node*
-OSMDocument::FindNode(int64_t nodeRefId) {
-    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), nodeRefId, less); 
+OSMDocument::FindNode(int64_t node_id) {
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>); 
     return &*it;
 }
 
 bool
-OSMDocument::has_node(int64_t nodeRefId) const {
-    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), nodeRefId, less); 
+OSMDocument::has_node(int64_t node_id) const {
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>); 
     return (it != m_nodes.end());
 }
 
 Way*
 OSMDocument::FindWay(int64_t way_id) {
-    auto it = m_Ways.find(way_id);
-    return &(it->second);
+    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>); 
+    return &*it;
 }
 
 bool
 OSMDocument::has_way(int64_t way_id) const {
-    auto it = m_Ways.find(way_id);
-    return (it != m_Ways.end());
+    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>); 
+    return (it != m_ways.end());
 }
 
 void
@@ -229,7 +236,7 @@ OSMDocument::export_nodes() const {
 #endif
     auto nodes = Nodes(m_nodes.begin() + start, m_nodes.end());
 
-    m_db_conn.export_nodes(nodes);
+    m_db_conn.export_osm_nodes(nodes);
 
     /*
      * finish the child process
@@ -265,7 +272,7 @@ OSMDocument::export_ways() const {
 #endif
     auto ways = Ways(m_ways.begin() + start, m_ways.end());
 
-    m_db_conn.export_ways(ways);
+    m_db_conn.export_osm_ways(ways);
 
     /*
      * finish the child process

@@ -344,7 +344,7 @@ void Export2DB::dropTables() const {
 }
 
 
-void Export2DB::export_nodes(const Nodes &nodes) const {
+void Export2DB::export_osm_nodes(const Nodes &nodes) const {
     std::cout << "    Exporting nodes to DB ";
     std::vector<std::string> values(nodes.size(), "");
     size_t i(0);
@@ -360,8 +360,8 @@ void Export2DB::export_nodes(const Nodes &nodes) const {
     export_osm(values, m_tables.osm_nodes);
 }
 
-void Export2DB::export_ways(const Ways &ways) const {
-    std::cout << "    Exporting nodes to DB ";
+void Export2DB::export_osm_ways(const Ways &ways) const {
+    std::cout << "    Exporting ways to DB ";
     std::vector<std::string> values(ways.size(), "");
     size_t i(0);
     for (auto it = ways.begin(); it != ways.end(); ++it, ++i) {
@@ -595,7 +595,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
 }
 
 
-void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configuration &config) const {
+void Export2DB::exportTags(const Ways &ways, const Configuration &config) const {
     std::cout << "    Processing way's tags"  << ": ";
     std::vector<std::string> columns;
     columns.push_back("class_id");
@@ -610,7 +610,7 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
 
 
         for (auto it = ways.begin(); it != ways.end(); ++it) {
-            auto way = it->second;
+            auto way = *it;
 
             if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
             std::vector<std::string> values;
@@ -639,27 +639,9 @@ void Export2DB::exportTags(const std::map<int64_t, Way> &ways, const Configurati
 }
 
 
-#if 0
-void Export2DB::prepare_table(const std::string &ways_columns) const {
-    pqxx::work Xaction(db_conn);
-    if (createTempTable(create_ways, "__ways_temp", Xaction)) {
-        addTempGeometry("__ways_temp", "LINESTRING");
-    } else {
-        std::cerr << "could not createTempTable\n";
-    }
-
-    std::string copy_ways("COPY __ways_temp  ("
-            + ways_columns
-            + ") FROM STDIN");
-
-    PGresult* q_result = PQexec(mycon, copy_ways.c_str());
-    PQclear(q_result);
-    Xaction.commit();
-}
-#endif
 
 
-void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configuration &config) const {
+void Export2DB::exportWays(const Ways &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
     std::string ways_columns(
             " class_id, "
@@ -719,7 +701,7 @@ void Export2DB::exportWays(const std::map<int64_t, Way> &ways, const Configurati
             pqxx::tablewriter tw(Xaction, "__ways_temp", columns.begin(), columns.end());
 #endif
             for (auto i = start; i < limit; ++i) {
-                auto way = it->second;
+                auto way = *it;
 
                 ++count;
                 ++it;

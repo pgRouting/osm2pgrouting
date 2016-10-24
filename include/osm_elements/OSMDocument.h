@@ -63,14 +63,14 @@ class OSMDocument {
     }
 
     const Nodes& nodes() const {return m_nodes;}
-    const std::map<int64_t, Way>& ways() const {return m_Ways;}
+    const Ways& ways() const {return m_ways;}
     const std::vector<Relation>& relations() const {return m_Relations;}
 
     //! add node to the map
     void AddNode(const Node &n);
 
     //! add way to the map
-    void AddWay(Way w);
+    void AddWay(const Way &w);
 
     //! find node by using an ID
     bool has_node(int64_t nodeRefId) const;
@@ -101,7 +101,9 @@ class OSMDocument {
     Nodes m_nodes;
     //! parsed ways
     Ways m_ways;
+#if 0
     std::map<int64_t, Way> m_Ways;
+#endif
     //! parsed relations
     std::vector<Relation> m_Relations;
 
