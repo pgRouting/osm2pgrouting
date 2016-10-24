@@ -20,6 +20,7 @@
 
 
 #include "database/Export2DB.h"
+#include "database/table_management.h"
 
 #include <unistd.h>
 
@@ -52,7 +53,8 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
     conninf(connection),
     tables_schema(vm["schema"].as<std::string>()),
     tables_prefix(vm["prefix"].as<std::string>()),
-    tables_suffix(vm["suffix"].as<std::string>()) {
+    tables_suffix(vm["suffix"].as<std::string>()),
+    m_tables(vm) {
 
         create_types = std::string(
                 " type_id integer PRIMARY KEY,"
@@ -61,21 +63,6 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
         create_way_tag = std::string(
                 " class_id integer,"
                 " way_id bigint");
-
-        create_nodes = std::string(
-                " node_id bigserial PRIMARY KEY,"
-                " osm_id bigint,"
-                " lon decimal(11,8),"
-                " lat decimal(11,8),"
-                " tag_name TEXT,"
-                " tag_value TEXT,"
-                " name TEXT,"
-                " numOfUse int");
-        std::string kind = vm.count("hstore") ? "hstore" : "json";
-        create_nodes += vm.count("attributes") ?
-                ", attributes " + kind  : "";
-        create_nodes += vm.count("tags") ?
-                ", tags " + kind : "";
 
 
         create_vertices = std::string(
@@ -316,14 +303,20 @@ void Export2DB::createTables() const {
     createTable(create_relations_ways, addSchema(full_table_name("relations_ways")));
 
     //  the following are general tables
-    if (createTable(create_nodes,
-                addSchema("osm_nodes"),
-                ", CONSTRAINT node_id UNIQUE(osm_id)"))
-        addGeometry(default_tables_schema(), "osm_nodes", "POINT");
     createTable(create_relations,  addSchema("osm_relations"));
     createTable(create_way_tag, addSchema("osm_way_tags"));
     createTable(create_types, addSchema("osm_way_types"));
     createTable(create_classes, addSchema("config_classes"));
+
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec(m_tables.osm_nodes.create());
+        Xaction.exec(m_tables.osm_ways.create());
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+    }
+
 }
 
 
@@ -351,55 +344,65 @@ void Export2DB::dropTables() const {
 }
 
 
-void Export2DB::exportNodes(const Nodes &nodes) const {
+void Export2DB::export_nodes(const Nodes &nodes) const {
     std::cout << "    Exporting nodes to DB ";
-    std::vector<std::string> columns;
-    columns.push_back("osm_id");
-    columns.push_back("lat");
-    columns.push_back("lon");
-    columns.push_back("tag_name");
-    columns.push_back("tag_value");
-    columns.push_back("name");
-    columns.push_back("the_geom");
-    if (m_vm.count("attributes")) columns.push_back("attributes");
-    if (m_vm.count("tags")) columns.push_back("tags");
+    std::vector<std::string> values(nodes.size(), "");
+    size_t i(0);
+    for (auto it = nodes.begin(); it != nodes.end(); ++it, ++i) {
+        auto node = *it;
+        if (m_vm.count("hstore")) {
+            values[i] = tab_separated(node.values(m_tables.osm_nodes.columns(), true));
+        } else {
+            values[i] = tab_separated(node.values(m_tables.osm_nodes.columns(), false));
+        }
+    }
 
+    export_osm(values, m_tables.osm_nodes);
+}
 
-    std::string temp_table("__nodes_temp" + TO_STR(getpid()));
-    std::string sql1("CREATE UNLOGGED TABLE " + temp_table + " (" + create_nodes + ")");
-    std::string sql2("SELECT AddGeometryColumn('" + temp_table + "', 'the_geom', 4326, 'POINT', 2)");
+void Export2DB::export_ways(const Ways &ways) const {
+    std::cout << "    Exporting nodes to DB ";
+    std::vector<std::string> values(ways.size(), "");
+    size_t i(0);
+    for (auto it = ways.begin(); it != ways.end(); ++it, ++i) {
+        auto way = *it;
+        if (m_vm.count("hstore")) {
+            values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), true));
+        } else {
+            values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), false));
+        }
+    }
+
+    export_osm(values, m_tables.osm_ways);
+}
+
+void Export2DB::export_osm(const std::vector<std::string> &values, const Table &table) const {
+
+    auto columns = table.columns();
+    std::string temp_table(table.temp_name());
+    auto sql1 = table.tmp_create();
+#if 0
+    std::cout << "\n" << sql1 << "\n";
+#endif
     std::string copy_nodes( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
     size_t count = 0;
     try {
 
-        
+
         pqxx::connection db_con(conninf);
         pqxx::work Xaction(db_con);
         PGconn *mycon = PQconnectdb(conninf.c_str());
 
         PGresult *res = PQexec(mycon, sql1.c_str());
-        res = PQexec(mycon, sql2.c_str());
+        // res = PQexec(mycon, sql2.c_str());
         res = PQexec(mycon, copy_nodes.c_str());
 
-        for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-            auto node = *it;
+        for (auto it = values.begin(); it != values.end(); ++it) {
+            auto str = *it;
 
             ++count;
 
-            std::string str;
-
-            if (m_vm.count("hstore")) {
-                str = tab_separated(node.values(columns, true));
-#if 0
-                if (node.osm_id() == 365796256) std::cout << comma_separated(node.values(columns, true)) << "\n\n";
-#endif
-            } else {
-                str = tab_separated(node.values(columns, false));
-#if 0
-                if (node.osm_id() == 365796256) std::cout << comma_separated(node.values(columns, false)) << "\n\n";
-#endif
-            }
             PQputline(mycon, str.c_str());
         }
 
@@ -408,9 +411,9 @@ void Export2DB::exportNodes(const Nodes &nodes) const {
         Xaction.exec(
                 " WITH data AS ("
                 " SELECT a.* "
-                " FROM  " + temp_table + " a LEFT JOIN  " + addSchema("osm_nodes") + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
+                " FROM  " + temp_table + " a LEFT JOIN  " + table.addSchema() + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
 
-                " INSERT INTO "  + addSchema("osm_nodes") +
+                " INSERT INTO "  +  table.addSchema() +
                 "(" + comma_separated(columns) + ") "
                 " (SELECT " + comma_separated(columns) + " FROM data); ");
 
@@ -425,8 +428,6 @@ void Export2DB::exportNodes(const Nodes &nodes) const {
 }
 
 
-void  Export2DB::processSectionExportNodes(const std::vector<std::string> &columns, pqxx::work &Xaction) const {
-}
 
 
 /*!

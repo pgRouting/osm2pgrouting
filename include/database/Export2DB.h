@@ -35,6 +35,7 @@
 #include "configuration/Class.h"
 #include "configuration/Configuration.h"
 #include "utilities/prog_options.h"
+#include "database/table_management.h"
 
 namespace osm2pgr {
 
@@ -46,6 +47,7 @@ namespace osm2pgr {
 class Export2DB {
  public:
      typedef std::vector<Node> Nodes;
+     typedef std::vector<Way> Ways;
      /**
       * Constructor 
       * @param vm variable map holding the configuration
@@ -69,7 +71,8 @@ class Export2DB {
      void createTables() const;
      void createTempTables() const;
      //! exports nodes to the database
-     void exportNodes(const Nodes &nodes) const;
+     void export_nodes(const Nodes &nodes) const;
+     void export_ways(const Ways &ways) const;
 
      //! exports ways to the database
      void exportTags(
@@ -93,10 +96,9 @@ class Export2DB {
 
  private:
 
+     void export_osm(const std::vector<std::string> &values, const Table &table) const;
+
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
-     void processSectionExportNodes(
-             const std::vector<std::string> &columns,
-             pqxx::work &Xaction) const;
 
      void dropTempTables() const;
      void dropTempTable(
@@ -171,6 +173,9 @@ class Export2DB {
      std::string create_way_tag;
      std::string create_types;
      std::string create_vertices;
+
+     Tables m_tables;
+
 };
 }  // namespace osm2pgr
 

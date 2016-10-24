@@ -42,6 +42,7 @@ class Relation;
 class OSMDocument {
  public:
     typedef std::vector<Node> Nodes;
+    typedef std::vector<Way> Ways;
 
     //! Constructor
     OSMDocument(
@@ -67,7 +68,6 @@ class OSMDocument {
 
     //! add node to the map
     void AddNode(const Node &n);
-    void export_nodes() const;
 
     //! add way to the map
     void AddWay(Way w);
@@ -90,11 +90,17 @@ class OSMDocument {
     void add_config(Way &way, const Tag &tag) const;
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
+ private:
+    void export_nodes() const;
+    void export_ways() const;
+    void wait_child() const;
+
 
  private:
     // ! parsed nodes TODO change to sorted vector
     Nodes m_nodes;
     //! parsed ways
+    Ways m_ways;
     std::map<int64_t, Way> m_Ways;
     //! parsed relations
     std::vector<Relation> m_Relations;
