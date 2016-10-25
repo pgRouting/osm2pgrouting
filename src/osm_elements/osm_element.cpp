@@ -40,7 +40,7 @@ Element::Element(const char **atts) :
             if (name == "visible") {
                 m_osm_id = boost::lexical_cast<bool>(value);
             }
-            m_attributes[name] = value;
+           m_attributes[name] = value;
         }
     }
 
@@ -173,6 +173,10 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
         if (column == "the_geom") {
             values.push_back(get_geometry());
             continue;
+        }
+
+        if (column == "nids") {
+            values.push_back(nodes_str());
         }
 
         if (column == "attributes") {

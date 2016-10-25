@@ -317,6 +317,16 @@ Way::insert_tags(const std::map<std::string, std::string> &tags) {
     }
 }
 
+std::string
+Way::nodes_str() const {
+    std::string node_list("{");
+    for (const auto &node_ref : m_NodeRefs) {
+        node_list += boost::lexical_cast<std::string>(node_ref->osm_id()) + ",";
+    } 
+    node_list[node_list.size() -1] = '}';
+    return node_list;
+}
+
 
 
 #ifndef NDEBUG

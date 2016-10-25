@@ -368,6 +368,7 @@ void Export2DB::export_osm_ways(const Ways &ways) const {
         auto way = *it;
         if (m_vm.count("hstore")) {
             values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), true));
+            if (i==0) std::cout << tab_separated(way.values(m_tables.osm_ways.columns(), true));
         } else {
             values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), false));
         }
@@ -381,10 +382,11 @@ void Export2DB::export_osm(const std::vector<std::string> &values, const Table &
     auto columns = table.columns();
     std::string temp_table(table.temp_name());
     auto sql1 = table.tmp_create();
-#if 0
-    std::cout << "\n" << sql1 << "\n";
-#endif
     std::string copy_nodes( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
+#if 1
+    std::cout << "\n" << sql1 << "\n";
+    std::cout << "\n" << comma_separated(columns) << "\n";
+#endif
 
     size_t count = 0;
     try {

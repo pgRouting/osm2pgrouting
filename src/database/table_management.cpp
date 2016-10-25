@@ -129,6 +129,7 @@ Tables::Tables(const  po::variables_map &vm) :
              /* standard column creation string */
              std::string(
                  " osm_id bigint PRIMARY KEY"
+                 " , nids bigint[] "
                  + (vm.count("attributes") ?
                      (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
                      : "")
@@ -169,6 +170,7 @@ Tables::Tables(const  po::variables_map &vm) :
          */ 
         std::vector<std::string> columns;
         columns.push_back("osm_id");
+        columns.push_back("nids");
         columns.push_back("the_geom");
         // TODO get from the configuration
         columns.push_back("tag_name");
