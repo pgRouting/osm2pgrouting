@@ -64,10 +64,19 @@ class Table {
 class Tables {
     public:
         Tables(const po::variables_map &vm);
+        const Table& get_table(const std::string &name) const {
+            if (name == "osm_nodes") return osm_nodes;
+            if (name == "osm_ways") return osm_ways;
+            if (name == "osm_relations") return osm_relations;
+            return osm_nodes;
+        }
+
+
 
         po::variables_map m_vm;
         Table osm_nodes;
         Table osm_ways;
+        Table osm_relations;
 };
 
 }

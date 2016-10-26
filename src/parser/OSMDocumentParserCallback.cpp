@@ -177,11 +177,12 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                     }
                 }
             }
-            m_rDocument.AddRelation(*last_relation);
         }
+        m_rDocument.AddRelation(*last_relation);
         delete last_relation;
 
     } else if (strcmp(name, "osm") == 0) {
+        m_rDocument.endOfFile();
         show_progress();
     }
 }

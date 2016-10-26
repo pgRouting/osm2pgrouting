@@ -222,8 +222,10 @@ int main(int argc, char* argv[]) {
             dbConnection.exportTypes(config.types());
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
+#if 0
             std::cout << "\nExport Relations ..." << endl;
             dbConnection.exportRelations(document.relations(), config);
+#endif
             std::cout << "\nExport Relations Ways ..." << endl;
             dbConnection.exportRelationsWays(document.relations(), config);
             std::cout << "\nexport Tags ..." << endl;

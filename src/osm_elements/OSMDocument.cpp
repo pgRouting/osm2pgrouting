@@ -66,9 +66,20 @@ OSMDocument::wait_child() const {
     }
 }
 
-void OSMDocument::AddNode(const Node &n) {
+template <typename T>
+static
+bool
+do_export_osm(const T &container, const po::variables_map &vm) {
+    return vm.count("addnodes") && (container.size() % vm["chunk"].as<size_t>()) == 0; 
+}
+
+
+
+void
+OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
-    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+    // if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+    if (do_export_osm(m_nodes, m_vm)) {
         wait_child();
         export_nodes();
     }
@@ -80,21 +91,39 @@ void OSMDocument::AddWay(const Way &w) {
         export_nodes();
         std::cout << "\nSaving first way\n\n\n";
     }
-    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+
+    m_ways.push_back(w);
+    // if (m_vm.count("addnodes") && (m_ways.size() % m_vm["chunk"].as<size_t>()) == 0) {
+    if (do_export_osm(m_ways, m_vm)) {
         wait_child();
         export_ways();
     }
-    m_ways.push_back(w);
 }
 
-void OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addnodes") && m_Relations.empty()) {
+void
+OSMDocument::AddRelation(const Relation &r) {
+    if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
         export_ways();
         std::cout << "\nSaving first relation\n\n\n";
     }
-    m_Relations.push_back(r);
+
+    m_relations.push_back(r);
+    if (do_export_osm(m_relations, m_vm)) {
+        wait_child();
+        export_relations();
+    }
 }
+
+void
+OSMDocument::endOfFile() const {
+    if (m_vm.count("addnodes")) {
+        wait_child();
+        export_relations();
+        std::cout << "\nEnd Of file\n\n\n";
+    }
+}
+
 
 template <typename T>
 static
@@ -216,6 +245,7 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
  */
 void
 OSMDocument::export_nodes() const {
+    if (m_nodes.empty()) return;
     auto pid = fork();
     if (pid < 0) {
         std::cerr << "Failed to fork" << endl;
@@ -236,7 +266,7 @@ OSMDocument::export_nodes() const {
 #endif
     auto nodes = Nodes(m_nodes.begin() + start, m_nodes.end());
 
-    m_db_conn.export_osm_nodes(nodes);
+    m_db_conn.export_osm(nodes, "osm_nodes");
 
     /*
      * finish the child process
@@ -252,6 +282,7 @@ OSMDocument::export_nodes() const {
  */
 void
 OSMDocument::export_ways() const {
+    if (m_ways.empty()) return;
     auto pid = fork();
     if (pid < 0) {
         std::cerr << "Failed to fork" << endl;
@@ -272,7 +303,41 @@ OSMDocument::export_ways() const {
 #endif
     auto ways = Ways(m_ways.begin() + start, m_ways.end());
 
-    m_db_conn.export_osm_ways(ways);
+    m_db_conn.export_osm(ways, "osm_ways");
+
+    /*
+     * finish the child process
+     */
+    exit(0);
+}
+
+/* @brief fork process to export a chunk of relations 
+ *
+ */
+void
+OSMDocument::export_relations() const {
+    if (m_relations.empty()) return;
+    auto pid = fork();
+    if (pid < 0) {
+        std::cerr << "Failed to fork" << endl;
+        // TODO throw
+        exit(1);
+    }
+    if (pid > 0) return;
+    /*
+     * TODO make it a member
+     */
+    size_t m_chunk_size =  m_vm["chunk"].as<size_t>();
+    /* todo end */
+
+    auto residue = m_relations.size() % m_chunk_size;
+    size_t start = residue? m_relations.size() - residue : m_relations.size() - m_chunk_size; 
+#if 1
+    std::cout << "\n\t" << getpid() << "\t\texporting relations" << start << " to " << m_relations.size() << "\t Total" << (m_relations.size() - start) << "\n";
+#endif
+    auto relations = Relations(m_relations.begin() + start, m_relations.end());
+
+    m_db_conn.export_osm(relations, std::string("osm_relations"));
 
     /*
      * finish the child process

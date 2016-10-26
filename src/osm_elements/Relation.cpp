@@ -57,6 +57,21 @@ Relation::add_member(const char **atts) {
     return osm_id;
 }
 
+std::string
+Relation::members_str() const {
+    std::string way_list("");
+    for (const auto &way_ref : m_WayRefs) {
+        way_list += boost::lexical_cast<std::string>(way_ref)
+        /*
+         * currently only adding way
+         */
+            + "=>\"type=>way,role=>TODO\"" + ",";
+    }
+    way_list[way_list.size() -1] = ' ';
+
+    return way_list;
+}
+
 
 }  // end namespace osm2pgr
 

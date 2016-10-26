@@ -129,7 +129,7 @@ Tables::Tables(const  po::variables_map &vm) :
              /* standard column creation string */
              std::string(
                  " osm_id bigint PRIMARY KEY"
-                 " , nids bigint[] "
+                 " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
                  + (vm.count("attributes") ?
                      (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
                      : "")
@@ -145,7 +145,37 @@ Tables::Tables(const  po::variables_map &vm) :
              /* constraint */
              "",
              /* geometry */
-             "LINESTRING")
+             "LINESTRING"),
+     osm_relations(
+             /* schema */
+             vm["schema"].as<std::string>(),
+             /* prefix */
+             "",
+             /* name */
+             "osm_relations",
+             /* suffix */
+             "",
+             /* standard column creation string */
+             std::string(
+                 " osm_id bigint PRIMARY KEY"
+                 " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
+                 + (vm.count("attributes") ?
+                     (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
+                     : "")
+                 + (vm.count("tags") ?
+                     (std::string(", tags ") + (vm.count("hstore") ? "hstore" : "json"))
+                     : "")
+                 ),
+             /* other columns */
+             // TODO get from the configuration maybe this task is to be done on the configuration*/
+             ", tag_name TEXT"
+             ", tag_value TEXT"
+             ", name TEXT ",
+             // end todo
+             /* constraint */
+             "",
+             /* geometry */
+             "")
 {
     {
         /*
@@ -170,8 +200,7 @@ Tables::Tables(const  po::variables_map &vm) :
          */ 
         std::vector<std::string> columns;
         columns.push_back("osm_id");
-        columns.push_back("nids");
-        columns.push_back("the_geom");
+        columns.push_back("members");
         // TODO get from the configuration
         columns.push_back("tag_name");
         columns.push_back("tag_value");
@@ -179,7 +208,25 @@ Tables::Tables(const  po::variables_map &vm) :
         // end todo
         if (m_vm.count("attributes")) columns.push_back("attributes");
         if (m_vm.count("tags")) columns.push_back("tags");
+        columns.push_back("the_geom");
         osm_ways.set_columns(columns);
+    }
+
+    {
+        /*
+         * configuring osm_relations
+         */ 
+        std::vector<std::string> columns;
+        columns.push_back("osm_id");
+        columns.push_back("members");
+        // TODO get from the configuration
+        columns.push_back("tag_name");
+        columns.push_back("tag_value");
+        columns.push_back("name");
+        // end todo
+        if (m_vm.count("attributes")) columns.push_back("attributes");
+        if (m_vm.count("tags")) columns.push_back("tags");
+        osm_relations.set_columns(columns);
     }
 }
 

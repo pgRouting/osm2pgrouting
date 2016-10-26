@@ -70,7 +70,8 @@ Element::get_attribute(const std::string& key) const {
     return m_attributes.find(key)->second;
 }
 
-std::string Element::attributes_str() const {
+std::string
+Element::attributes_str() const {
     if (m_tags.empty()) return "\"\"";
     std::string str("\"");
     for (auto it = m_attributes.begin(); it != m_attributes.end(); ++it) {
@@ -81,7 +82,8 @@ std::string Element::attributes_str() const {
     return str;
 }
 
-std::string Element::tags_str() const {
+std::string
+Element::tags_str() const {
     if (m_tags.empty()) return "";
     std::string str("\"");
     for (auto it = m_tags.begin(); it != m_tags.end(); ++it) {
@@ -175,8 +177,9 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
             continue;
         }
 
-        if (column == "nids") {
-            values.push_back(nodes_str());
+        if (column == "members") {
+            values.push_back(members_str());
+            continue;
         }
 
         if (column == "attributes") {

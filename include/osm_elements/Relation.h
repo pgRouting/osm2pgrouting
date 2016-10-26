@@ -69,6 +69,7 @@ class Relation : public Element{
       *    @param atts member attributes read py the parser
       */
      int64_t add_member(const char **atts);
+     std::string members_str() const;
 
  private:
      std::vector<int64_t> m_WayRefs;

@@ -303,7 +303,9 @@ void Export2DB::createTables() const {
     createTable(create_relations_ways, addSchema(full_table_name("relations_ways")));
 
     //  the following are general tables
+#if 0
     createTable(create_relations,  addSchema("osm_relations"));
+#endif
     createTable(create_way_tag, addSchema("osm_way_tags"));
     createTable(create_types, addSchema("osm_way_types"));
     createTable(create_classes, addSchema("config_classes"));
@@ -312,6 +314,7 @@ void Export2DB::createTables() const {
         pqxx::work Xaction(db_conn);
         Xaction.exec(m_tables.osm_nodes.create());
         Xaction.exec(m_tables.osm_ways.create());
+        Xaction.exec(m_tables.osm_relations.create());
         Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
@@ -344,49 +347,16 @@ void Export2DB::dropTables() const {
 }
 
 
-void Export2DB::export_osm_nodes(const Nodes &nodes) const {
-    std::cout << "    Exporting nodes to DB ";
-    std::vector<std::string> values(nodes.size(), "");
-    size_t i(0);
-    for (auto it = nodes.begin(); it != nodes.end(); ++it, ++i) {
-        auto node = *it;
-        if (m_vm.count("hstore")) {
-            values[i] = tab_separated(node.values(m_tables.osm_nodes.columns(), true));
-        } else {
-            values[i] = tab_separated(node.values(m_tables.osm_nodes.columns(), false));
-        }
-    }
 
-    export_osm(values, m_tables.osm_nodes);
-}
-
-void Export2DB::export_osm_ways(const Ways &ways) const {
-    std::cout << "    Exporting ways to DB ";
-    std::vector<std::string> values(ways.size(), "");
-    size_t i(0);
-    for (auto it = ways.begin(); it != ways.end(); ++it, ++i) {
-        auto way = *it;
-        if (m_vm.count("hstore")) {
-            values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), true));
-            if (i==0) std::cout << tab_separated(way.values(m_tables.osm_ways.columns(), true));
-        } else {
-            values[i] = tab_separated(way.values(m_tables.osm_ways.columns(), false));
-        }
-    }
-
-    export_osm(values, m_tables.osm_ways);
-}
-
-void Export2DB::export_osm(const std::vector<std::string> &values, const Table &table) const {
+void
+Export2DB::export_osm(
+        const std::vector<std::string> &values,
+        const Table &table) const {
 
     auto columns = table.columns();
     std::string temp_table(table.temp_name());
-    auto sql1 = table.tmp_create();
-    std::string copy_nodes( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
-#if 1
-    std::cout << "\n" << sql1 << "\n";
-    std::cout << "\n" << comma_separated(columns) << "\n";
-#endif
+    auto create_sql = table.tmp_create();
+    std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
     size_t count = 0;
     try {
@@ -396,9 +366,8 @@ void Export2DB::export_osm(const std::vector<std::string> &values, const Table &
         pqxx::work Xaction(db_con);
         PGconn *mycon = PQconnectdb(conninf.c_str());
 
-        PGresult *res = PQexec(mycon, sql1.c_str());
-        // res = PQexec(mycon, sql2.c_str());
-        res = PQexec(mycon, copy_nodes.c_str());
+        PGresult *res = PQexec(mycon, create_sql.c_str());
+        res = PQexec(mycon, copy_sql.c_str());
 
         for (auto it = values.begin(); it != values.end(); ++it) {
             auto str = *it;
@@ -425,7 +394,7 @@ void Export2DB::export_osm(const std::vector<std::string> &values, const Table &
 
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While exporting nodes  TODO insert one by one skip the guilty one\n";
+        std::cerr << "While exporting to " << table.addSchema() << " TODO insert one by one skip the guilty one\n";
     }
 }
 
@@ -953,10 +922,10 @@ void Export2DB::createFKeys() {
         std::cout << "Foreign keys for " + addSchema("osm_way_tags") + " table created" << std::endl;
     }
 
-    std::string fk_relations(
-            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
-    result = PQexec(mycon, fk_relations.c_str());
 #if 0
+    std::string fk_relations(
+            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(osm_id); ");
+    result = PQexec(mycon, fk_relations.c_str());
     // its not working as there are several ways with the same osm_id
     // the gid is not possible because that is "on the fly" sequential
     "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");

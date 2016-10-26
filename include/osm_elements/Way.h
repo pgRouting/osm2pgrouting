@@ -67,7 +67,7 @@ class Way : public Element {
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
 
 
-     std::string nodes_str() const;
+     std::string members_str() const;
 
  public:
      inline void maxspeed_forward(double p_max) {m_maxspeed_forward = p_max;}
@@ -125,7 +125,6 @@ class Way : public Element {
 
      double m_maxspeed_forward;
      double m_maxspeed_backward;
-
      std::string m_oneWay;
 };
 

@@ -43,6 +43,7 @@ class OSMDocument {
  public:
     typedef std::vector<Node> Nodes;
     typedef std::vector<Way> Ways;
+    typedef std::vector<Relation> Relations;
 
     //! Constructor
     OSMDocument(
@@ -64,13 +65,12 @@ class OSMDocument {
 
     const Nodes& nodes() const {return m_nodes;}
     const Ways& ways() const {return m_ways;}
-    const std::vector<Relation>& relations() const {return m_Relations;}
+    const Relations& relations() const {return m_relations;}
 
-    //! add node to the map
     void AddNode(const Node &n);
-
-    //! add way to the map
     void AddWay(const Way &w);
+    void AddRelation(const Relation &r);
+    void endOfFile() const;
 
     //! find node by using an ID
     bool has_node(int64_t nodeRefId) const;
@@ -79,7 +79,6 @@ class OSMDocument {
     bool has_way(int64_t way_id) const;
     Way* FindWay(int64_t way_id);
 
-    void AddRelation(const Relation &r);
 
     void add_node(Way &way, const char **atts);
 
@@ -93,6 +92,7 @@ class OSMDocument {
  private:
     void export_nodes() const;
     void export_ways() const;
+    void export_relations() const;
     void wait_child() const;
 
 
@@ -101,11 +101,8 @@ class OSMDocument {
     Nodes m_nodes;
     //! parsed ways
     Ways m_ways;
-#if 0
-    std::map<int64_t, Way> m_Ways;
-#endif
     //! parsed relations
-    std::vector<Relation> m_Relations;
+    Relations  m_relations;
 
     const Configuration& m_rConfig;
     po::variables_map m_vm;

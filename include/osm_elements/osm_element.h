@@ -83,7 +83,7 @@ class Element {
      std::vector<std::string> values(
              const std::vector<std::string> &columns,
              bool is_hstore) const;
-     virtual std::string nodes_str() const {return std::string();};
+     virtual std::string members_str() const {return std::string();};
 
  protected:
      // ! OSM ID of the element

@@ -48,6 +48,7 @@ class Export2DB {
  public:
      typedef std::vector<Node> Nodes;
      typedef std::vector<Way> Ways;
+     typedef std::vector<Relation> Relations;
      /**
       * Constructor 
       * @param vm variable map holding the configuration
@@ -71,9 +72,34 @@ class Export2DB {
      void createTables() const;
      void createTempTables() const;
 
-     //! exports nodes to the database
-     void export_osm_nodes(const Nodes &nodes) const;
-     void export_osm_ways(const Ways &ways) const;
+
+     /** @brief export values to osm_* table
+      *
+      * T must have:
+      *     T.values
+      *
+      * @params[in] itmes  vector of values to be inserted into
+      * @params[in] table 
+      */
+     template <typename T>
+         void export_osm (
+                 std::vector<T> &items,
+                 const std::string &osm_name) const {
+             auto osm_table = m_tables.get_table(osm_name);
+             std::vector<std::string> values(items.size(), "");
+
+             size_t i(0);
+             for (auto it = items.begin(); it != items.end(); ++it, ++i) {
+                 auto item = *it;
+                 if (m_vm.count("hstore")) {
+                     values[i] = tab_separated(item.values(osm_table.columns(), true));
+                 } else {
+                     values[i] = tab_separated(item.values(osm_table.columns(), false));
+                 }
+             }
+
+             export_osm(values, osm_table);
+         }
 
 
      //! exports ways to the database
@@ -100,7 +126,9 @@ class Export2DB {
 
  private:
 
-     void export_osm(const std::vector<std::string> &values, const Table &table) const;
+     void export_osm(
+             const std::vector<std::string> &values,
+             const Table &table) const;
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
 
