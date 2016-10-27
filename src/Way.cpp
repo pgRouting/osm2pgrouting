@@ -236,12 +236,9 @@ Way::pedestrian(const std::string &key, const std::string &value) {
 
 bool
 Way::is_number(const std::string& s) const {
-    auto str = s;
-    remove_if(str.begin(), str.end(), isspace);
-    auto it = str.begin();
-    for (; it != str.end() && std::isdigit(*it);
-            ++it) {}
-    return !str.empty() && it == s.end();
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }
 
 
@@ -250,16 +247,19 @@ Way::is_number(const std::string& s) const {
  */
 double
 Way::get_kph(const std::string &value) const {
-    auto mph_pos = value.find("mph");
+    auto mph_pos = value.find(" mph");
     if (mph_pos != std::string::npos) {
+        std::cout << "\n" << value;
         auto newstr = value;
         newstr.erase(mph_pos, std::string::npos);
+        std::cout << "\t|" << newstr << "|";
         if (is_number(newstr)) {
+            std:: cout << "\t" << boost::lexical_cast<double>(newstr) * 1.609346;
             return boost::lexical_cast<double>(newstr) * 1.609346;
         }
     }
 
-    mph_pos = value.find("knots");
+    mph_pos = value.find(" knots");
     if (mph_pos != std::string::npos) {
         auto newstr = value;
         newstr.erase(mph_pos, std::string::npos);
@@ -287,16 +287,21 @@ void
 Way::max_speed(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
-    if (key == "maxspeed:forward") {
+    if (key == "maxspeed:forward" && m_maxspeed_forward <=0) {
         m_maxspeed_forward = get_kph(value);
         return;
     }
-    if (key == "maxspeed:backward") {
+    if (key == "maxspeed:backward" && m_maxspeed_backward <=0) {
         m_maxspeed_backward = get_kph(value);
         return;
     }
     if (key == "maxspeed") {
-        m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
+        if (m_maxspeed_forward <=0) { 
+            m_maxspeed_forward = get_kph(value);
+        }
+        if (m_maxspeed_backward <=0) {
+            m_maxspeed_backward = get_kph(value);
+        }
         return;
     }
 }
