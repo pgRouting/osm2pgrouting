@@ -95,6 +95,13 @@ class OSMDocument {
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:
+    template <typename T> bool
+    do_export_osm(const T &container) {
+        return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
+    }
+
+
+
     void wait_child() const;
 
     template <typename T> void

@@ -67,19 +67,11 @@ OSMDocument::wait_child() const {
     }
 }
 
-template <typename T>
-static
-bool
-do_export_osm(const T &container, const po::variables_map &vm) {
-    return vm.count("addnodes") && (container.size() % m_chunk_size) == 0; 
-}
-
-
 
 void
 OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
-    if (do_export_osm(m_nodes, m_vm)) {
+    if (do_export_osm(m_nodes)) {
         wait_child();
         osm_table_export(m_nodes, "osm_nodes");
     }
@@ -93,7 +85,7 @@ void OSMDocument::AddWay(const Way &w) {
     }
 
     m_ways.push_back(w);
-    if (do_export_osm(m_ways, m_vm)) {
+    if (do_export_osm(m_ways)) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
     }
@@ -108,7 +100,7 @@ OSMDocument::AddRelation(const Relation &r) {
     }
 
     m_relations.push_back(r);
-    if (do_export_osm(m_relations, m_vm)) {
+    if (do_export_osm(m_relations)) {
         wait_child();
         osm_table_export(m_relations, "osm_relations");
     }
