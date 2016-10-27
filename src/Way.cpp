@@ -249,12 +249,9 @@ double
 Way::get_kph(const std::string &value) const {
     auto mph_pos = value.find(" mph");
     if (mph_pos != std::string::npos) {
-        std::cout << "\n" << value;
         auto newstr = value;
         newstr.erase(mph_pos, std::string::npos);
-        std::cout << "\t|" << newstr << "|";
         if (is_number(newstr)) {
-            std:: cout << "\t" << boost::lexical_cast<double>(newstr) * 1.609346;
             return boost::lexical_cast<double>(newstr) * 1.609346;
         }
     }

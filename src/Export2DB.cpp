@@ -499,10 +499,10 @@ void Export2DB::exportRelations(
     std::string insert_into_relations(
             " WITH data AS ("
             " SELECT a.* "
-            " FROM  __relations_temp a LEFT JOIN " +  addSchema(full_table_name("osm_relations")) + " b USING (relation_id, type_id, class_id)"
+            " FROM  __relations_temp a LEFT JOIN " +  addSchema("osm_relations") + " b USING (relation_id, type_id, class_id)"
             "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL OR b.class_id IS NULL))"
 
-            " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
+            " INSERT INTO " + addSchema("osm_relations")  + " "
             "(" + relations_columns + ") "
             " (SELECT " + relations_columns + " FROM data); ");
     q_result = PQexec(mycon, insert_into_relations.c_str());
@@ -512,7 +512,7 @@ void Export2DB::exportRelations(
             << PQerrorMessage(mycon)
             << std::endl;
     } else {
-        std::cout << "\tInserted: " << PQcmdTuples(q_result) << " in " << addSchema(full_table_name("osm_relations")) << "\n";
+        std::cout << "\tInserted: " << PQcmdTuples(q_result) << " in " << addSchema("osm_relations") << "\n";
     }
 
     PQclear(q_result);
