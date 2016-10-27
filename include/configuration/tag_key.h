@@ -18,40 +18,54 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <boost/lexical_cast.hpp>
-#include <string>
+
+#ifndef SRC_TYPE_H_
+#define SRC_TYPE_H_
+
 #include <map>
-#include "configuration/Class.h"
-#include "configuration/Type.h"
+#include <cstdint>
+#include <string>
+#include "./tag_value.h"
 
 namespace osm2pgr {
 
-void Type::AddClass(const Class &pClass) {
-    m_Classes[pClass.name()] = pClass;
-}
+class Tag_key {
+ public:
+    Tag_key() = default;
+    Tag_key(const Tag_key &) = default;
+    /**
+     *    @param atts attributes read py the parser
+     */
+    explicit Tag_key(const char **atts);
 
+    inline int64_t id() const {return m_id;}
 
-Type::Type(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name == "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
+    inline std::string name() const {return m_name;}
+    void add_class(const char **atts);
+    std::map<std::string, Tag_value> classes() const {
+        return m_Tag_values;
     }
-}
+    std::map<std::string, Tag_value>& classes() {
+        return m_Tag_values;
+    }
 
-void
-Type::add_class(const char **atts) {
-    AddClass(Class(atts));
-}
+    inline bool has_class(const std::string &class_name) const {
+        return m_Tag_values.count(class_name);
+    }
 
+ private:
+    /**
+     *    saves the classes of the type
+     *    @param pTag_value class
+     */
+    void AddTag_value(const Tag_value &pTag_value);
 
-}  // end namespace osm2pgr
+ private:
+    std::map<std::string, Tag_value> m_Tag_values;
+    int64_t m_id;
+    std::string m_name;
+    std::map<std::string, std::string> m_tags;
+};
+
+}  // namespace osm2pgr
+#endif  // SRC_TYPE_H_

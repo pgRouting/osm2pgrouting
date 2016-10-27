@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
 
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
-        auto skipnodes(!vm.count("addnodes"));
         auto clean(vm.count("clean"));
 
         handle_pgpass(vm);
@@ -218,8 +217,8 @@ int main(int argc, char* argv[]) {
                 dbConnection.exportNodes(document.nodes());
             }
 #endif
-            std::cout << "\nExport Types ..." << endl;
-            dbConnection.exportTypes(config.types());
+            std::cout << "\nExport configuration Tag keys ..." << endl;
+            dbConnection.exportTag_keys(config.types());
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
 #if 0

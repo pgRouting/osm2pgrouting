@@ -60,6 +60,7 @@ class Element {
      inline bool visible() const {return m_visible;}
      inline void tag_config(const Tag &tag) {m_tag_config = tag;}
      inline Tag tag_config() const {return m_tag_config;}
+     bool is_tag_configured() const;
 
 
 

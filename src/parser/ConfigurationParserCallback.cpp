@@ -24,9 +24,11 @@
 
 #include <string>
 #include "osm_elements/OSMDocument.h"
-#include "configuration/Configuration.h"
-#include "configuration/Type.h"
-#include "configuration/Class.h"
+#include "configuration/configuration.h"
+#if 0
+#include "configuration/tag_key.h"
+#include "configuration/tag_value.h"
+#endif
 
 namespace osm2pgr {
 
@@ -39,7 +41,7 @@ void ConfigurationParserCallback::StartElement(
     if (strcmp(name, "class") == 0) {
          m_current->add_class(atts);
     } else if (strcmp(name, "type") == 0) {
-        m_current = new Type(atts);
+        m_current = new Tag_key(atts);
     } else if (strcmp(name, "configuration") == 0) {
     }
 }
@@ -47,7 +49,7 @@ void ConfigurationParserCallback::StartElement(
 
 void ConfigurationParserCallback::EndElement(const char* name) {
     if (strcmp(name, "type") == 0) {
-        m_config.AddType(*m_current);
+        m_config.AddTag_key(*m_current);
         delete m_current;
     }
 }

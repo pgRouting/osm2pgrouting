@@ -29,7 +29,7 @@
 #include <sys/wait.h>
 #include "utilities/utilities.h"
 #include "osm_elements/OSMDocument.h"
-#include "configuration/Configuration.h"
+#include "configuration/configuration.h"
 #include "osm_elements/Node.h"
 #include "osm_elements/Relation.h"
 #include "osm_elements/Way.h"
@@ -78,7 +78,6 @@ do_export_osm(const T &container, const po::variables_map &vm) {
 void
 OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
-    // if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
     if (do_export_osm(m_nodes, m_vm)) {
         wait_child();
         export_nodes();
@@ -163,6 +162,10 @@ OSMDocument::add_node(Way &way, const char **atts) {
     std::string key = *attribut++;
     std::string value = *attribut++;
     auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
+    way.add_node(node_id);
+
+#if 1
+    // TODO leave this when splitting
     if (!has_node(node_id)) {
         ++m_nodeErrs;
     } else {
@@ -170,28 +173,29 @@ OSMDocument::add_node(Way &way, const char **atts) {
         node->incrementUse();
         way.add_node(node);
     }
+#endif
 }
+
+/*
+ * for example
+ *  <tag highway="kerb">
+ *  
+ *
+ * And the configuration file has:
+ * <type name="highway" id="1">
+ *     <class name="kerb" id="101" priority="1.0" maxspeed="130" />
+ *
+ * max_speed currently ignored for nodes
+ */
 
 void
 OSMDocument::add_config(Node &node, const Tag &tag) const {
     auto  k = tag.key();
     auto  v = tag.value();
-    /*
-     * for example
-     *  <tag highway="kerb">
-     *  
-     *
-     * And the configuration file has:
-     * <type name="highway" id="1">
-     *     <class name="kerb" id="101" priority="1.0" maxspeed="130" />
-     *
-     * max_speed currently ignored for nodes
-     */
-    if (m_rConfig.has_class(tag)) {
-        if ((node.tag_config().key() == "" && node.tag_config().value() == "")
-                || (
-                    m_rConfig.has_class(tag)
-                    && m_rConfig.has_class(node.tag_config())
+    if (config_has_tag(tag)) {
+        if (!(node.is_tag_configured())
+                || (config_has_tag(tag)
+                    && config_has_tag(node.tag_config())
                     && m_rConfig.class_priority(tag)
                     < m_rConfig.class_priority(node.tag_config())
                    )) {
@@ -204,29 +208,17 @@ void
 OSMDocument::add_config(Way &way, const Tag &tag) const {
     auto  k = tag.key();
     auto  v = tag.value();
-    /*
-     * for example
-     *  <tag highway=motorway>    // k = highway  v = motorway
-     *  <tag highway=path>    // k = highway  v = motorway
-     *
-     * And the configuration file has:
-     * <type name="highway" id="1">
-     *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
-     *     // there is no class name="path"
-     */
-    if (m_rConfig.has_class(tag)) {
-        if ((way.tag_config().key() == "" && way.tag_config().value() == "")
-                || (
-                    m_rConfig.has_class(tag)
-                    && m_rConfig.has_class(way.tag_config())
-                    && m_rConfig.class_priority(tag)
-                    < m_rConfig.class_priority(way.tag_config())
+    if (config_has_tag(tag)) {
+        if (!(way.is_tag_configured()) 
+                || (config_has_tag(tag)
+                    && config_has_tag(way.tag_config())
+                    && m_rConfig.class_priority(tag) < m_rConfig.class_priority(way.tag_config())
                    )
            ) {
             way.tag_config(tag);
 
-            if (m_rConfig.has_class(way.tag_config())) {
-                way.add_tag(tag);
+#if 0
+            if (config_has_tag(way.tag_config())) {
 
                 auto newValue = m_rConfig.class_default_maxspeed(way.tag_config());
                 if (way.maxspeed_forward() <= 0) {
@@ -236,6 +228,23 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
                     way.maxspeed_backward(newValue);
                 }
             }
+#endif
+        }
+    }
+}
+
+void
+OSMDocument::add_config(Relation &relation, const Tag &tag) const {
+    auto  k = tag.key();
+    auto  v = tag.value();
+    if (config_has_tag(tag)) {
+        if (!(relation.is_tag_configured())
+                || (config_has_tag(tag)
+                    && config_has_tag(relation.tag_config())
+                    && m_rConfig.class_priority(tag)
+                    < m_rConfig.class_priority(relation.tag_config())
+                   )) {
+            relation.tag_config(tag);
         }
     }
 }

@@ -25,7 +25,7 @@
 #include <map>
 #include <vector>
 #include "utilities/utilities.h"
-#include "configuration/Configuration.h"
+#include "configuration/configuration.h"
 #include "utilities/prog_options.h"
 #include "database/Export2DB.h"
 
@@ -53,8 +53,10 @@ class OSMDocument {
             size_t lines);
 
     inline size_t lines() const {return m_lines;}
-    inline bool has_class(const Tag &tag) const {
-        return m_rConfig.has_class(tag);
+
+    //! Do the configuration has the @b tag ?
+    inline bool config_has_tag(const Tag &tag) const {
+        return m_rConfig.has_tag(tag);
     }
     inline double class_priority(const Tag &tag) const {
         return m_rConfig.class_priority(tag);
@@ -87,6 +89,11 @@ class OSMDocument {
      */
     void add_config(Node &node, const Tag &tag) const;
     void add_config(Way &way, const Tag &tag) const;
+    void add_config(Relation &relation, const Tag &tag) const;
+
+    inline double get_tag_maxspeed(const Tag &tag) const {
+        return m_rConfig.class_default_maxspeed(tag);
+    }
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:

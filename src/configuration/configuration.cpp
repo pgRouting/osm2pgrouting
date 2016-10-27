@@ -18,40 +18,42 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+
+#include "configuration/configuration.h"
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <string>
-
+#if 0
+#include "osm_elements/osm_tag.h"
+#include "configuration/Tag_key.h"
 #include "configuration/Class.h"
-
+#endif
 
 namespace osm2pgr {
 
 
-Class::Class(const char **atts) :
-    m_priority(0),
-    m_default_maxspeed(50) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name ==  "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else if (name == "priority") {
-            m_priority = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed") {
-            m_default_maxspeed = boost::lexical_cast<int>(value);
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
+void Configuration::AddTag_key(Tag_key t) {
+    if (has_type(t.name())) {
+        std::cerr << "duplicate Tag_key found in condfiguration file"
+            << t.name() << "\n";
+        return;
     }
+    m_Tag_keys[t.name()] = t;
 }
 
+Tag_key& Configuration::FindTag_key(std::string name) {
+    return m_Tag_keys.at(name);
+}
+Tag_key Configuration::FindTag_key(std::string name) const {
+    return m_Tag_keys.at(name);
+}
 
+Tag_value Configuration::FindTag_value(const Tag &tag) const {
+    return m_Tag_keys.at(tag.key()).classes()[tag.value()];
+}
 
-
+std::string Configuration::priority_str(const Tag &tag) const {
+    return  boost::lexical_cast<std::string>(FindTag_value(tag).priority());
+}
 
 }  // end namespace osm2pgr

@@ -24,51 +24,63 @@
 
 #include <string>
 #include <map>
-#include "configuration/Type.h"
+#include "configuration/tag_key.h"
+#include "configuration/tag_value.h"
 #include "osm_elements/osm_tag.h"
-#include "configuration/Class.h"
 
 namespace osm2pgr {
 
-/**
-A configuration document.
+/** @brief A configuration document.
+
+@code
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <type name="highway" id="1">
+      <class name="motorway" id="101" />
+      <class name="motorway_link" id="102" />
+   </type>  
+</configuration>
+@endcode
+
 */
 class Configuration {
  public:
-     //! Constructor
      Configuration() = default;
 
-     //! add node to the map
-     void AddType(Type t);
-     Type FindType(std::string typeName) const;
-     Type& FindType(std::string typeName);
-     Class FindClass(const Tag &tag) const;
+     //! @brief found a <type name="highway" id="1">
+     void AddTag_key(Tag_key t);
+
+     Tag_key FindTag_key(std::string typeName) const;
+     Tag_key& FindTag_key(std::string typeName);
+
+     Tag_value FindTag_value(const Tag &tag) const;
      std::string priority_str(const Tag &tag) const;
 
 
-     inline size_t has_class(const Tag &tag) const {
+     
+     inline size_t has_tag(const Tag &tag) const {
          return has_type(tag.key())
-             && m_Types.at(tag.key()).has_class(tag.value());
+             && m_Tag_keys.at(tag.key()).has_class(tag.value());
      }
 
      double class_default_maxspeed(const Tag &tag) const {
-         return m_Types.at(
+         return m_Tag_keys.at(
                  tag.key()).classes().at(tag.value()).default_maxspeed();
      }
 
      double class_priority(const Tag &tag) const {
-         return m_Types.at(tag.key()).classes().at(tag.value()).priority();
+         return m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority();
      }
 
-     const std::map<std::string, Type>& types() const {return m_Types;}
+     const std::map<std::string, Tag_key>& types() const {return m_Tag_keys;}
 
      inline bool has_type(const std::string &type_name) const {
-         return m_Types.count(type_name) != 0;
+         return m_Tag_keys.count(type_name) != 0;
      }
 
  private:
      //! Map, which saves the parsed types
-     std::map<std::string, Type> m_Types;
+     std::map<std::string, Tag_key> m_Tag_keys;
 };
 
 

@@ -96,12 +96,12 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " one_way int, "  //  0 unknown, 1 yes(normal direction), 2 (2 way),
                 //  -1 reversed (1 way but geometry is reversed)
                 //  3 - reversible (one way street but direction chnges on time)
-                " maxspeed_forward integer,"
-                    " maxspeed_backward integer,"
-                    " osm_id bigint,"
-                    " source_osm bigint,"
-                    " target_osm bigint,"
-                    " priority double precision DEFAULT 1");
+                " maxspeed_forward double precision,"
+                " maxspeed_backward double precision,"
+                " osm_id bigint,"
+                " source_osm bigint,"
+                " target_osm bigint,"
+                " priority double precision DEFAULT 1");
 
         create_relations = std::string(
                 "relation_id bigint PRIMARY KEY,"
@@ -130,7 +130,7 @@ int Export2DB::connect() {
     cout << conninf << endl;
     mycon = PQconnectdb(conninf.c_str());
 
-    ConnStatusType type = PQstatus(mycon);
+    auto type = PQstatus(mycon);
     if (type == CONNECTION_BAD) {
         cout << "connection failed: "<< PQerrorMessage(mycon) << endl;
         return 1;
@@ -487,8 +487,8 @@ void Export2DB::exportRelations(
 
             std::vector<std::string> values;
             values.push_back(TO_STR(relation.osm_id()));
-            values.push_back(TO_STR(config.FindType(relation.tag_config().key()).id()));
-            values.push_back(TO_STR(config.FindClass(relation.tag_config()).id()));
+            values.push_back(TO_STR(config.FindTag_key(relation.tag_config().key()).id()));
+            values.push_back(TO_STR(config.FindTag_value(relation.tag_config()).id()));
             values.push_back(relation.tag_config().key() + "=" + relation.tag_config().value());
             tw.insert(values);
         }
@@ -539,7 +539,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
                 std::vector<std::string> values;
                 values.push_back(TO_STR(relation.osm_id()));
                 values.push_back(TO_STR(way_id));
-                values.push_back(TO_STR(config.FindType(relation.tag_config().key()).id()));
+                values.push_back(TO_STR(config.FindTag_key(relation.tag_config().key()).id()));
                 tw.insert(values);
             }
         }
@@ -585,7 +585,7 @@ void Export2DB::exportTags(const Ways &ways, const Configuration &config) const 
 
             if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
             std::vector<std::string> values;
-            values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
+            values.push_back(TO_STR(config.FindTag_value(way.tag_config()).id()));
             values.push_back(TO_STR(way.osm_id()));
             tw.insert(values);
         }
@@ -680,7 +680,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
 
                 std::vector<std::string> common_values;
-                common_values.push_back(TO_STR(config.FindClass(way.tag_config()).id()));
+                common_values.push_back(TO_STR(config.FindTag_value(way.tag_config()).id()));
                 common_values.push_back(TO_STR(way.osm_id()));
                 common_values.push_back(way.maxspeed_forward_str());
                 common_values.push_back(way.maxspeed_backward_str());
@@ -778,7 +778,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
+void Export2DB::exportTag_keys(const std::map<std::string, Tag_key> &types)  const {
     std::cout << "    Processing " << types.size() << " types into " <<  addSchema("osm_way_types") << ":";
 
     std::vector<std::string> columns;
@@ -825,7 +825,7 @@ void Export2DB::exportTypes(const std::map<std::string, Type> &types)  const {
 
 
 
-void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
+void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  const {
     std::cout << "    Processing " << addSchema("config_classes") << ": ";
 
     std::string copy_classes(
@@ -854,7 +854,7 @@ void Export2DB::exportClasses(const std::map<std::string, Type> &types)  const {
 
             for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
                 auto c = *it_c;
-                Class clss(c.second);
+                Tag_value clss(c.second);
                 std::vector<std::string> values;
                 values.push_back(TO_STR(clss.id()));
                 values.push_back(TO_STR(type.id()));

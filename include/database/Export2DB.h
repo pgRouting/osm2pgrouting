@@ -31,9 +31,11 @@
 #include "osm_elements/Node.h"
 #include "osm_elements/Way.h"
 #include "osm_elements/Relation.h"
-#include "configuration/Type.h"
+#if 0
+#include "configuration/Tag_key.h"
 #include "configuration/Class.h"
-#include "configuration/Configuration.h"
+#endif
+#include "configuration/configuration.h"
 #include "utilities/prog_options.h"
 #include "database/table_management.h"
 
@@ -113,8 +115,8 @@ class Export2DB {
      void exportRelationsWays(
              const std::vector<Relation> &relations,
              const Configuration &config) const;
-     void exportTypes(const std::map<std::string, Type>& types) const;
-     void exportClasses(const std::map<std::string, Type>& types) const;
+     void exportTag_keys(const std::map<std::string, Tag_key>& types) const;
+     void exportClasses(const std::map<std::string, Tag_key>& types) const;
 
      void exportWays(
              const Ways &ways,

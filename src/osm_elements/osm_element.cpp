@@ -60,6 +60,13 @@ Element::get_tag(const std::string& key) const {
     return m_tags.find(key)->second;
 }
 
+
+bool
+Element::is_tag_configured() const {
+        return (m_tag_config.key() != "" && m_tag_config.value() != "");
+}
+
+
 bool
 Element::has_attribute(const std::string& key) const {
     return m_attributes.find(key) != m_attributes.end();

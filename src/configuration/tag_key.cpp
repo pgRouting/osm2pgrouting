@@ -18,34 +18,39 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef SRC_CLASS_H_
-#define SRC_CLASS_H_
-
-#include <map>
+#include "configuration/tag_key.h"
+#include <boost/lexical_cast.hpp>
 #include <string>
+#include <map>
 
 namespace osm2pgr {
 
-class Class {
- public:
-     Class() = default;
-     Class(const Class &) = default;
-     explicit Class(const char ** attributes);
+void Tag_key::AddTag_value(const Tag_value &pTag_value) {
+    m_Tag_values[pTag_value.name()] = pTag_value;
+}
 
 
-     inline int64_t id() const {return m_id;}
-     inline std::string name() const {return m_name;}
-     inline double priority() const {return m_priority;}
-     inline double default_maxspeed() const {return m_default_maxspeed;}
+Tag_key::Tag_key(const char **atts) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name == "id") {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (name == "name") {
+            m_name = value;
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            m_tags[tag_key] = tag_value;
+        }
+    }
+}
 
- private:
-    int64_t m_id;
-    std::string m_name;
-    double m_priority;
-    double m_default_maxspeed;
-    std::map<std::string, std::string> m_tags;
-};
+void
+Tag_key::add_class(const char **atts) {
+    AddTag_value(Tag_value(atts));
+}
 
 
 }  // end namespace osm2pgr
-#endif  // SRC_CLASS_H_

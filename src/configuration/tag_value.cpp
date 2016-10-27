@@ -18,52 +18,40 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
-#ifndef SRC_TYPE_H_
-#define SRC_TYPE_H_
-
-#include <map>
-#include <cstdint>
+#include "configuration/tag_value.h"
+#include <boost/lexical_cast.hpp>
 #include <string>
-#include "./Class.h"
+
+
 
 namespace osm2pgr {
 
-class Type {
- public:
-    Type() = default;
-    Type(const Type &) = default;
-    /**
-     *    @param atts attributes read py the parser
-     */
-    explicit Type(const char **atts);
-    inline int64_t id() const {return m_id;}
-    inline std::string name() const {return m_name;}
-    void add_class(const char **atts);
-    std::map<std::string, Class> classes() const {
-        return m_Classes;
+
+Tag_value::Tag_value(const char **atts) :
+    m_priority(0),
+    m_default_maxspeed(50) {
+    auto **attribut = atts;
+    while (*attribut != NULL) {
+        std::string name = *attribut++;
+        std::string value = *attribut++;
+        if (name ==  "id") {
+            m_id = boost::lexical_cast<int64_t>(value);
+        } else if (name == "name") {
+            m_name = value;
+        } else if (name == "priority") {
+            m_priority = boost::lexical_cast<double>(value);
+        } else if (name == "maxspeed") {
+            m_default_maxspeed = boost::lexical_cast<int>(value);
+        } else {
+            auto tag_key = boost::lexical_cast<std::string>(name);
+            auto tag_value = boost::lexical_cast<std::string>(value);
+            m_tags[tag_key] = tag_value;
+        }
     }
-    std::map<std::string, Class>& classes() {
-        return m_Classes;
-    }
+}
 
-    inline bool has_class(const std::string &class_name) const {
-        return m_Classes.count(class_name);
-    }
 
- private:
-    /**
-     *    saves the classes of the type
-     *    @param pClass class
-     */
-    void AddClass(const Class &pClass);
 
- private:
-    std::map<std::string, Class> m_Classes;
-    int64_t m_id;
-    std::string m_name;
-    std::map<std::string, std::string> m_tags;
-};
 
-}  // namespace osm2pgr
-#endif  // SRC_TYPE_H_
+
+}  // end namespace osm2pgr
