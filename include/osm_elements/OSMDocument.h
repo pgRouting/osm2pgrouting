@@ -87,9 +87,7 @@ class OSMDocument {
     /**
      * add the configuration tag used for the speeds
      */
-    void add_config(Node &node, const Tag &tag) const;
-    void add_config(Way &way, const Tag &tag) const;
-    void add_config(Relation &relation, const Tag &tag) const;
+    void add_config(Element *osm_element, const Tag &tag) const;
 
     inline double get_tag_maxspeed(const Tag &tag) const {
         return m_rConfig.class_default_maxspeed(tag);
@@ -97,10 +95,30 @@ class OSMDocument {
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:
-    void export_nodes() const;
-    void export_ways() const;
-    void export_relations() const;
     void wait_child() const;
+
+    template <typename T> void
+    osm_table_export(const T &osm_items, const std::string &table) const {
+        if (osm_items.empty()) return;
+
+        auto pid = fork();
+        if (pid < 0) {
+            std::cerr << "Failed to fork" << endl;
+            exit(1);
+        }
+        if (pid > 0) return;
+        auto residue = osm_items.size() % m_chunk_size;
+        size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
+        auto exprt_items = T(osm_items.begin() + start, osm_items.end());
+
+        m_db_conn.export_osm(exprt_items, table);
+
+        /*
+         * finish the child process
+         */
+        exit(0);
+    }
+
 
 
  private:
@@ -115,6 +133,7 @@ class OSMDocument {
     po::variables_map m_vm;
     const Export2DB &m_db_conn;
 
+    size_t m_chunk_size;
     uint16_t m_nodeErrs;
     size_t m_lines;
 };

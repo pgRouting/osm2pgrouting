@@ -82,7 +82,7 @@ OSMDocumentParserCallback::StartElement(
         }
         if (strcmp(name, "tag") == 0) {
             auto tag = last_node->add_tag(Tag(atts));
-            m_rDocument.add_config(*last_node, tag);
+            m_rDocument.add_config(last_node, tag);
         }
         return;
     }
@@ -93,7 +93,7 @@ OSMDocumentParserCallback::StartElement(
         }
         if (strcmp(name, "tag") == 0) {
             auto tag = last_way->add_tag(Tag(atts));
-            m_rDocument.add_config(*last_way, tag);
+            m_rDocument.add_config(last_way, tag);
         }
 
         if (strcmp(name, "nd") == 0) {
@@ -132,7 +132,7 @@ OSMDocumentParserCallback::StartElement(
         }
         if (strcmp(name, "tag") == 0) {
             auto tag = last_relation->add_tag(Tag(atts));
-            m_rDocument.add_config(*last_relation, tag);
+            m_rDocument.add_config(last_relation, tag);
         }
     } else if (strcmp(name, "osm") == 0) {
     }
@@ -146,7 +146,6 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
     }
     if (strcmp(name, "way") == 0) {
         m_rDocument.AddWay(*last_way);
-#if 1
         if (m_rDocument.config_has_tag(last_way->tag_config())) {
 
             auto maxspeed = m_rDocument.get_tag_maxspeed(last_way->tag_config());
@@ -157,8 +156,6 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                 last_way->maxspeed_backward(maxspeed);
             }
         }
-#endif
-
         delete last_way;
         return;
 

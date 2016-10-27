@@ -228,7 +228,7 @@ Way::pedestrian(const std::string &key, const std::string &value) {
             || (key == "highway" && value == "cycleway")
             || (key == "highway" && value == "bridleway")
             || (key == "highway" && value == "track")
-            || (key == "sidewak" && value != "no")  )
+            || (key == "sidewalk" && value != "no")  )
         || (key == "foot" && value != "no")  )
             || (key == "highway" && value == "steps") {
                 m_pedestrian = "YES";
@@ -253,7 +253,6 @@ double
 Way::get_kph(const std::string &value) const {
     auto mph_pos = value.find(" mph");
     if (mph_pos != std::string::npos) {
-        std::cout << " found mph ";
         auto newstr = value;
         newstr.erase(mph_pos, std::string::npos);
         if (is_number(newstr)) {
@@ -289,22 +288,19 @@ void
 Way::max_speed(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
-    if (key == "maxspeed:forward") {
-    std::cout << "before" << m_maxspeed_backward << "," << m_maxspeed_forward;
+    if (key == "maxspeed:forward" && m_maxspeed_forward < 0) {
         m_maxspeed_forward = get_kph(value);
-        std::cout << "after" << m_maxspeed_backward << "," << m_maxspeed_forward;
         return;
     }
-    if (key == "maxspeed:backward") {
-    std::cout << "before" << m_maxspeed_backward << "," << m_maxspeed_forward;
+    if (key == "maxspeed:backward" && m_maxspeed_backward < 0) {
         m_maxspeed_backward = get_kph(value);
-        std::cout << "after" << m_maxspeed_backward << "," << m_maxspeed_forward;
         return;
     }
     if (key == "maxspeed") {
-        std::cout << "tag " << key << "," << value << "->>>>>>>" << get_kph(value);
-        m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
-        std::cout << "after" << m_maxspeed_backward << "," << m_maxspeed_forward << "\n";
+        m_maxspeed_backward = m_maxspeed_backward < 0?
+            get_kph(value) : m_maxspeed_backward;
+        m_maxspeed_forward = m_maxspeed_forward < 0?
+            get_kph(value) : m_maxspeed_forward;
         return;
     }
 }
