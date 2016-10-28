@@ -56,6 +56,7 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
     tables_suffix(vm["suffix"].as<std::string>()),
     m_tables(vm) {
 
+#if 0
         create_types = std::string(
                 " type_id integer PRIMARY KEY,"
                 " name text");
@@ -63,7 +64,7 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
         create_way_tag = std::string(
                 " class_id integer,"
                 " way_id bigint");
-
+#endif
 
         create_vertices = std::string(
                 " id bigserial PRIMARY KEY,"
@@ -103,23 +104,6 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " target_osm bigint,"
                 " priority double precision DEFAULT 1");
 
-        create_relations = std::string(
-                "relation_id bigint PRIMARY KEY,"
-                " type_id integer,"
-                " class_id integer,"
-                " name text");
-
-        create_relations_ways = std::string(
-                " relation_id bigint,"
-                " way_id bigint,"
-                " type character varying(200)");
-
-        create_classes = std::string(
-                " class_id integer PRIMARY KEY,"
-                " type_id integer,"
-                " name text,"
-                " priority double precision,"
-                " default_maxspeed integer");
     }  //  constructor
 
 Export2DB::~Export2DB() {
@@ -328,9 +312,6 @@ void Export2DB::dropTables() const {
         pqxx::work Xaction(db_conn);
         dropTable(addSchema(full_table_name("ways")), Xaction);
         dropTable(addSchema(full_table_name("ways_vertices_pgr")), Xaction);
-#if 0
-        dropTable(addSchema(full_table_name("relations_ways")), Xaction);
-#endif
         Xaction.commit();
     } catch (const std::exception &e) {
         cerr << e.what() << std::endl;
@@ -467,111 +448,6 @@ void Export2DB::fill_source_target(
 }
 
 
-#if 0
-void Export2DB::exportRelations(
-        const std::vector<Relation> &relations,
-        const Configuration &config) const {
-    std::cout << "    Processing " << relations.size() << " records into " <<  addSchema(full_table_name("osm_relations"));
-
-    std::vector<std::string> columns;
-    columns.push_back("relation_id");
-    columns.push_back("type_id");
-    columns.push_back("class_id");
-    columns.push_back("name");
-
-    try {
-        pqxx::work Xaction(db_conn);
-
-        Xaction.exec("CREATE TABLE  __relations_temp ("
-                + create_relations + ")");
-
-        pqxx::tablewriter tw(Xaction, "__relations_temp", columns.begin(), columns.end());
-
-
-        for (auto it = relations.begin(); it != relations.end(); ++it) {
-            auto relation = *it;
-
-            std::vector<std::string> values;
-            values.push_back(TO_STR(relation.osm_id()));
-            values.push_back(TO_STR(config.FindTag_key(relation.tag_config().key()).id()));
-            values.push_back(TO_STR(config.FindTag_value(relation.tag_config()).id()));
-            values.push_back(relation.tag_config().key() + "=" + relation.tag_config().value());
-            tw.insert(values);
-        }
-        tw.complete();
-        std::string sql(
-                " WITH data AS ("
-                " SELECT a.* "
-                " FROM  __relations_temp a LEFT JOIN " +  addSchema(full_table_name("osm_relations")) + " b USING (relation_id, type_id, class_id)"
-                "     WHERE (b.relation_id IS NULL OR b.type_id IS NULL OR b.class_id IS NULL))"
-
-                " INSERT INTO " + addSchema(full_table_name("osm_relations"))  + " "
-                "( relation_id, type_id, class_id, name )" 
-                " (SELECT  relation_id, type_id, class_id, name FROM data); ");
-        auto result = Xaction.exec(sql);
-        std::cout << "\tInserted: " << result.affected_rows() << "\n";
-        Xaction.exec("DROP TABLE __relations_temp");
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While processing " << addSchema("config_classes") << "\n";
-    }
-}
-#endif
-
-#if 0
-// ////////should break into 2 functions
-
-void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const {
-    std::cout << "    Processing  " << addSchema(full_table_name("relations_ways")) << ":";
-    std::string relations_ways_columns(" relation_id, way_id, type ");
-    std::vector<std::string> columns;
-    columns.push_back("relation_id");
-    columns.push_back("way_id");
-    columns.push_back("type");
-
-    try {
-        pqxx::work Xaction(db_conn);
-
-        Xaction.exec("CREATE TABLE  __relations_ways_temp ("
-                + create_relations_ways + ")");
-
-        pqxx::tablewriter tw(Xaction, "__relations_ways_temp", columns.begin(), columns.end());
-
-
-        for (auto it = relations.begin(); it != relations.end(); ++it) {
-            auto relation = *it;
-            for (auto it_ref = relation.way_refs().begin(); it_ref != relation.way_refs().end(); ++it_ref) {
-                auto way_id = *it_ref;
-                std::vector<std::string> values;
-                values.push_back(TO_STR(relation.osm_id()));
-                values.push_back(TO_STR(way_id));
-                values.push_back(TO_STR(config.FindTag_key(relation.tag_config().key()).id()));
-                tw.insert(values);
-            }
-        }
-        tw.complete();
-        std::string sql(
-                " WITH data AS ("
-                " SELECT a.* "
-                " FROM  __relations_ways_temp a LEFT JOIN " + addSchema(full_table_name("relations_ways")) + " b USING (relation_id, way_id)"
-                "     WHERE (b.relation_id IS NULL OR b.way_id IS NULL))"
-
-                " INSERT INTO " + addSchema(full_table_name("relations_ways")) +
-                " SELECT * FROM data; ");
-
-        auto result = Xaction.exec(sql);
-        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
-        Xaction.exec("DROP TABLE __relations_ways_temp");
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While processing "
-            <<  addSchema(full_table_name("relations_ways"))
-            << "\n";
-    }
-}
-#endif
 
 
 void Export2DB::exportWays(const Ways &ways, const Configuration &config) const {
@@ -741,71 +617,6 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-#if 0
-void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  const {
-    std::cout << "    Processing " << addSchema("config_classes") << ": ";
-
-    std::string copy_classes(
-            "COPY __classes_temp"
-            "   (class_id, type_id, name, priority, default_maxspeed)"
-            "   FROM STDIN");
-
-    std::vector<std::string> columns;
-    columns.push_back("class_id");
-    columns.push_back("type_id");
-    columns.push_back("name");
-    columns.push_back("priority");
-    columns.push_back("default_maxspeed");
-
-
-    std::cout << "\ntypes.size()" << types.size();
-
-    try {
-        pqxx::work Xaction(db_conn);
-
-        Xaction.exec("CREATE TABLE  __classes_temp ("
-                + create_classes + ")");
-
-        pqxx::tablewriter tw(Xaction, "__classes_temp", columns.begin(), columns.end());
-
-
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            auto t = *it;
-            auto type(t.second);
-
-            std::cout << "\ntype.classes().size()" << type.classes().size();
-            for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
-                auto c = *it_c;
-                Tag_value clss(c.second);
-                std::vector<std::string> values;
-                values.push_back(clss.has_attribute("id") ? clss.get_attribute("id"): "");
-                values.push_back(TO_STR(type.id()));
-                values.push_back(clss.has_attribute("name") ? clss.get_attribute("name"): "");
-                values.push_back(clss.has_attribute("priority") ? clss.get_attribute("priority"): "");
-                values.push_back(clss.has_attribute("maxspeed") ? clss.get_attribute("maxspeed"): "");
-                tw.insert(values);
-            }
-        }
-        tw.complete();
-        std::string insert_into_classes(
-                " WITH data AS ("
-                " SELECT a.* "
-                " FROM  __classes_temp a LEFT JOIN " + addSchema("config_classes") + " b USING (class_id) "
-                "     WHERE (b.class_id IS NULL))"
-
-                " INSERT INTO " + addSchema("config_classes") +
-                " SELECT *  FROM data; ");
-
-        auto result = Xaction.exec(insert_into_classes);
-        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
-        Xaction.exec("DROP TABLE __classes_temp");
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While processing " << addSchema("config_classes") << "\n";
-    }
-}
-#endif
 
 void Export2DB::createFKeys() {
     // return; // TODO

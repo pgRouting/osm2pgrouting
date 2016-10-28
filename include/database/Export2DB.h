@@ -106,20 +106,6 @@ class Export2DB {
      void export_configuration(
              const std::map<std::string, Tag_key>& items) const;
 
-     //! exports ways to the database
-     void exportTags(
-             const Ways &ways,
-             const Configuration &config) const;
-
-     void exportRelations(
-             const std::vector<Relation> &relations,
-             const Configuration &config) const;
-     void exportRelationsWays(
-             const std::vector<Relation> &relations,
-             const Configuration &config) const;
-     void exportTag_keys(const std::map<std::string, Tag_key>& types) const;
-     void exportClasses(const std::map<std::string, Tag_key>& types) const;
-
      void exportWays(
              const Ways &ways,
              const Configuration &config) const;
@@ -136,9 +122,6 @@ class Export2DB {
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
 
-     void dropTempTables() const;
-     void dropTempTable(
-             const std::string &table) const;
 
      void dropTable(const std::string &table, pqxx::work &Xaction) const;
      bool createTempTable(
@@ -200,14 +183,7 @@ class Export2DB {
      std::string tables_prefix;
      std::string tables_suffix;
 
-     // create table query constants
-     std::string create_classes;
-     std::string create_nodes;
      std::string create_ways;
-     std::string create_relations;
-     std::string create_relations_ways;
-     std::string create_way_tag;
-     std::string create_types;
      std::string create_vertices;
 
      Tables m_tables;
