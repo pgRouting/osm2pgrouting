@@ -26,12 +26,13 @@
 
 namespace osm2pgr {
 
+#if 0
 void Tag_key::AddTag_value(const Tag_value &pTag_value) {
     std::cout << "\nadding " << pTag_value.name() << "\t" << m_Tag_values.size();;
     m_Tag_values[pTag_value.name()] = pTag_value;
     std::cout << "\nadding " << "\t" << m_Tag_values.size();;
 }
-
+#endif
 
 Tag_key::Tag_key(const char **atts) {
     auto **attribut = atts;
@@ -52,9 +53,7 @@ Tag_key::Tag_key(const char **atts) {
 
 void
 Tag_key::add_class(const Tag_value &p_values) {
-    std::cout << "\nadding " << p_values.name() << "\t before:" << m_Tag_values.size();;
     m_Tag_values[ p_values.name()] =  p_values;
-    std::cout << "\t after:" << m_Tag_values.size();;
 }
 
 
@@ -65,8 +64,13 @@ Tag_key::values(const std::vector<std::string> &columns) const {
     for (const auto &item : m_Tag_values) {
         auto row = item.second.values(columns, true);
         row[1] = m_name;
+        row[2] = item.second.get_attribute("name"); 
+
+        if (row[4] == "") row[4] = "-1"; 
+        if (row[5] == "") row[5] = "-1"; 
+        if (row[6] == "") row[6] = "-1"; 
+        if (row[7] == "") row[7] = "N"; 
         export_values.push_back(tab_separated(row));
-        std::cout << tab_separated(row);
     }
     return export_values;
 }

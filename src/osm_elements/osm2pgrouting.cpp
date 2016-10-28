@@ -185,6 +185,8 @@ int main(int argc, char* argv[]) {
                 << endl;
             return 1;
         }
+        std::cout << "\nExporting configuration ..." << endl;
+        dbConnection.export_configuration(config.types());
 
         auto total_lines = lines_in_file(dataFile);
 
@@ -212,9 +214,11 @@ int main(int argc, char* argv[]) {
 
             std::cout << "Adding auxiliary tables to database..." << endl;
 
+#if 0
             /* export configuration */
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
+#endif
 
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);

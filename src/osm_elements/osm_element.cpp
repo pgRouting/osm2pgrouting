@@ -167,7 +167,7 @@ std::vector<std::string>
 Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
     std::vector<std::string> values;
     for (const auto column : columns) {
-        if (column == "osm_id") { 
+        if (column == "osm_id" || column == "tag_id") { 
             values.push_back(boost::lexical_cast<std::string>(osm_id()));
             continue;
         }   

@@ -1,5 +1,6 @@
 #include "boost/lexical_cast.hpp"
 #include "database/table_management.h"
+#include "utilities/utilities.h"
 
 namespace osm2pgr {
 
@@ -82,6 +83,33 @@ Table::tmp_create() const {
 }
 
 
+std::string
+Tables::post_process(const Table &table) const  {
+    if (table.name() == "osm_nodes" || table.name() == "osm_ways" || table.name() == "osm_relations") { 
+        std::string str(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  " + table.temp_name() + " a LEFT JOIN  " + table.addSchema() + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
+
+                + " INSERT INTO "  +  table.addSchema() 
+                + "(" + comma_separated(table.columns()) + ") "
+                + " (SELECT " + comma_separated(table.columns()) + " FROM data); ");
+        return str;
+    } else if (table.name() == "configuration") {
+
+        std::string str(
+                " WITH data AS ("
+                " SELECT a.* "
+                " FROM  " + configuration.temp_name() + " a LEFT JOIN  " + configuration.addSchema() + " b USING (tag_id) WHERE (b.tag_id IS NULL))"
+
+                + " INSERT INTO "  +  configuration.addSchema() 
+                + "(" + comma_separated(configuration.columns()) + ") "
+                + " (SELECT " + comma_separated(configuration.columns()) + " FROM data); ");
+        return str;
+    }
+    return "";
+}
+
 
 
 Tables::Tables(const  po::variables_map &vm) :
@@ -110,99 +138,100 @@ Tables::Tables(const  po::variables_map &vm) :
             /* other columns */
             // TODO get from the configuration maybe this task is to be done on the configuration*/
             ", tag_name TEXT"
+    ", tag_value TEXT"
+    ", name TEXT ",
+    // end todo
+    /* constraint */
+    "",
+    /* geometry */
+    "POINT"),
+    osm_ways(
+            /* schema */
+            vm["schema"].as<std::string>(),
+            /* prefix */
+            "",
+            /* name */
+            "osm_ways",
+            /* suffix */
+            "",
+            /* standard column creation string */
+            std::string(
+                " osm_id bigint PRIMARY KEY"
+                " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
+                + (vm.count("attributes") ?
+                    (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
+                    : "")
+                + (vm.count("tags") ?
+                    (std::string(", tags ") + (vm.count("hstore") ? "hstore" : "json"))
+                    : "")),
+            /* other columns */
+            // TODO get from the configuration maybe this task is to be done on the configuration*/
+            ", tag_name TEXT"
             ", tag_value TEXT"
             ", name TEXT ",
             // end todo
             /* constraint */
             "",
             /* geometry */
-            "POINT"),
-     osm_ways(
-             /* schema */
-             vm["schema"].as<std::string>(),
-             /* prefix */
-             "",
-             /* name */
-             "osm_ways",
-             /* suffix */
-             "",
-             /* standard column creation string */
-             std::string(
-                 " osm_id bigint PRIMARY KEY"
-                 " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
-                 + (vm.count("attributes") ?
-                     (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
-                     : "")
-                 + (vm.count("tags") ?
-                     (std::string(", tags ") + (vm.count("hstore") ? "hstore" : "json"))
-                     : "")),
-             /* other columns */
-             // TODO get from the configuration maybe this task is to be done on the configuration*/
-             ", tag_name TEXT"
-             ", tag_value TEXT"
-             ", name TEXT ",
-             // end todo
-             /* constraint */
-             "",
-             /* geometry */
-             "LINESTRING"),
-     osm_relations(
-             /* schema */
-             vm["schema"].as<std::string>(),
-             /* prefix */
-             "",
-             /* name */
-             "osm_relations",
-             /* suffix */
-             "",
-             /* standard column creation string */
-             std::string(
-                 " osm_id bigint PRIMARY KEY"
-                 " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
-                 + (vm.count("attributes") ?
-                     (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
-                     : "")
-                 + (vm.count("tags") ?
-                     (std::string(", tags ") + (vm.count("hstore") ? "hstore" : "json"))
-                     : "")
-                 ),
-             /* other columns */
-             // TODO get from the configuration maybe this task is to be done on the configuration*/
-             ", tag_name TEXT"
-             ", tag_value TEXT"
-             ", name TEXT ",
-             // end todo
-             /* constraint */
-             "",
-             /* geometry */
-             ""),
+            "LINESTRING"),
+            osm_relations(
+                    /* schema */
+                    vm["schema"].as<std::string>(),
+                    /* prefix */
+                    "",
+                    /* name */
+                    "osm_relations",
+                    /* suffix */
+                    "",
+                    /* standard column creation string */
+                    std::string(
+                        " osm_id bigint PRIMARY KEY"
+                        " , members " +  (std::string(vm.count("hstore") ? "hstore" : "json"))
+                        + (vm.count("attributes") ?
+                            (std::string(", attributes ") + (vm.count("hstore") ? "hstore" : "json"))
+                            : "")
+                        + (vm.count("tags") ?
+                            (std::string(", tags ") + (vm.count("hstore") ? "hstore" : "json"))
+                            : "")
+                        ),
+                    /* other columns */
+                    // TODO get from the configuration maybe this task is to be done on the configuration*/
+                    ", tag_name TEXT"
+                    ", tag_value TEXT"
+                    ", name TEXT ",
+                    // end todo
+                    /* constraint */
+                    "",
+                    /* geometry */
+                    ""),
 
 
-     configuration(
-             /* schema */
-             vm["schema"].as<std::string>(),
-             /* prefix */
-             "",
-             /* name */
-             "configuration",
-             /* suffix */
-             "",
-             /* standard column creation string */
-             std::string(
-             " id bigint PRIMARY KEY"
-             ", tag_id INTEGER"
-             ", tag_key TEXT"
-             ", tag_value TEXT"
-             ", priority double precision"
-             ", maxspeed double precision"
-             ", maxspeed_forward double precision"
-             ", maxspeed_backward double precision"),
-             /* other columns */
-             "",
-             /* constraint */
-             "",
-             /* geometry */
-             "")
+                    configuration(
+                            /* schema */
+                            vm["schema"].as<std::string>(),
+                            /* prefix */
+                            "",
+                            /* name */
+                            "configuration",
+                            /* suffix */
+                            "",
+                            /* standard column creation string */
+                            std::string(
+                                " id serial PRIMARY KEY"
+                                ", tag_id INTEGER"
+                                ", tag_key TEXT"
+                                ", tag_value TEXT"
+                                ", priority double precision"
+                                ", maxspeed double precision"
+                                ", maxspeed_forward double precision"
+                                ", maxspeed_backward double precision"
+                                ", force char"),
+                            /* other columns */
+                            "",
+                            /* constraint */
+                            "",
+                            /* geometry */
+                            "")
 {
     {
         /*
@@ -256,6 +285,8 @@ Tables::Tables(const  po::variables_map &vm) :
         osm_relations.set_columns(columns);
     }
 
+
+
     {
         /*
          * configuring TABLE configuration
@@ -268,6 +299,7 @@ Tables::Tables(const  po::variables_map &vm) :
         columns.push_back("maxspeed");
         columns.push_back("maxspeed_forward");
         columns.push_back("maxspeed_backward");
+        columns.push_back("force");
         configuration.set_columns(columns);
     }
 }

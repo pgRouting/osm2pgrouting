@@ -39,6 +39,7 @@ class Table {
     }
 
     std::string temp_name() const;
+    std::string name() const { return m_name;};
 
     inline std::vector<std::string> columns() const {
         return m_columns;
@@ -68,9 +69,11 @@ class Tables {
             if (name == "osm_nodes") return osm_nodes;
             if (name == "osm_ways") return osm_ways;
             if (name == "osm_relations") return osm_relations;
+            if (name == "configuration") return configuration;
             return osm_nodes;
         }
 
+        std::string  post_process(const Table &table) const;
 
 
         po::variables_map m_vm;

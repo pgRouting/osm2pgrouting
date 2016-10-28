@@ -300,8 +300,6 @@ void Export2DB::createTables() const {
         create_idindex("target", addSchema(full_table_name("ways")));
     }
 
-    createTable(create_classes, addSchema("config_classes"));
-
     try {
         pqxx::work Xaction(db_conn);
         Xaction.exec(m_tables.osm_nodes.create());
@@ -352,6 +350,7 @@ Export2DB::export_configuration(const std::map<std::string, Tag_key>& items) con
         auto row = item.second.values(osm_table.columns());
         values.insert(values.end(), row.begin(), row.end());
     }
+
     export_osm(values, osm_table);
 }
 
@@ -365,6 +364,12 @@ Export2DB::export_osm(
     std::string temp_table(table.temp_name());
     auto create_sql = table.tmp_create();
     std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
+    
+#if 0
+    std::cout << "\n" << create_sql;
+    std::cout << "\n" << copy_sql;
+
+#endif
 
     size_t count = 0;
     try {
@@ -387,15 +392,7 @@ Export2DB::export_osm(
 
         PQputline(mycon, "\\.\n");
         PQendcopy(mycon);
-        Xaction.exec(
-                " WITH data AS ("
-                " SELECT a.* "
-                " FROM  " + temp_table + " a LEFT JOIN  " + table.addSchema() + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
-
-                " INSERT INTO "  +  table.addSchema() +
-                "(" + comma_separated(columns) + ") "
-                " (SELECT " + comma_separated(columns) + " FROM data); ");
-
+        Xaction.exec(m_tables.post_process(table));
         Xaction.exec("DROP TABLE " + temp_table);
         PQfinish(mycon);
         Xaction.commit();
@@ -744,6 +741,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
+#if 0
 void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  const {
     std::cout << "    Processing " << addSchema("config_classes") << ": ";
 
@@ -807,7 +805,7 @@ void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  cons
         std::cerr << "While processing " << addSchema("config_classes") << "\n";
     }
 }
-
+#endif
 
 void Export2DB::createFKeys() {
     // return; // TODO
