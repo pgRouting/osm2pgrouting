@@ -27,7 +27,9 @@
 namespace osm2pgr {
 
 void Tag_key::AddTag_value(const Tag_value &pTag_value) {
+    std::cout << "\nadding " << pTag_value.name() << "\t" << m_Tag_values.size();;
     m_Tag_values[pTag_value.name()] = pTag_value;
+    std::cout << "\nadding " << "\t" << m_Tag_values.size();;
 }
 
 
@@ -49,8 +51,10 @@ Tag_key::Tag_key(const char **atts) {
 }
 
 void
-Tag_key::add_class(const char **atts) {
-    AddTag_value(Tag_value(atts));
+Tag_key::add_class(const Tag_value &p_values) {
+    std::cout << "\nadding " << p_values.name() << "\t before:" << m_Tag_values.size();;
+    m_Tag_values[ p_values.name()] =  p_values;
+    std::cout << "\t after:" << m_Tag_values.size();;
 }
 
 

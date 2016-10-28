@@ -53,7 +53,9 @@ Tag_value Configuration::FindTag_value(const Tag &tag) const {
 }
 
 std::string Configuration::priority_str(const Tag &tag) const {
-    return  boost::lexical_cast<std::string>(FindTag_value(tag).priority());
+    return FindTag_value(tag).has_attribute("priority") ? 
+     FindTag_value(tag).get_attribute("priority")
+     : "";
 }
 
 

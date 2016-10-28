@@ -758,6 +758,10 @@ void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  cons
     columns.push_back("name");
     columns.push_back("priority");
     columns.push_back("default_maxspeed");
+
+
+    std::cout << "\ntypes.size()" << types.size();
+
     try {
         pqxx::work Xaction(db_conn);
 
@@ -771,15 +775,16 @@ void Export2DB::exportClasses(const std::map<std::string, Tag_key> &types)  cons
             auto t = *it;
             auto type(t.second);
 
+            std::cout << "\ntype.classes().size()" << type.classes().size();
             for (auto it_c = type.classes().begin(); it_c != type.classes().end(); ++it_c) {
                 auto c = *it_c;
                 Tag_value clss(c.second);
                 std::vector<std::string> values;
-                values.push_back(TO_STR(clss.id()));
+                values.push_back(clss.has_attribute("id") ? clss.get_attribute("id"): "");
                 values.push_back(TO_STR(type.id()));
-                values.push_back(clss.name());
-                values.push_back(TO_STR(clss.priority()));
-                values.push_back(TO_STR(clss.default_maxspeed()));
+                values.push_back(clss.has_attribute("name") ? clss.get_attribute("name"): "");
+                values.push_back(clss.has_attribute("priority") ? clss.get_attribute("priority"): "");
+                values.push_back(clss.has_attribute("maxspeed") ? clss.get_attribute("maxspeed"): "");
                 tw.insert(values);
             }
         }

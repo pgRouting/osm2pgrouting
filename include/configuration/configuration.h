@@ -69,7 +69,12 @@ class Configuration {
      }
 
      double class_priority(const Tag &tag) const {
-         return m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority();
+             return m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority();
+#if 0
+         return (m_Tag_keys.at(tag.key()).classes().at(tag.value()).has_attribute("priority")) ?
+             m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority()
+             : 0;
+#endif
      }
 
      const std::map<std::string, Tag_key>& types() const {return m_Tag_keys;}

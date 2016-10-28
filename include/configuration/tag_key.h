@@ -42,7 +42,8 @@ class Tag_key {
 
     inline std::string name() const {return m_name;}
 
-    void add_class(const char **atts);
+    void add_class(const Tag_value &p_values);
+
     std::map<std::string, Tag_value> classes() const {
         return m_Tag_values;
     }

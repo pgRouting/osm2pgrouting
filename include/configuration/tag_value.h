@@ -38,42 +38,29 @@ class Tag_value : public Element {
 
 
      inline int64_t id() const {return osm_id();}
-#if 0
-     inline std::string name() const {return m_name;}
-     inline double priority() const {return m_priority;}
 
-
-     inline double maxspeed() const {return m_maxspeed;}
-#endif
      std::vector<std::string> export_values() const; 
 
      inline std::string name() const {
-         return (has_attribute("name)")) ?
-             get_attribute("name)")
+         assert(has_attribute("name"));
+         return has_attribute("name") ?
+             get_attribute("name")
              : "";
      }
      inline double priority() const {
+#if 0
          assert(has_attribute("priority)"));
-         return  boost::lexical_cast<double>(get_attribute("priority)"));
+#endif
+         return  has_attribute("priority") ?
+             boost::lexical_cast<double>(get_attribute("priority"))
+             : 1;
      }
      inline double default_maxspeed() const {
-         assert(has_attribute("maxspeed)"));
-         return  boost::lexical_cast<double>(get_attribute("maxspeed)"));
+         return (has_attribute("maxspeed")) ? 
+           boost::lexical_cast<double>(get_attribute("maxspeed"))
+           : 50;
      }
  private:
-
-#if 0
-     int64_t m_id;
-     std::string m_name;
-     double m_priority;
-     double m_maxspeed;
-     double m_maxspeed_forward;
-     double m_maxspeed_backward;
-     std::string m_force;
-
-     //TODO this dissapears
-     double m_default_maxspeed;
-#endif
 
 };
 

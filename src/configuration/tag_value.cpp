@@ -21,6 +21,7 @@
 #include "configuration/tag_value.h"
 #include <boost/lexical_cast.hpp>
 #include <string>
+#include <cassert>
 
 
 
@@ -29,50 +30,8 @@ namespace osm2pgr {
 
 Tag_value::Tag_value(const char **atts) :
     Element(atts){
-#if 0
-    m_priority(0),
-    m_default_maxspeed(50) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name ==  "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else if (name == "priority") {
-            m_priority = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed") {
-            m_default_maxspeed = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed_forward") {
-            m_default_maxspeed = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed_forward") {
-            m_default_maxspeed = boost::lexical_cast<double>(value);
-        } else if (name == "force") {
-            m_force = value;
-        }
-    }
-#endif
+        assert(has_attribute("name"));
 }
-
-
-#if 0
-std::vector<std::string>
-Tag_value::export_values() const {
-    std::vector<std::string> values(7);
-
-    values.push_back(boost::lexical_cast<std::string>(osm_id()));
-    values.push_back("");
-    values.push_back(get_attribute("name");
-    values.push_back(get_attribte("priority"));
-    values.push_back(get_attribte("maxspeed"));
-    values.push_back(get_attribte("maxspeed_forward"));
-    values.push_back(get_attribte("maxspeed_backward"));
-    values.push_back(get_attribte("force"));
-    return values;
-}
-#endif
-
 
 
 
