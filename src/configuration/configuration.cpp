@@ -56,4 +56,6 @@ std::string Configuration::priority_str(const Tag &tag) const {
     return  boost::lexical_cast<std::string>(FindTag_value(tag).priority());
 }
 
+
+
 }  // end namespace osm2pgr

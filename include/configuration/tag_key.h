@@ -41,13 +41,19 @@ class Tag_key {
     inline int64_t id() const {return m_id;}
 
     inline std::string name() const {return m_name;}
+
     void add_class(const char **atts);
     std::map<std::string, Tag_value> classes() const {
         return m_Tag_values;
     }
+
     std::map<std::string, Tag_value>& classes() {
         return m_Tag_values;
     }
+
+    /* used in the export function */
+    std::vector<std::string>
+        values(const std::vector<std::string> &columns) const;
 
     inline bool has_class(const std::string &class_name) const {
         return m_Tag_values.count(class_name);

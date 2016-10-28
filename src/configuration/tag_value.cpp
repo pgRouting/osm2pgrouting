@@ -28,6 +28,8 @@ namespace osm2pgr {
 
 
 Tag_value::Tag_value(const char **atts) :
+    Element(atts){
+#if 0
     m_priority(0),
     m_default_maxspeed(50) {
     auto **attribut = atts;
@@ -41,14 +43,35 @@ Tag_value::Tag_value(const char **atts) :
         } else if (name == "priority") {
             m_priority = boost::lexical_cast<double>(value);
         } else if (name == "maxspeed") {
-            m_default_maxspeed = boost::lexical_cast<int>(value);
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
+            m_default_maxspeed = boost::lexical_cast<double>(value);
+        } else if (name == "maxspeed_forward") {
+            m_default_maxspeed = boost::lexical_cast<double>(value);
+        } else if (name == "maxspeed_forward") {
+            m_default_maxspeed = boost::lexical_cast<double>(value);
+        } else if (name == "force") {
+            m_force = value;
         }
     }
+#endif
 }
+
+
+#if 0
+std::vector<std::string>
+Tag_value::export_values() const {
+    std::vector<std::string> values(7);
+
+    values.push_back(boost::lexical_cast<std::string>(osm_id()));
+    values.push_back("");
+    values.push_back(get_attribute("name");
+    values.push_back(get_attribte("priority"));
+    values.push_back(get_attribte("maxspeed"));
+    values.push_back(get_attribte("maxspeed_forward"));
+    values.push_back(get_attribte("maxspeed_backward"));
+    values.push_back(get_attribte("force"));
+    return values;
+}
+#endif
 
 
 

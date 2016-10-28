@@ -300,14 +300,6 @@ void Export2DB::createTables() const {
         create_idindex("target", addSchema(full_table_name("ways")));
     }
 
-    createTable(create_relations_ways, addSchema(full_table_name("relations_ways")));
-
-    //  the following are general tables
-#if 0
-    createTable(create_relations,  addSchema("osm_relations"));
-#endif
-    createTable(create_way_tag, addSchema("osm_way_tags"));
-    createTable(create_types, addSchema("osm_way_types"));
     createTable(create_classes, addSchema("config_classes"));
 
     try {
@@ -315,6 +307,7 @@ void Export2DB::createTables() const {
         Xaction.exec(m_tables.osm_nodes.create());
         Xaction.exec(m_tables.osm_ways.create());
         Xaction.exec(m_tables.osm_relations.create());
+        Xaction.exec(m_tables.configuration.create());
         Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
@@ -337,7 +330,9 @@ void Export2DB::dropTables() const {
         pqxx::work Xaction(db_conn);
         dropTable(addSchema(full_table_name("ways")), Xaction);
         dropTable(addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+#if 0
         dropTable(addSchema(full_table_name("relations_ways")), Xaction);
+#endif
         Xaction.commit();
     } catch (const std::exception &e) {
         cerr << e.what() << std::endl;
@@ -346,6 +341,19 @@ void Export2DB::dropTables() const {
     //  we are not deleting general tables osm_
 }
 
+void
+Export2DB::export_configuration(const std::map<std::string, Tag_key>& items) const {
+
+    auto osm_table = m_tables.get_table("configuration");
+
+    std::vector<std::string> values;
+
+    for (const auto &item : items) {
+        auto row = item.second.values(osm_table.columns());
+        values.insert(values.end(), row.begin(), row.end());
+    }
+    export_osm(values, osm_table);
+}
 
 
 void
@@ -462,6 +470,7 @@ void Export2DB::fill_source_target(
 }
 
 
+#if 0
 void Export2DB::exportRelations(
         const std::vector<Relation> &relations,
         const Configuration &config) const {
@@ -511,8 +520,9 @@ void Export2DB::exportRelations(
         std::cerr << "While processing " << addSchema("config_classes") << "\n";
     }
 }
+#endif
 
-
+#if 0
 // ////////should break into 2 functions
 
 void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, const Configuration &config) const {
@@ -564,52 +574,7 @@ void Export2DB::exportRelationsWays(const std::vector<Relation> &relations, cons
             << "\n";
     }
 }
-
-
-void Export2DB::exportTags(const Ways &ways, const Configuration &config) const {
-    std::cout << "    Processing way's tags"  << ": ";
-    std::vector<std::string> columns;
-    columns.push_back("class_id");
-    columns.push_back("way_id"); // the osm_id
-
-    try {
-        pqxx::work Xaction(db_conn);
-        Xaction.exec("CREATE TABLE  __way_tag_temp ("
-                + create_way_tag + ")");
-
-        pqxx::tablewriter tw(Xaction, "__way_tag_temp", columns.begin(), columns.end());
-
-
-        for (auto it = ways.begin(); it != ways.end(); ++it) {
-            auto way = *it;
-
-            if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
-            std::vector<std::string> values;
-            values.push_back(TO_STR(config.FindTag_value(way.tag_config()).id()));
-            values.push_back(TO_STR(way.osm_id()));
-            tw.insert(values);
-        }
-        tw.complete();
-        std::string sql(
-                " WITH data AS ("
-                " SELECT a.class_id, a.way_id "
-                " FROM  __way_tag_temp a LEFT JOIN  " +  addSchema("osm_way_tags") + " b USING (class_id, way_id) "
-                "     WHERE (b.class_id IS NULL OR b.way_id IS NULL))"
-
-                " INSERT INTO " +  addSchema("osm_way_tags") +
-                " SELECT * FROM data; ");
-
-        auto result = Xaction.exec(sql);
-        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
-        Xaction.exec("DROP TABLE __way_tag_temp");
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While processing " << addSchema("osm_way_tags") << "\n";
-    }
-}
-
-
+#endif
 
 
 void Export2DB::exportWays(const Ways &ways, const Configuration &config) const {
@@ -774,52 +739,6 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 }
 
 
-
-
-
-
-void Export2DB::exportTag_keys(const std::map<std::string, Tag_key> &types)  const {
-    std::cout << "    Processing " << types.size() << " types into " <<  addSchema("osm_way_types") << ":";
-
-    std::vector<std::string> columns;
-    columns.push_back("type_id");
-    columns.push_back("name");
-    try {
-        pqxx::work Xaction(db_conn);
-        Xaction.exec("CREATE TABLE  __way_types_temp ("
-                + create_types + ")");
-
-        pqxx::tablewriter tw(Xaction, "__way_types_temp", columns.begin(), columns.end());
-
-        for (auto it = types.begin(); it != types.end(); ++it) {
-            auto e = *it;
-            auto type = e.second;
-
-            std::vector<std::string> values;
-            values.push_back(TO_STR(type.id()));
-            values.push_back(TO_STR(type.name()));
-            tw.insert(values);
-        }
-        tw.complete();
-
-        std::string insert_into_types(
-                " WITH data AS ("
-                " SELECT a.* "
-                " FROM  __way_types_temp a LEFT JOIN  " + addSchema("osm_way_types") + " b USING (type_id) "
-                "     WHERE (b.type_id IS NULL))"
-
-                " INSERT INTO "  + addSchema("osm_way_types") + " (type_id, name) "
-                " (SELECT *  FROM data); ");
-
-        auto result = Xaction.exec(insert_into_types);
-        std::cout << "\t Inserted: " << result.affected_rows() << "\n";
-        Xaction.exec("DROP TABLE __way_types_temp");
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr << "While processing " << addSchema("config_classes") << "\n";
-    }
-}
 
 
 

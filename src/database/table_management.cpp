@@ -175,11 +175,38 @@ Tables::Tables(const  po::variables_map &vm) :
              /* constraint */
              "",
              /* geometry */
+             ""),
+
+
+     configuration(
+             /* schema */
+             vm["schema"].as<std::string>(),
+             /* prefix */
+             "",
+             /* name */
+             "configuration",
+             /* suffix */
+             "",
+             /* standard column creation string */
+             std::string(
+             " id bigint PRIMARY KEY"
+             ", tag_id INTEGER"
+             ", tag_key TEXT"
+             ", tag_value TEXT"
+             ", priority double precision"
+             ", maxspeed double precision"
+             ", maxspeed_forward double precision"
+             ", maxspeed_backward double precision"),
+             /* other columns */
+             "",
+             /* constraint */
+             "",
+             /* geometry */
              "")
 {
     {
         /*
-         * configuring osm_nodes
+         * configuring TABLE osm_nodes
          */ 
         std::vector<std::string> columns;
         columns.push_back("osm_id");
@@ -196,7 +223,7 @@ Tables::Tables(const  po::variables_map &vm) :
 
     {
         /*
-         * configuring osm_ways
+         * configuring TABLE osm_ways
          */ 
         std::vector<std::string> columns;
         columns.push_back("osm_id");
@@ -214,7 +241,7 @@ Tables::Tables(const  po::variables_map &vm) :
 
     {
         /*
-         * configuring osm_relations
+         * configuring TABLE osm_relations
          */ 
         std::vector<std::string> columns;
         columns.push_back("osm_id");
@@ -227,6 +254,21 @@ Tables::Tables(const  po::variables_map &vm) :
         if (m_vm.count("attributes")) columns.push_back("attributes");
         if (m_vm.count("tags")) columns.push_back("tags");
         osm_relations.set_columns(columns);
+    }
+
+    {
+        /*
+         * configuring TABLE configuration
+         */ 
+        std::vector<std::string> columns;
+        columns.push_back("tag_id");
+        columns.push_back("tag_key");
+        columns.push_back("tag_value");
+        columns.push_back("priority");
+        columns.push_back("maxspeed");
+        columns.push_back("maxspeed_forward");
+        columns.push_back("maxspeed_backward");
+        configuration.set_columns(columns);
     }
 }
 

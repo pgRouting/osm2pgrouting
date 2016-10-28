@@ -77,6 +77,7 @@ class Tables {
         Table osm_nodes;
         Table osm_ways;
         Table osm_relations;
+        Table configuration;
 };
 
 }

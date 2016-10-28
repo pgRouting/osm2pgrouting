@@ -67,7 +67,7 @@ class Element {
      std::string attributes_str() const;
      std::string tags_str() const;
 
-     virtual std::string get_geometry() const = 0;
+     virtual std::string get_geometry() const {return "";}
      bool has_attribute(const std::string&) const;
      std::string get_attribute(const std::string&) const;
      std::map<std::string, std::string>& attributes() {return m_attributes;}
@@ -88,6 +88,7 @@ class Element {
 
  protected:
      // ! OSM ID of the element
+     // or id of a configuraton
      int64_t m_osm_id;
      bool m_visible;
      Tag m_tag_config;

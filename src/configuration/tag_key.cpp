@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "configuration/tag_key.h"
+#include "utilities/utilities.h"
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
@@ -50,6 +51,20 @@ Tag_key::Tag_key(const char **atts) {
 void
 Tag_key::add_class(const char **atts) {
     AddTag_value(Tag_value(atts));
+}
+
+
+std::vector<std::string> 
+Tag_key::values(const std::vector<std::string> &columns) const {
+    std::vector<std::string> export_values;
+
+    for (const auto &item : m_Tag_values) {
+        auto row = item.second.values(columns, true);
+        row[1] = m_name;
+        export_values.push_back(tab_separated(row));
+        std::cout << tab_separated(row);
+    }
+    return export_values;
 }
 
 

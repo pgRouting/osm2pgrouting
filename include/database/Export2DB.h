@@ -80,7 +80,7 @@ class Export2DB {
       * T must have:
       *     T.values
       *
-      * @params[in] itmes  vector of values to be inserted into
+      * @params[in] items  vector of values to be inserted into
       * @params[in] table 
       */
      template <typename T>
@@ -103,6 +103,8 @@ class Export2DB {
              export_osm(values, osm_table);
          }
 
+     void export_configuration(
+             const std::map<std::string, Tag_key>& items) const;
 
      //! exports ways to the database
      void exportTags(
