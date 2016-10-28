@@ -145,17 +145,17 @@ int main(int argc, char* argv[]) {
         osm2pgr::Export2DB dbConnection(vm, connection_str);
         if (dbConnection.connect() == 1)
             return 1;
-        if (!dbConnection.has_postGIS()) {
-            if (vm.count("postgis")) {
-                dbConnection.install_postGIS();
-            } else {
+
+#ifndef NDEBUG
+        dbConnection.install_postGIS();
+#endif
+        if (!dbConnection.has_extension("postgis")) {
                 std::cout << "ERROR: postGIS not found\n";
                 std::cout << "   HINT: CREATE EXTENSION postGIS\n";
                 return 1;
-            }
         }
         if ((vm.count("attributes") || vm.count("tags")) && 
-                (vm.count("hstore") && !dbConnection.has_hstore())) {
+                (vm.count("hstore") && !dbConnection.has_extension("hstore"))) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
             return 1;

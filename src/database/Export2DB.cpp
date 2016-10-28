@@ -126,10 +126,10 @@ int Export2DB::connect() {
 
 
 bool
-Export2DB::has_hstore() const {
+Export2DB::has_extension(const std::string &name) const {
     try {
         pqxx::work Xaction(db_conn);
-        std::string sql = "SELECT * FROM pg_extension WHERE extname = 'hstore'";
+        std::string sql = "SELECT * FROM pg_extension WHERE extname = '" + name + "'";
         auto result = Xaction.exec(sql);
         return result.size() == 1;
 
@@ -139,6 +139,7 @@ Export2DB::has_hstore() const {
     }
 }
 
+#if 0
 bool
 Export2DB::has_postGIS() const {
     try {
@@ -152,6 +153,8 @@ Export2DB::has_postGIS() const {
         return false;
     }
 }
+#endif
+
 
 #ifndef NDEBUG
 bool
@@ -286,10 +289,14 @@ void Export2DB::createTables() const {
 
     try {
         pqxx::work Xaction(db_conn);
-        Xaction.exec(m_tables.osm_nodes.create());
-        Xaction.exec(m_tables.osm_ways.create());
-        Xaction.exec(m_tables.osm_relations.create());
         Xaction.exec(m_tables.configuration.create());
+        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " created ... OK.\n";
+        Xaction.exec(m_tables.osm_nodes.create());
+        std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " created ... OK.\n";
+        Xaction.exec(m_tables.osm_ways.create());
+        std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " created ... OK.\n";
+        Xaction.exec(m_tables.osm_relations.create());
+        std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " created ... OK.\n";
         Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
@@ -311,14 +318,27 @@ void Export2DB::dropTables() const {
     try {
         pqxx::work Xaction(db_conn);
         dropTable(addSchema(full_table_name("ways")), Xaction);
+        std::cout << "TABLE: " << addSchema(full_table_name("ways")) << " droped ... OK.\n";
         dropTable(addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+        std::cout << "TABLE: " << addSchema(full_table_name("ways_vertices_pgr")) << " droped ... OK.\n";
+        Xaction.exec(m_tables.osm_nodes.drop());
+        std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " droped ... OK.\n";
+        Xaction.exec(m_tables.osm_ways.drop());
+        std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " droped ... OK.\n";
+        Xaction.exec(m_tables.osm_relations.drop());
+        std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " droped ... OK.\n";
+        Xaction.exec(m_tables.configuration.drop());
+        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " droped ... OK.\n";
         Xaction.commit();
     } catch (const std::exception &e) {
         cerr << e.what() << std::endl;
+        cerr << "ROLLBACK applied";
     }
 
     //  we are not deleting general tables osm_
 }
+
+
 
 void
 Export2DB::export_configuration(const std::map<std::string, Tag_key>& items) const {

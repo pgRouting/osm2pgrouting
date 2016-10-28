@@ -31,10 +31,6 @@
 #include "osm_elements/Node.h"
 #include "osm_elements/Way.h"
 #include "osm_elements/Relation.h"
-#if 0
-#include "configuration/Tag_key.h"
-#include "configuration/Class.h"
-#endif
 #include "configuration/configuration.h"
 #include "utilities/prog_options.h"
 #include "database/table_management.h"
@@ -67,8 +63,10 @@ class Export2DB {
      //! connects to database
      int connect();
      bool has_postGIS() const;
-     bool has_hstore() const;
+     bool has_extension(const std::string &name) const;
+#ifndef NDBEUG
      bool install_postGIS() const;
+#endif
 
      //! creates needed tables and geometries
      void createTables() const;
