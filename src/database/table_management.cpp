@@ -44,7 +44,7 @@ Table::create() const {
 
         sql += "SELECT AddGeometryColumn('"
             + m_schema
-            + (m_schema == "" ? "" : ", ")
+            + (m_schema == "" ? "" : "', '")
             + table_name() + "', 'the_geom', 4326, '" + m_geometry + "', 2);";
     }
     return sql;

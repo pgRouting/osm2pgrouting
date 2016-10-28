@@ -216,24 +216,28 @@ int main(int argc, char* argv[]) {
                 std::cout << "\nExport Nodes ..." << endl;
                 dbConnection.exportNodes(document.nodes());
             }
-#endif
             std::cout << "\nExport configuration Tag keys ..." << endl;
             dbConnection.exportTag_keys(config.types());
+#endif
             std::cout << "\nExport Classes ..." << endl;
             dbConnection.exportClasses(config.types());
 #if 0
             std::cout << "\nExport Relations ..." << endl;
             dbConnection.exportRelations(document.relations(), config);
 #endif
+#if 0
             std::cout << "\nExport Relations Ways ..." << endl;
             dbConnection.exportRelationsWays(document.relations(), config);
+#endif
+#if 0
             std::cout << "\nexport Tags ..." << endl;
             dbConnection.exportTags(document.ways(), config);
+#endif
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
 
 
-#if 1
+#if 0
             std::cout << "Creating Foreign Keys ..." << endl;
             dbConnection.createFKeys();
 #endif
