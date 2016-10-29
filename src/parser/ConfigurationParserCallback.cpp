@@ -21,14 +21,10 @@
 #include "parser/ConfigurationParserCallback.h"
 
 #include <boost/lexical_cast.hpp>
-
 #include <string>
+
 #include "osm_elements/OSMDocument.h"
 #include "configuration/configuration.h"
-#if 0
-#include "configuration/tag_key.h"
-#include "configuration/tag_value.h"
-#endif
 
 namespace osm2pgr {
 
@@ -43,7 +39,7 @@ void ConfigurationParserCallback::StartElement(
         m_current = new Tag_key(atts);
     /* the class is the tag_value */
     } else if (strcmp(name, "class") == 0) {
-         m_current->add_class(Tag_value(atts));
+         m_current->add_tag_value(Tag_value(atts));
     } else if (strcmp(name, "configuration") == 0) {
     }
 }
@@ -52,7 +48,7 @@ void ConfigurationParserCallback::StartElement(
 void ConfigurationParserCallback::EndElement(const char* name) {
     /* the type is the tag_key */
     if (strcmp(name, "type") == 0) {
-        m_config.AddTag_key(*m_current);
+        m_config.add_tag_key(*m_current);
         delete m_current;
     }
 }

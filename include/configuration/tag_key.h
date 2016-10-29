@@ -24,54 +24,39 @@
 
 #include <map>
 #include <cstdint>
+#include <cassert>
 #include <string>
 #include "./tag_value.h"
 
 namespace osm2pgr {
 
-class Tag_key {
+class Tag_key : Element {
  public:
     Tag_key() = default;
     Tag_key(const Tag_key &) = default;
-    /**
+    /** @brief build it
      *    @param atts attributes read py the parser
      */
     explicit Tag_key(const char **atts);
+    void add_tag_value(const Tag_value &p_values);
 
-    inline int64_t id() const {return m_id;}
 
-    inline std::string name() const {return m_name;}
+    /* to have or not to have */
+    bool has(const Tag &tag, const std::string &str) const;
+    bool has_tag_value(const Tag &tag) const;
 
-    void add_class(const Tag_value &p_values);
-
-    std::map<std::string, Tag_value> classes() const {
-        return m_Tag_values;
-    }
-
-    std::map<std::string, Tag_value>& classes() {
-        return m_Tag_values;
-    }
+    /* get it*/
+    std::string get(const Tag &tag, const std::string &str) const;
+    const Tag_value& tag_value(const Tag &tag) const;
+    inline int64_t id() const {return osm_id();}
+    inline std::string name() const {return get_attribute("name");}
 
     /* used in the export function */
-    std::vector<std::string>
-        values(const std::vector<std::string> &columns) const;
-
-    inline bool has_class(const std::string &class_name) const {
-        return m_Tag_values.count(class_name);
-    }
-
- private:
-    /**
-     *    saves the classes of the type
-     *    @param pTag_value class
-     */
-    void AddTag_value(const Tag_value &pTag_value);
+    std::vector<std::string> values(
+            const std::vector<std::string> &columns) const;
 
  private:
     std::map<std::string, Tag_value> m_Tag_values;
-    int64_t m_id;
-    std::string m_name;
-    std::map<std::string, std::string> m_tags;
 };
 
 }  // namespace osm2pgr

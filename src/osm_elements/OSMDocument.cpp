@@ -186,8 +186,7 @@ OSMDocument::add_config(Element *item, const Tag &tag) const {
     if (config_has_tag(tag)) {
         if (!(item->is_tag_configured())
                 || (config_has_tag(item->tag_config())
-                    && m_rConfig.class_priority(tag)
-                    < m_rConfig.class_priority(item->tag_config())
+                    && m_rConfig.priority(tag) < m_rConfig.priority(item->tag_config())
                    )) {
             item->tag_config(tag);
         }

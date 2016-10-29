@@ -58,11 +58,13 @@ class OSMDocument {
     inline bool config_has_tag(const Tag &tag) const {
         return m_rConfig.has_tag(tag);
     }
-    inline double class_priority(const Tag &tag) const {
-        return m_rConfig.class_priority(tag);
+
+    inline double priority(const Tag &tag) const {
+        return m_rConfig.priority(tag);
     }
-    inline double class_default_maxspeed(const Tag &tag) const {
-        return m_rConfig.class_default_maxspeed(tag);
+
+    inline double maxspeed(const Tag &tag) const {
+        return m_rConfig.maxspeed(tag);
     }
 
     const Nodes& nodes() const {return m_nodes;}
@@ -89,9 +91,6 @@ class OSMDocument {
      */
     void add_config(Element *osm_element, const Tag &tag) const;
 
-    inline double get_tag_maxspeed(const Tag &tag) const {
-        return m_rConfig.class_default_maxspeed(tag);
-    }
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:

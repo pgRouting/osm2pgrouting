@@ -17,77 +17,81 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
-
 #ifndef SRC_CONFIGURATION_H_
 #define SRC_CONFIGURATION_H_
 
 #include <string>
 #include <map>
+#include <boost/lexical_cast.hpp>
 #include "configuration/tag_key.h"
 #include "configuration/tag_value.h"
 #include "osm_elements/osm_tag.h"
 
 namespace osm2pgr {
-
-/** @brief A configuration document.
-
-@code
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <type name="highway" id="1">
-      <class name="motorway" id="101" />
-      <class name="motorway_link" id="102" />
-   </type>  
-</configuration>
-@endcode
-
-*/
 class Configuration {
  public:
      Configuration() = default;
 
-     //! @brief found a <type name="highway" id="1">
-     void AddTag_key(Tag_key t);
+     /** @brief add group of tag_key + all the tag_values
+      *
+      * @params[in] t_key Tag_key found in the configuration
+      */
+     void add_tag_key(const Tag_key &t_key);
 
-     Tag_key FindTag_key(std::string typeName) const;
-     Tag_key& FindTag_key(std::string typeName);
+     /** @brief retrieves the Tag_value (attrributes
+      *
+      * @params[in] t_key Tag_key found in the configuration
+      * @returns Tag_value
+      */
+     const Tag_value& tag_value(const Tag &tag) const;
 
-     Tag_value FindTag_value(const Tag &tag) const;
-     std::string priority_str(const Tag &tag) const;
+     /* Is the (key, value) pair in the configuration?
+      *
+      *
+      * @params[in] tag Tag (key, value) pair
+      */
+     bool has_tag(const Tag &tag) const;
 
+     /** retrieves the maxspeed based on the tag
+      * 
+      * if the (key,value) has a value this is returned
+      * else if the (key, *) has a value this is returned
+      * else 50  is returned
+      */
 
-     
-     inline size_t has_tag(const Tag &tag) const {
-         return has_type(tag.key())
-             && m_Tag_keys.at(tag.key()).has_class(tag.value());
-     }
+     double maxspeed(const Tag &tag) const;
 
-     double class_default_maxspeed(const Tag &tag) const {
-         return m_Tag_keys.at(
-                 tag.key()).classes().at(tag.value()).default_maxspeed();
-     }
+     /** retrieves the priority based on the tag
+      * 
+      * if the (key,value) has a value this is returned
+      * else if the (key, *) has a value this is returned
+      * else 0  is returned
+      */
 
-     double class_priority(const Tag &tag) const {
-             return m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority();
-#if 0
-         return (m_Tag_keys.at(tag.key()).classes().at(tag.value()).has_attribute("priority")) ?
-             m_Tag_keys.at(tag.key()).classes().at(tag.value()).priority()
-             : 0;
-#endif
-     }
+     double priority(const Tag &tag) const;
 
+     /*
+      * data to be exported to configuration TABLE
+      */
      const std::map<std::string, Tag_key>& types() const {return m_Tag_keys;}
 
-     inline bool has_type(const std::string &type_name) const {
-         return m_Tag_keys.count(type_name) != 0;
-     }
+ private:
+     /** @brief is the tag key in the configuration file
+      * 
+      * @param[in] key  tag_key name="key"
+      */
+
+     bool has_tag_key(const std::string &key) const;
+     const Tag_key& tag_key(const Tag &tag) const;
+
 
  private:
-     //! Map, which saves the parsed types
      std::map<std::string, Tag_key> m_Tag_keys;
 };
 
 
 }  // end namespace osm2pgr
 #endif  // SRC_CONFIGURATION_H_
+
+
+

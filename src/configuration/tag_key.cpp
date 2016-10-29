@@ -26,34 +26,40 @@
 
 namespace osm2pgr {
 
-#if 0
-void Tag_key::AddTag_value(const Tag_value &pTag_value) {
-    std::cout << "\nadding " << pTag_value.name() << "\t" << m_Tag_values.size();;
-    m_Tag_values[pTag_value.name()] = pTag_value;
-    std::cout << "\nadding " << "\t" << m_Tag_values.size();;
-}
-#endif
 
-Tag_key::Tag_key(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name == "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
-    }
+Tag_key::Tag_key(const char **atts) 
+    : Element(atts) {
 }
 
 void
-Tag_key::add_class(const Tag_value &p_values) {
-    m_Tag_values[ p_values.name()] =  p_values;
+Tag_key::add_tag_value(const Tag_value &value) {
+    m_Tag_values[value.name()] =  value;
+}
+
+bool
+Tag_key::has_tag_value(const Tag &tag) const {
+    return m_Tag_values.count(tag.value());
+}
+
+const
+Tag_value&
+Tag_key::tag_value(
+        const Tag &tag) const {
+    return m_Tag_values.at(tag.value());
+}
+
+bool
+Tag_key::has(const Tag &tag, const std::string &str) const {
+    return tag_value(tag).has_attribute(str)
+           || this->has_attribute(str);
+}
+
+std::string
+Tag_key::get(const Tag &tag, const std::string &str) const {
+    assert(this->has(tag, str));
+    return (tag_value(tag).has_attribute(str)) ?
+        tag_value(tag).get(str)
+        : this->get_attribute(str);
 }
 
 
@@ -63,7 +69,7 @@ Tag_key::values(const std::vector<std::string> &columns) const {
 
     for (const auto &item : m_Tag_values) {
         auto row = item.second.values(columns, true);
-        row[1] = m_name;
+        row[1] = name();
         row[2] = item.second.get_attribute("name"); 
 
         if (row[4] == "") row[4] = "-1"; 

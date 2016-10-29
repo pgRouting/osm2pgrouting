@@ -23,41 +23,58 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
-#if 0
-#include "osm_elements/osm_tag.h"
-#include "configuration/Tag_key.h"
-#include "configuration/Class.h"
-#endif
 
 namespace osm2pgr {
 
-
-void Configuration::AddTag_key(Tag_key t) {
-    if (has_type(t.name())) {
-        std::cerr << "duplicate Tag_key found in condfiguration file"
-            << t.name() << "\n";
+void Configuration::add_tag_key(const Tag_key &t_key) {
+    if (has_tag_key(t_key.name())) {
+        std::cerr << "Duplicate Tag_key found in condfiguration file"
+            << t_key.name() << " ....  sikipping\n";
         return;
     }
-    m_Tag_keys[t.name()] = t;
+    m_Tag_keys[t_key.name()] = t_key;
 }
 
-Tag_key& Configuration::FindTag_key(std::string name) {
-    return m_Tag_keys.at(name);
-}
-Tag_key Configuration::FindTag_key(std::string name) const {
-    return m_Tag_keys.at(name);
+
+bool 
+Configuration::has_tag_key(const std::string &key) const {
+        return m_Tag_keys.count(key) != 0; 
+}                      
+
+
+bool
+Configuration::has_tag(const Tag &tag) const {
+    return has_tag_key(tag.key())
+        && tag_key(tag).has_tag_value(tag);
 }
 
-Tag_value Configuration::FindTag_value(const Tag &tag) const {
-    return m_Tag_keys.at(tag.key()).classes()[tag.value()];
+
+const Tag_value& 
+Configuration::tag_value(const Tag &tag) const {
+    return tag_key(tag).tag_value(tag);
+}                      
+
+
+const Tag_key& 
+Configuration::tag_key(const Tag &tag) const {
+    return m_Tag_keys.at(tag.key()); 
+}                      
+
+
+double
+Configuration::maxspeed(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "maxspeed"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "maxspeed"));
+    return 50;
 }
 
-std::string Configuration::priority_str(const Tag &tag) const {
-    return FindTag_value(tag).has_attribute("priority") ? 
-     FindTag_value(tag).get_attribute("priority")
-     : "";
-}
 
+double
+Configuration::priority(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "priority"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "priority"));
+    return 0;
+}
 
 
 }  // end namespace osm2pgr

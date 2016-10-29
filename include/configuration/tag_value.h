@@ -34,33 +34,15 @@ class Tag_value : public Element {
  public:
      Tag_value() = default;
      Tag_value(const Tag_value &) = default;
+     /** @brief build it */
      explicit Tag_value(const char ** attributes);
 
 
+     /** @brief get it */
      inline int64_t id() const {return osm_id();}
-
+     std::string name() const;
+     std::string get(const std::string &str) const;
      std::vector<std::string> export_values() const; 
-
-     inline std::string name() const {
-         assert(has_attribute("name"));
-         return has_attribute("name") ?
-             get_attribute("name")
-             : "";
-     }
-     inline double priority() const {
-#if 0
-         assert(has_attribute("priority)"));
-#endif
-         return  has_attribute("priority") ?
-             boost::lexical_cast<double>(get_attribute("priority"))
-             : 1;
-     }
-     inline double default_maxspeed() const {
-         return (has_attribute("maxspeed")) ? 
-           boost::lexical_cast<double>(get_attribute("maxspeed"))
-           : 50;
-     }
- private:
 
 };
 

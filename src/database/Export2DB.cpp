@@ -538,12 +538,12 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 if (way.tag_config().key() == "" || way.tag_config().value() == "") continue;
 
                 std::vector<std::string> common_values;
-                common_values.push_back(TO_STR(config.FindTag_value(way.tag_config()).id()));
+                common_values.push_back(TO_STR(config.tag_value(way.tag_config()).id()));
                 common_values.push_back(TO_STR(way.osm_id()));
                 common_values.push_back(way.maxspeed_forward_str());
                 common_values.push_back(way.maxspeed_backward_str());
                 common_values.push_back(way.oneWayType_str());
-                common_values.push_back(config.priority_str(way.tag_config()) );
+                common_values.push_back(TO_STR(config.priority(way.tag_config())));
 
                 auto splits = way.split_me();
                 split_count +=  splits.size();

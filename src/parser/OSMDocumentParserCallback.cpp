@@ -148,7 +148,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         m_rDocument.AddWay(*last_way);
         if (m_rDocument.config_has_tag(last_way->tag_config())) {
 
-            auto maxspeed = m_rDocument.get_tag_maxspeed(last_way->tag_config());
+            auto maxspeed = m_rDocument.maxspeed(last_way->tag_config());
             if (last_way->maxspeed_forward() <= 0) {
                 last_way->maxspeed_forward(maxspeed);
             }
@@ -167,7 +167,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                 if (m_rDocument.has_way(way_id)) {
                     Way* way_ptr = m_rDocument.FindWay(way_id);
                     way_ptr->tag_config(last_relation->tag_config());
-                    auto newValue = m_rDocument.class_default_maxspeed(
+                    auto newValue = m_rDocument.maxspeed(
                             last_relation->tag_config());
                     if (way_ptr->maxspeed_forward() <= 0) {
                         way_ptr->maxspeed_forward(newValue);

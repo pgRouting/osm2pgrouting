@@ -33,6 +33,32 @@ Tag_value::Tag_value(const char **atts) :
         assert(has_attribute("name"));
 }
 
+std::string
+Tag_value::get(const std::string &str) const {
+    assert(has_attribute(str));
+    return  get_attribute(str);
+}
+
+#if 0
+std::string
+Tag_value::priority() const {
+    assert(has_attribute("priority"));
+    return  get_attribute("priority");
+}
+
+std::string
+Tag_value::maxspeed() const {
+    assert(has_attribute("maxspeed"));
+    return  get_attribute("maxspeed");
+}
+#endif
+
+std::string
+Tag_value::name() const {
+    assert(has_attribute("name"));
+    return get_attribute("name");
+}
+
 
 
 
