@@ -50,9 +50,10 @@ class Export2DB {
      /**
       * Constructor 
       * @param vm variable map holding the configuration
+      * @param db_conn conection string 
       *
       */
-     explicit Export2DB(const po::variables_map &p_vm, const std::string &db_conn);
+     explicit Export2DB(const po::variables_map &vm, const std::string &db_conn);
 
      /**
       * Destructor
@@ -78,14 +79,14 @@ class Export2DB {
       * T must have:
       *     T.values
       *
-      * @params[in] items  vector of values to be inserted into
-      * @params[in] table 
+      * @param[in] items  vector of values to be inserted into
+      * @param[in] table 
       */
      template <typename T>
          void export_osm (
                  std::vector<T> &items,
-                 const std::string &osm_name) const {
-             auto osm_table = m_tables.get_table(osm_name);
+                 const std::string &table) const {
+             auto osm_table = m_tables.get_table(table);
              std::vector<std::string> values(items.size(), "");
 
              size_t i(0);

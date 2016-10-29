@@ -34,13 +34,13 @@ class Configuration {
 
      /** @brief add group of tag_key + all the tag_values
       *
-      * @params[in] t_key Tag_key found in the configuration
+      * @param[in] t_key Tag_key found in the configuration
       */
      void add_tag_key(const Tag_key &t_key);
 
      /** @brief retrieves the Tag_value (attrributes
       *
-      * @params[in] t_key Tag_key found in the configuration
+      * @param[in] tag Tag found in the configuration
       * @returns Tag_value
       */
      const Tag_value& tag_value(const Tag &tag) const;
@@ -48,7 +48,7 @@ class Configuration {
      /* Is the (key, value) pair in the configuration?
       *
       *
-      * @params[in] tag Tag (key, value) pair
+      * @param[in] tag Tag (key, value) pair
       */
      bool has_tag(const Tag &tag) const;
 

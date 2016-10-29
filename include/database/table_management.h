@@ -76,11 +76,17 @@ class Tables {
         std::string  post_process(const Table &table) const;
 
 
+
         po::variables_map m_vm;
         Table osm_nodes;
         Table osm_ways;
         Table osm_relations;
         Table configuration;
+    private:
+        Table osm_nodes_config() const;
+        Table osm_ways_config() const;
+        Table osm_relations_config() const;
+        Table configuration_config() const;
 };
 
 }
