@@ -149,6 +149,7 @@ int main(int argc, char* argv[]) {
 #ifndef NDEBUG
         dbConnection.install_postGIS();
 #endif
+
         if (!dbConnection.has_extension("postgis")) {
                 std::cout << "ERROR: postGIS not found\n";
                 std::cout << "   HINT: CREATE EXTENSION postGIS\n";
@@ -167,6 +168,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "\nCreating tables..." << endl;
         dbConnection.createTables();
+
         /* 
          * End: preparing the databasse
          */
@@ -214,14 +216,12 @@ int main(int argc, char* argv[]) {
 
             std::cout << "Adding auxiliary tables to database..." << endl;
 
-#if 0
-            /* export configuration */
-            std::cout << "\nExport Classes ..." << endl;
-            dbConnection.exportClasses(config.types());
-#endif
 
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
+
+            std::cout << "\nCreating indexes ..." << endl;
+            dbConnection.createFKeys();
 
         }
 

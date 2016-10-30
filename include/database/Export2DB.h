@@ -47,6 +47,7 @@ class Export2DB {
      typedef std::vector<Node> Nodes;
      typedef std::vector<Way> Ways;
      typedef std::vector<Relation> Relations;
+
      /**
       * Constructor 
       * @param vm variable map holding the configuration
@@ -63,7 +64,7 @@ class Export2DB {
 
      //! connects to database
      int connect();
-     bool has_postGIS() const;
+
      bool has_extension(const std::string &name) const;
 #ifndef NDBEUG
      bool install_postGIS() const;
@@ -71,7 +72,6 @@ class Export2DB {
 
      //! creates needed tables and geometries
      void createTables() const;
-     void createTempTables() const;
 
 
      /** @brief export values to osm_* table
@@ -109,9 +109,8 @@ class Export2DB {
              const Ways &ways,
              const Configuration &config) const;
 
-     //! Be careful! It deletes the created tables!
      void dropTables() const;
-     void createFKeys();
+     void createFKeys() const;
 
  private:
 
@@ -121,69 +120,22 @@ class Export2DB {
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
 
-
-     void dropTable(const std::string &table, pqxx::work &Xaction) const;
-     bool createTempTable(
-             const std::string &sql,
-             const std::string &table);
-     bool createTable(
-             const std::string &sql,
-             const std::string &table,
-             const std::string &constraint = std::string("")) const;
-     void addTempGeometry(
-             const std::string &table,
-             const std::string &geometry_type,
-             pqxx::work &Xaction) const;
-     void addTempGeometry(
-             const std::string &table,
-             const std::string &geometry_type) const;
-     void addGeometry(
-             const std::string &schema,
-             const std::string &table,
-             const std::string &geometry_type) const;
-     void create_gindex(
-             const std::string &index,
-             const std::string &table) const;
-     void create_idindex(
-             const std::string &colname,
-             const std::string &table) const;
-
-     inline std::string full_table_name(const std::string &table) const {
-         return tables_prefix + table + tables_suffix;
-     }
-
-     inline std::string addSchema(const std::string &table) const {
-         return  (default_tables_schema() == "" ? ""
-                 : default_tables_schema() + ".") + table;
-     }
-     inline std::string default_tables_schema() const {
-         return tables_schema;
-     }
      void fill_vertices_table(
              const std::string &table,
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
+
      void fill_source_target(
              const std::string &table,
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
 
  private:
-#if 1
      PGconn *mycon;
-#endif
-#if 1
      mutable pqxx::connection db_conn;
-#endif
      po::variables_map m_vm;
 
      std::string conninf;
-     std::string tables_schema;
-     std::string tables_prefix;
-     std::string tables_suffix;
-
-     std::string create_ways;
-     std::string create_vertices;
 
      Tables m_tables;
 

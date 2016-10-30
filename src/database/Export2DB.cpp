@@ -51,24 +51,9 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
     db_conn(connection),
     m_vm(vm),
     conninf(connection),
-    tables_schema(vm["schema"].as<std::string>()),
-    tables_prefix(vm["prefix"].as<std::string>()),
-    tables_suffix(vm["suffix"].as<std::string>()),
-    m_tables(vm) {
-
-
-        create_vertices = std::string(
-                " id bigserial PRIMARY KEY,"
-                " osm_id bigint,"
-                " cnt integer,"
-                " chk integer,"
-                " ein integer,"
-                " eout integer,"
-                " lon decimal(11,8),"
-                " lat decimal(11,8),"
-                " CONSTRAINT vertex_id UNIQUE(osm_id)");
-
-    }  //  constructor
+    m_tables(vm)
+{
+}
 
 Export2DB::~Export2DB() {
     PQfinish(mycon);
@@ -122,120 +107,10 @@ Export2DB::install_postGIS() const {
 
 
 
-bool Export2DB::createTable(
-        const std::string &table_description,
-        const std::string &table,
-        const std::string &constraint) const {
-    std::string sql =
-        "CREATE TABLE " + table + " ("
-        + table_description + constraint + ");";
-
-    try {
-        pqxx::work Xaction(db_conn);
-        Xaction.exec(sql);
-        Xaction.commit();
-        std::cout << "NOTICE: " << table << " created ... OK." << std::endl;
-        return true;
-    } catch (const std::exception &e) {
-        std::cout << "NOTICE: " << table << " already exists." << std::endl;
-    }
-    return false;
-}
-
-
-void Export2DB::addGeometry(
-        const std::string &schema, const std::string &table,
-        const std::string &geometry_type) const {
-    /** PostGIS requires the schema to be specified as separate arg if not default user's schema **/
-    std::string sql =
-        + " SELECT AddGeometryColumn(" + (schema == "" ? "" : "'" + schema + "' ,") + " '"
-        + table + "',"
-        + "'the_geom', 4326, '" + geometry_type + "',2);";
-
-    try {
-        pqxx::work Xaction(db_conn);
-        Xaction.exec(sql);
-        std::cout << "    NOTICE: geometry " << addSchema(table) << ".the_geom created ... OK." << std::endl;
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cout << "    NOTICE: geometry " << addSchema(table) << ".the_geom already exists." << std::endl;
-    }
-}
-
-void Export2DB::addTempGeometry(
-        const std::string &table,
-        const std::string &geometry_type,
-        pqxx::work &Xaction) const {
-    std::string sql =
-        " SELECT AddGeometryColumn('"
-        + table + "',"
-        + "'the_geom', 4326, '" + geometry_type + "',2);";
-
-    Xaction.exec(sql);
-}
-
-
-void Export2DB::addTempGeometry(
-        const std::string &table,
-        const std::string &geometry_type) const {
-    std::string sql =
-        " SELECT AddGeometryColumn('"
-        + table + "',"
-        + "'the_geom', 4326, '" + geometry_type + "',2);";
-
-
-    PGresult *result = PQexec(mycon, sql.c_str());
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-        std::cout << PQresultErrorMessage(result);
-        throw std::string(PQresultErrorMessage(result));
-    }
-    PQclear(result);
-}
-
-
-void Export2DB::create_gindex(const std::string &index, const std::string &table) const {
-    std::string sql = (
-            " CREATE INDEX "
-            + index + "_gdx ON "
-            + table + " using gist(the_geom);");
-    PGresult *result = PQexec(mycon, sql.c_str());
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cout << PQresultErrorMessage(result);
-        throw std::string(PQresultErrorMessage(result));
-    }
-    PQclear(result);
-}
-
-void Export2DB::create_idindex(const std::string &colname, const std::string &table) const {
-    std::string sql = (
-            " CREATE INDEX "
-            "     ON " + table +
-            "     USING btree (" + colname + ");");
-    PGresult *result = PQexec(mycon, sql.c_str());
-    // TODO(who) check missing
-    PQclear(result);
-}
 
 // /////////////////////
 void Export2DB::createTables() const {
     //  the following are particular of the file tables
-#if 0
-    if (createTable(create_vertices, addSchema(full_table_name("ways_vertices_pgr")) )) {
-        addGeometry(default_tables_schema(), full_table_name("ways_vertices_pgr"), "POINT");
-        create_gindex(full_table_name("ways_vertices_pgr"), addSchema(full_table_name("ways_vertices_pgr")));
-        create_idindex("osm_id", addSchema(full_table_name("ways_vertices_pgr")));
-    }
-
-    if (createTable(create_ways, addSchema(full_table_name("ways")))) {
-        addGeometry(default_tables_schema(), full_table_name("ways"), "LINESTRING");
-        create_gindex(full_table_name("ways"), addSchema(full_table_name("ways")));
-        create_idindex("source_osm", addSchema(full_table_name("ways")));
-        create_idindex("target_osm", addSchema(full_table_name("ways")));
-        create_idindex("source", addSchema(full_table_name("ways")));
-        create_idindex("target", addSchema(full_table_name("ways")));
-    }
-#endif
     try {
         pqxx::work Xaction(db_conn);
 
@@ -248,6 +123,15 @@ void Export2DB::createTables() const {
         Xaction.exec(m_tables.configuration.create());
         std::cout << "TABLE: " << m_tables.configuration.addSchema() << " created ... OK.\n";
 
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr <<  "FATAL ERROR: could not routing tables" << std::endl;
+        exit(1);
+    }
+
+    try {
+        pqxx::work Xaction(db_conn);
         /*
          * optional tables
          */
@@ -263,19 +147,11 @@ void Export2DB::createTables() const {
         Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr <<  "FATAL ERROR: could not create tables" << std::endl;
-        exit(1);
+        std::cerr <<  "WARNING: could not create osm-*  tables" << std::endl;
+        std::cerr <<  "   Insertions on osm_* tables are going to be ignored" << std::endl;
     }
-
 }
 
-
-
-void
-Export2DB::dropTable(const std::string &table, pqxx::work &Xaction) const {
-    std::string sql("DROP TABLE IF EXISTS " +  table + " CASCADE");
-    Xaction.exec(sql);
-}
 
 
 
@@ -289,6 +165,17 @@ void Export2DB::dropTables() const {
         Xaction.exec(m_tables.ways_vertices_pgr.drop());
         std::cout << "TABLE: " << m_tables.ways_vertices_pgr.addSchema() << " droped ... OK.\n";
 
+        Xaction.exec(m_tables.configuration.drop());
+        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " droped ... OK.\n";
+
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+        cerr << "ROLLBACK applied";
+    }
+
+    try {
+        pqxx::work Xaction(db_conn);
         Xaction.exec(m_tables.osm_nodes.drop());
         std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " droped ... OK.\n";
 
@@ -298,17 +185,11 @@ void Export2DB::dropTables() const {
         Xaction.exec(m_tables.osm_relations.drop());
         std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " droped ... OK.\n";
 
-        Xaction.exec(m_tables.configuration.drop());
-        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " droped ... OK.\n";
         Xaction.commit();
     } catch (const std::exception &e) {
         cerr << e.what() << std::endl;
-        cerr << "ROLLBACK applied";
     }
-
-    //  we are not deleting general tables osm_
 }
-
 
 
 void
@@ -336,7 +217,7 @@ Export2DB::export_osm(
     std::string temp_table(table.temp_name());
     auto create_sql = table.tmp_create();
     std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
-    
+
 #if 0
     std::cout << "\n" << create_sql;
     std::cout << "\n" << copy_sql;
@@ -385,7 +266,7 @@ void Export2DB::fill_vertices_table(
         const std::string &table,
         const std::string &vertices_tab,
         pqxx::work &Xaction) const {
-    std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
+    // std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
     std::string sql(
             "WITH osm_vertex AS ("
             "(select source_osm as osm_id, x1 as lon, y1 as lat FROM " + table + " where source is NULL)"
@@ -408,7 +289,7 @@ void Export2DB::fill_source_target(
         const std::string &table,
         const std::string &vertices_tab,
         pqxx::work &Xaction) const {
-    std::cout << "    Filling 'source' column of '" << table << "':'" << vertices_tab << "'\n";
+    // std::cout << "    Filling 'source' column of '" << table << "':'" << vertices_tab << "'\n";
     std::string sql1(
             " UPDATE " + table + " AS w"
             " SET source = v.id "
@@ -465,9 +346,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
 
     while (start < ways.size()) {
         auto limit = (start + chunck_size) < ways.size() ? start + chunck_size : ways.size();
-#if 0
         try {
-#endif
             pqxx::work Xaction(db_conn);
             Xaction.exec(create_sql);
             pqxx::tablewriter tw(Xaction, temp_table, columns.begin(), columns.end());
@@ -485,6 +364,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 common_values.push_back(way.maxspeed_forward_str());
                 common_values.push_back(way.maxspeed_backward_str());
                 common_values.push_back(way.oneWayType_str());
+                common_values.push_back(way.has_attribute("oneway") ? way.get_attribute("oneway") : std::string(""));
                 common_values.push_back(TO_STR(config.priority(way.tag_config())));
 
                 auto splits = way.split_me();
@@ -525,13 +405,11 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
             process_section(ways_columns, Xaction);
             Xaction.exec("DROP TABLE " + temp_table);
             Xaction.commit();
-#if 0
         } catch (const std::exception &e) {
             std::cerr <<  "\n" << e.what() << std::endl;
             std::cerr << "While processing from " << start << "th \t to: " << limit << "th way\n";
             std::cerr << "count" << count << " While processing from " << start << "th \t to: " << limit << "th way\n";
         }
-#endif
 
         start = limit;
     }
@@ -569,7 +447,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
     //  std::cout << "Inserting new split ways to '" << addSchema(full_table_name("ways")) << "'\n";
     std::string insert_into_ways(
-            " INSERT INTO " + addSchema(full_table_name("ways")) +
+            " INSERT INTO " + m_tables.ways.addSchema() +
             "(" + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s) "
             " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM " + temp_table + "); ");
     auto result = Xaction.exec(insert_into_ways);
@@ -583,75 +461,86 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-void Export2DB::createFKeys() {
-    // return; // TODO
-    /*
-       ALTER TABLE osm_way_classes
-       ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
-       */
+/*
+ *
+ *  Integrity of the OSM data is not ensured so failings are ignored
+ *
+ *  Due to the fact that indexes slow down the process, no index is created
+ *
+ *  After all the data is inserted then its time to create indices & foreign keys
+ *
+ */
+void Export2DB::createFKeys() const {
+    pqxx::work Xaction(db_conn);
+    try {
+        /*
+         * configuration:
+         */
+        Xaction.exec(
+                "ALTER TABLE " + m_tables.configuration.addSchema()
+                + " ADD PRIMARY KEY (id);"
+                + "ALTER TABLE " + m_tables.configuration.addSchema()
+                + " ADD UNIQUE (tag_id);");
 
-    std::string fk_classes(
-            "ALTER TABLE " + addSchema("config_classes")  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema("osm_way_types")  + "(type_id)");
-    PGresult *result = PQexec(mycon, fk_classes.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for " + addSchema("config_classes")  + " failed:"
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for " + addSchema("config_classes")  + " table created" << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr <<  m_tables.configuration.addSchema() << "\n";
     }
 
-    std::string fk_way_tag(
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("config_classes") + "(class_id); ");
-#if 0
-    // DOES NOT WORK because osm_id is not unique
-    "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(full_table_name("ways")) + "(osm_id); ");
-#endif
-    result = PQexec(mycon, fk_way_tag.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for " + addSchema("osm_way_tags") + " failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for " + addSchema("osm_way_tags") + " table created" << std::endl;
+    try {
+        /*
+         * vertices:
+         *   id set PRIMARY KEY
+         *   osm_id UNIQUE
+         */
+        Xaction.exec(
+                "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
+                + " ADD PRIMARY KEY (id);"
+                + "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
+                + " ADD UNIQUE (osm_id);");
+
+    } catch (const std::exception &e) {
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr <<  m_tables.ways_vertices_pgr.addSchema() << "\n";
     }
 
-#if 0
-    std::string fk_relations(
-            "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(osm_id); ");
-    result = PQexec(mycon, fk_relations.c_str());
-    // its not working as there are several ways with the same osm_id
-    // the gid is not possible because that is "on the fly" sequential
-    "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
-#endif
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for " + addSchema(full_table_name("relations_ways"))  + " failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for " + addSchema(full_table_name("relations_ways"))  + " table created" << std::endl;
-    }
+    try {
+        /*
+         * ways:
+         *   id set PRIMARY KEY
+         *   osm_id UNIQUE
+         */
+        Xaction.exec(
+                " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD PRIMARY KEY (id);"
 
-    std::string fk_ways(
-            "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("config_classes") + "(class_id);" +
-            "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (source) REFERENCES " + addSchema(full_table_name("ways_vertices_pgr")) + "(id); " +
-            "ALTER TABLE " + addSchema(full_table_name("ways")) + " ADD FOREIGN KEY (target) REFERENCES " + addSchema(full_table_name("ways_vertices_pgr")) + "(id);");
-    result = PQexec(mycon, fk_ways.c_str());
+                + " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD FOREIGN KEY (source) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(id) "
+                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
 
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for ways failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for Ways table created" << std::endl;
+                + " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD FOREIGN KEY (target) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(id) "
+                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
+
+                + " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD FOREIGN KEY (source_osm) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(osm_id) "
+                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
+
+                + " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD FOREIGN KEY (target_osm) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(osm_id) "
+                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
+
+                + " ALTER TABLE " + m_tables.ways.addSchema()
+                + " ADD FOREIGN KEY (tag_id) REFERENCES " + m_tables.configuration.addSchema() + "(tag_id) "
+                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
+
+                + " CREATE INDEX "
+                + " ON " + m_tables.ways.addSchema()
+                + " USING GIST (the_geom);");
+
+    } catch (const std::exception &e) {
+        std::cerr <<"\nWARNING: " << e.what() << std::endl;
+        std::cerr <<  m_tables.ways.addSchema() << "\n";
     }
 }
 

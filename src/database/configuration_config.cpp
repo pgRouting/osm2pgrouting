@@ -24,7 +24,7 @@ Tables::configuration_config() const {
 
             /* standard column creation string */
             std::string(
-                " id serial PRIMARY KEY"
+                " id serial"
                 ", tag_id INTEGER"
                 ", tag_key TEXT"
                 ", tag_value TEXT"

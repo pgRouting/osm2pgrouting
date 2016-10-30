@@ -28,28 +28,33 @@ Tables::ways_config() const {
 
             /* standard column creation string */
             std::string(
-                " gid bigserial PRIMARY KEY"
-                ", class_id integer not null"
+                " id bigserial"
+                ", osm_id bigint"
+                ", tag_id integer"
+
                 ", length double precision"
                 ", length_m double precision"
                 ", name text"
                 ", source bigint"
                 ", target bigint"
-                ", x1 double precision"
-                ", y1 double precision"
-                ", x2 double precision"
-                ", y2 double precision"
+                ", source_osm bigint"
+                ", target_osm bigint"
+
                 ", cost double precision"
                 ", reverse_cost double precision"
                 ", cost_s double precision "
                 ", reverse_cost_s double precision"
                 ", rule text"
                 ", one_way int "
+                ", oneway TEXT "
+
+                ", x1 double precision"
+                ", y1 double precision"
+                ", x2 double precision"
+                ", y2 double precision"
+
                 ", maxspeed_forward double precision"
                 ", maxspeed_backward double precision"
-                ", osm_id bigint"
-                ", source_osm bigint"
-                ", target_osm bigint"
                 ", priority double precision DEFAULT 1"
 #if 0
                 + (m_vm.count("attributes") ?
@@ -69,11 +74,12 @@ Tables::ways_config() const {
 
 
     std::vector<std::string> columns;
-    columns.push_back("class_id");
+    columns.push_back("tag_id");
     columns.push_back("osm_id");
     columns.push_back("maxspeed_forward");
     columns.push_back("maxspeed_backward");
     columns.push_back("one_way");
+    columns.push_back("oneway");
     columns.push_back("priority");
 
     columns.push_back("length");
