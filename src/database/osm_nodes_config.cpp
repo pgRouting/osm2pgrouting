@@ -13,14 +13,15 @@ namespace osm2pgr {
 Table
 Tables::osm_nodes_config() const {
     Table table(
+            /* name */
+            std::string("osm_nodes"),
+
             /* schema */
             m_vm["schema"].as<std::string>(),
-            /* prefix */
-            "",
-            /* name */
+
+            /* full name */
             "osm_nodes",
-            /* suffix */
-            "",
+
             /* standard column creation string */
             std::string(
                 " osm_id bigint PRIMARY KEY"
@@ -30,14 +31,14 @@ Tables::osm_nodes_config() const {
                 + (m_vm.count("tags") ?
                     (std::string(", tags ") + (m_vm.count("hstore") ? "hstore" : "json"))
                     : "")),
+
             /* other columns */
             // TODO get from the configuration maybe this task is to be done on the configuration*/
             ", tag_name TEXT"
                 ", tag_value TEXT"
                 ", name TEXT ",
             // end todo
-            /* constraint */
-            "",
+
             /* geometry */
             "POINT");
     std::vector<std::string> columns;

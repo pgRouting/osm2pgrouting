@@ -56,15 +56,6 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
     tables_suffix(vm["suffix"].as<std::string>()),
     m_tables(vm) {
 
-#if 0
-        create_types = std::string(
-                " type_id integer PRIMARY KEY,"
-                " name text");
-
-        create_way_tag = std::string(
-                " class_id integer,"
-                " way_id bigint");
-#endif
 
         create_vertices = std::string(
                 " id bigserial PRIMARY KEY,"
@@ -76,33 +67,6 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
                 " lon decimal(11,8),"
                 " lat decimal(11,8),"
                 " CONSTRAINT vertex_id UNIQUE(osm_id)");
-
-        create_ways = std::string(
-                " gid bigserial PRIMARY KEY,"
-                " class_id integer not null,"
-                " length double precision,"
-                " length_m double precision,"
-                " name text,"
-                " source bigint,"
-                " target bigint,"
-                " x1 double precision,"
-                " y1 double precision,"
-                " x2 double precision,"
-                " y2 double precision,"
-                " cost double precision,"
-                " reverse_cost double precision,"
-                " cost_s double precision, "
-                " reverse_cost_s double precision,"
-                " rule text,"
-                " one_way int, "  //  0 unknown, 1 yes(normal direction), 2 (2 way),
-                //  -1 reversed (1 way but geometry is reversed)
-                //  3 - reversible (one way street but direction chnges on time)
-                " maxspeed_forward double precision,"
-                " maxspeed_backward double precision,"
-                " osm_id bigint,"
-                " source_osm bigint,"
-                " target_osm bigint,"
-                " priority double precision DEFAULT 1");
 
     }  //  constructor
 
@@ -138,22 +102,6 @@ Export2DB::has_extension(const std::string &name) const {
         return false;
     }
 }
-
-#if 0
-bool
-Export2DB::has_postGIS() const {
-    try {
-        pqxx::work Xaction(db_conn);
-        std::string sql = "SELECT * FROM pg_extension WHERE extname = 'postgis'";
-        auto result = Xaction.exec(sql);
-        return result.size() == 1;
-
-    } catch (const std::exception &e) {
-        cerr << e.what() << std::endl;
-        return false;
-    }
-}
-#endif
 
 
 #ifndef NDEBUG
@@ -272,6 +220,7 @@ void Export2DB::create_idindex(const std::string &colname, const std::string &ta
 // /////////////////////
 void Export2DB::createTables() const {
     //  the following are particular of the file tables
+#if 0
     if (createTable(create_vertices, addSchema(full_table_name("ways_vertices_pgr")) )) {
         addGeometry(default_tables_schema(), full_table_name("ways_vertices_pgr"), "POINT");
         create_gindex(full_table_name("ways_vertices_pgr"), addSchema(full_table_name("ways_vertices_pgr")));
@@ -286,20 +235,36 @@ void Export2DB::createTables() const {
         create_idindex("source", addSchema(full_table_name("ways")));
         create_idindex("target", addSchema(full_table_name("ways")));
     }
-
+#endif
     try {
         pqxx::work Xaction(db_conn);
+
+        Xaction.exec(m_tables.ways_vertices_pgr.create());
+        std::cout << "TABLE: " << m_tables.ways_vertices_pgr.addSchema() << " created ... OK.\n";
+
+        Xaction.exec(m_tables.ways.create());
+        std::cout << "TABLE: " << m_tables.ways.addSchema() << " created ... OK.\n";
+
         Xaction.exec(m_tables.configuration.create());
         std::cout << "TABLE: " << m_tables.configuration.addSchema() << " created ... OK.\n";
+
+        /*
+         * optional tables
+         */
         Xaction.exec(m_tables.osm_nodes.create());
         std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " created ... OK.\n";
+
         Xaction.exec(m_tables.osm_ways.create());
         std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " created ... OK.\n";
+
         Xaction.exec(m_tables.osm_relations.create());
         std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " created ... OK.\n";
+
         Xaction.commit();
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
+        std::cerr <<  "FATAL ERROR: could not create tables" << std::endl;
+        exit(1);
     }
 
 }
@@ -317,16 +282,22 @@ Export2DB::dropTable(const std::string &table, pqxx::work &Xaction) const {
 void Export2DB::dropTables() const {
     try {
         pqxx::work Xaction(db_conn);
-        dropTable(addSchema(full_table_name("ways")), Xaction);
-        std::cout << "TABLE: " << addSchema(full_table_name("ways")) << " droped ... OK.\n";
-        dropTable(addSchema(full_table_name("ways_vertices_pgr")), Xaction);
-        std::cout << "TABLE: " << addSchema(full_table_name("ways_vertices_pgr")) << " droped ... OK.\n";
+
+        Xaction.exec(m_tables.ways.drop());
+        std::cout << "TABLE: " << m_tables.ways.addSchema() << " droped ... OK.\n";
+
+        Xaction.exec(m_tables.ways_vertices_pgr.drop());
+        std::cout << "TABLE: " << m_tables.ways_vertices_pgr.addSchema() << " droped ... OK.\n";
+
         Xaction.exec(m_tables.osm_nodes.drop());
         std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " droped ... OK.\n";
+
         Xaction.exec(m_tables.osm_ways.drop());
         std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " droped ... OK.\n";
+
         Xaction.exec(m_tables.osm_relations.drop());
         std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " droped ... OK.\n";
+
         Xaction.exec(m_tables.configuration.drop());
         std::cout << "TABLE: " << m_tables.configuration.addSchema() << " droped ... OK.\n";
         Xaction.commit();
@@ -414,7 +385,7 @@ void Export2DB::fill_vertices_table(
         const std::string &table,
         const std::string &vertices_tab,
         pqxx::work &Xaction) const {
-    // std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
+    std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
     std::string sql(
             "WITH osm_vertex AS ("
             "(select source_osm as osm_id, x1 as lon, y1 as lat FROM " + table + " where source is NULL)"
@@ -437,7 +408,7 @@ void Export2DB::fill_source_target(
         const std::string &table,
         const std::string &vertices_tab,
         pqxx::work &Xaction) const {
-    // std::cout << "    Filling 'source' column of '" << table << "': ";
+    std::cout << "    Filling 'source' column of '" << table << "':'" << vertices_tab << "'\n";
     std::string sql1(
             " UPDATE " + table + " AS w"
             " SET source = v.id "
@@ -472,63 +443,34 @@ void Export2DB::fill_source_target(
 
 void Export2DB::exportWays(const Ways &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
-    std::string ways_columns(
-            " class_id, "
-            " osm_id, "
-            " maxspeed_forward, maxspeed_backward, "
-            " one_way, "
-            " priority, "
 
-            " length,"
-            " x1, y1,"
-            " x2, y2,"
-            " source_osm,"
-            " target_osm,"
-            " the_geom,"
-            " cost, "
-            " reverse_cost,"
+    Table table = m_tables.ways;
 
-            " name ");
+    auto columns = table.columns();
+    auto ways_columns = comma_separated(columns);
 
-    std::vector<std::string> columns;
-    columns.push_back("class_id");
-    columns.push_back("osm_id");
-    columns.push_back("maxspeed_forward");
-    columns.push_back("maxspeed_backward");
-    columns.push_back("one_way");
-    columns.push_back("priority");
+    size_t chunck_size = m_vm["chunk"].as<size_t>();
 
-    columns.push_back("length");
-    columns.push_back("x1"); columns.push_back("y1");
-    columns.push_back("x2"); columns.push_back("y2");
-    columns.push_back("source_osm");
-    columns.push_back("target_osm");
-    columns.push_back("the_geom");
-    columns.push_back("cost");
-    columns.push_back("reverse_cost");
-    columns.push_back("name");
+    auto create_sql = table.tmp_create();
+    auto temp_table(table.temp_name());
 
+    std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
-    size_t chunck_size = 20000;
 
 
     int64_t split_count = 0;
     int64_t count = 0;
     size_t start = 0;
     auto it = ways.begin();
+
     while (start < ways.size()) {
         auto limit = (start + chunck_size) < ways.size() ? start + chunck_size : ways.size();
 #if 0
         try {
 #endif
             pqxx::work Xaction(db_conn);
-            Xaction.exec("CREATE TABLE  __ways_temp ("
-                    + create_ways + ")");
-
-            Xaction.exec("SELECT AddGeometryColumn('__ways_temp', 'the_geom', 4326, 'LINESTRING', 2)");
-#if 1
-            pqxx::tablewriter tw(Xaction, "__ways_temp", columns.begin(), columns.end());
-#endif
+            Xaction.exec(create_sql);
+            pqxx::tablewriter tw(Xaction, temp_table, columns.begin(), columns.end());
             for (auto i = start; i < limit; ++i) {
                 auto way = *it;
 
@@ -581,7 +523,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
             std::cout << " Total Processed: " << count;
             tw.complete();
             process_section(ways_columns, Xaction);
-            Xaction.exec("DROP TABLE __ways_temp");
+            Xaction.exec("DROP TABLE " + temp_table);
             Xaction.commit();
 #if 0
         } catch (const std::exception &e) {
@@ -599,34 +541,37 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
 
 void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xaction) const {
     //  std::cout << "Creating indices in temporary table\n";
-    Xaction.exec("CREATE INDEX __ways_temp_gdx ON __ways_temp using gist(the_geom);");
-    Xaction.exec("CREATE INDEX ON __ways_temp  USING btree (source_osm)");
-    Xaction.exec("CREATE INDEX ON __ways_temp  USING btree (target_osm)");
+    auto temp_table(m_tables.ways.temp_name());
+
+    Xaction.exec("CREATE INDEX "+ temp_table + "_gdx ON "+ temp_table + " using gist(the_geom);");
+    Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (source_osm)");
+    Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (target_osm)");
+
 
 
 
     //  std::cout << "Deleting  duplicated ways from temporary table\n";
     std::string delete_from_temp(
-            " DELETE FROM __ways_temp a "
-            "     USING " + addSchema(full_table_name("ways")) + " b "
+            " DELETE FROM "+ temp_table + " a "
+            "     USING " + m_tables.ways.addSchema() + " b "
             "     WHERE a.the_geom ~= b.the_geom AND ST_OrderingEquals(a.the_geom, b.the_geom);");
     Xaction.exec(delete_from_temp);
 
     //  std::cout << "Updating to existing toplology the temporary table\n";
-    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+    fill_source_target(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
 
     //  std::cout << "Inserting new vertices in the vertex table\n";
-    fill_vertices_table("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+    fill_vertices_table(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
 
     //  std::cout << "Updating to new toplology the temporary table\n";
-    fill_source_target("__ways_temp" , addSchema(full_table_name("ways_vertices_pgr")), Xaction);
+    fill_source_target(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
 
 
     //  std::cout << "Inserting new split ways to '" << addSchema(full_table_name("ways")) << "'\n";
     std::string insert_into_ways(
             " INSERT INTO " + addSchema(full_table_name("ways")) +
             "(" + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s) "
-            " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM __ways_temp); ");
+            " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM " + temp_table + "); ");
     auto result = Xaction.exec(insert_into_ways);
     std::cout << "\tSplit ways inserted " << result.affected_rows() << "\n";
 }

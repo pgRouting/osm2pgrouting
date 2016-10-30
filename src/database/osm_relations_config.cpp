@@ -13,14 +13,15 @@ namespace osm2pgr {
 Table
 Tables::osm_relations_config() const {
     Table table(
-            /* schema */
-            m_vm["schema"].as<std::string>(),
-            /* prefix */
-            "",
             /* name */
             "osm_relations",
-            /* suffix */
-            "",
+
+            /* schema */
+            m_vm["schema"].as<std::string>(),
+
+            /* full name */
+            "osm_relations",
+
             /* standard column creation string */
             std::string(
                 " osm_id bigint PRIMARY KEY"
@@ -38,8 +39,7 @@ Tables::osm_relations_config() const {
                 ", tag_value TEXT"
                 ", name TEXT ",
             // end todo
-            /* constraint */
-            "",
+
             /* geometry */
             "");
 

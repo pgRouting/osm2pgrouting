@@ -5,22 +5,20 @@
 namespace osm2pgr {
 
 Table::Table(
-        const std::string &schema,
-        const std::string &prefix,
         const std::string &name,
-        const std::string &suffix,
+        const std::string &schema,
+        const std::string &full_name,
+
         const std::string &create_str,
         const std::string &other_columns,
-        const std::string &constraint,
         const std::string &geometry
         ):
-    m_schema(schema),
-    m_prefix(prefix),
     m_name(name),
-    m_suffix(suffix),
+    m_schema(schema),
+    m_full_name(full_name),
+
     m_create(create_str),
     m_other_columns(other_columns),
-    m_constraint(constraint),
     m_geometry(geometry)
     { }
 
@@ -28,6 +26,15 @@ void
 Table::set_columns(const std::vector<std::string> &columns) {
     m_columns = columns;
 }
+
+std::string
+Table::addSchema() const {
+    return
+        m_schema
+        + (m_schema == "" ? "" :  ".")
+        + m_full_name;
+}
+
 
 
 /*
@@ -41,27 +48,29 @@ Table::create() const {
         + m_create
         + m_other_columns
         + m_constraint + ");";
-    if (m_geometry != "") {
 
+    if (m_geometry != "") {
         sql += "SELECT AddGeometryColumn('"
             + m_schema
             + (m_schema == "" ? "" : "', '")
             + table_name() + "', 'the_geom', 4326, '" + m_geometry + "', 2);";
     }
+
     return sql;
 }
+
 
 std::string
 Table::drop() const {
     return "DROP TABLE IF EXISTS " + addSchema() + ";";
 }
 
-    
+
 std::string
 Table::temp_name() const {
     return
         "__" 
-        + table_name()
+        + table_name() 
         + boost::lexical_cast<std::string>(getpid());
 }
 
@@ -117,10 +126,15 @@ Tables::Tables(const  po::variables_map &vm) :
     /*
      * initializing tables
      */
+    ways(ways_config()),
+#if 1
+    ways_vertices_pgr(ways_vertices_pgr_config()),
+#endif
+    configuration(configuration_config()),
     osm_nodes(osm_nodes_config()),
     osm_ways(osm_ways_config()),
-    osm_relations(osm_relations_config()),
-    configuration(configuration_config()) {
+    osm_relations(osm_relations_config())
+{
 }
 
 

@@ -13,14 +13,15 @@ namespace osm2pgr {
 Table
 Tables::configuration_config() const {
     Table table(
-            /* schema */
-            m_vm["schema"].as<std::string>(),
-            /* prefix */
-            "",
             /* name */
             "configuration",
-            /* suffix */
-            "",
+
+            /* schema */
+            m_vm["schema"].as<std::string>(),
+
+            /* full name */
+            "configuration",
+
             /* standard column creation string */
             std::string(
                 " id serial PRIMARY KEY"
@@ -32,10 +33,10 @@ Tables::configuration_config() const {
                 ", maxspeed_forward double precision"
                 ", maxspeed_backward double precision"
                 ", force char"),
+
             /* other columns */
             "",
-            /* constraint */
-            "",
+
             /* geometry */
             "");
 
