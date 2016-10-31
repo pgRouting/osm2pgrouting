@@ -245,6 +245,7 @@ Export2DB::export_osm(
 
         PQputline(mycon, "\\.\n");
         PQendcopy(mycon);
+
         Xaction.exec(m_tables.post_process(table));
         Xaction.exec("DROP TABLE " + temp_table);
         PQfinish(mycon);
@@ -338,7 +339,6 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
     std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
 
-
     int64_t split_count = 0;
     int64_t count = 0;
     size_t start = 0;
@@ -347,9 +347,14 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
     while (start < ways.size()) {
         auto limit = (start + chunck_size) < ways.size() ? start + chunck_size : ways.size();
         try {
-            pqxx::work Xaction(db_conn);
-            Xaction.exec(create_sql);
-            pqxx::tablewriter tw(Xaction, temp_table, columns.begin(), columns.end());
+            pqxx::connection db_con(conninf);
+            pqxx::work Xaction(db_con);
+
+            PGconn *mycon = PQconnectdb(conninf.c_str());
+            PGresult *res = PQexec(mycon, create_sql.c_str());
+            res = PQexec(mycon, copy_sql.c_str());
+
+
             for (auto i = start; i < limit; ++i) {
                 auto way = *it;
 
@@ -395,13 +400,14 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                         values.push_back(length);
 
                     values.push_back(way.name());
-                    tw.insert(values);
+                    PQputline(mycon, tab_separated(values).c_str());
                 }
             }
 
+            PQputline(mycon, "\\.\n");
+            PQendcopy(mycon);
+
             print_progress(ways.size(), count);
-            std::cout << " Total Processed: " << count;
-            tw.complete();
             process_section(ways_columns, Xaction);
             Xaction.exec("DROP TABLE " + temp_table);
             Xaction.commit();
