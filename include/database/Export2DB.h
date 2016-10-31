@@ -31,9 +31,7 @@
 #include "osm_elements/Node.h"
 #include "osm_elements/Way.h"
 #include "osm_elements/Relation.h"
-#include "configuration/Type.h"
-#include "configuration/Class.h"
-#include "configuration/Configuration.h"
+#include "configuration/configuration.h"
 #include "utilities/prog_options.h"
 #include "database/table_management.h"
 
@@ -48,12 +46,15 @@ class Export2DB {
  public:
      typedef std::vector<Node> Nodes;
      typedef std::vector<Way> Ways;
+     typedef std::vector<Relation> Relations;
+
      /**
       * Constructor 
       * @param vm variable map holding the configuration
+      * @param db_conn conection string 
       *
       */
-     explicit Export2DB(const po::variables_map &p_vm, const std::string &db_conn);
+     explicit Export2DB(const po::variables_map &vm, const std::string &db_conn);
 
      /**
       * Destructor
@@ -63,120 +64,78 @@ class Export2DB {
 
      //! connects to database
      int connect();
-     bool has_postGIS() const;
-     bool has_hstore() const;
+
+     bool has_extension(const std::string &name) const;
+#ifndef NDBEUG
      bool install_postGIS() const;
+#endif
 
      //! creates needed tables and geometries
      void createTables() const;
-     void createTempTables() const;
-
-     //! exports nodes to the database
-     void export_osm_nodes(const Nodes &nodes) const;
-     void export_osm_ways(const Ways &ways) const;
 
 
-     //! exports ways to the database
-     void exportTags(
-             const Ways &ways,
-             const Configuration &config) const;
+     /** @brief export values to osm_* table
+      *
+      * T must have:
+      *     T.values
+      *
+      * @param[in] items  vector of values to be inserted into
+      * @param[in] table 
+      */
+     template <typename T>
+         void export_osm (
+                 std::vector<T> &items,
+                 const std::string &table) const {
+             auto osm_table = m_tables.get_table(table);
+             std::vector<std::string> values(items.size(), "");
 
-     void exportRelations(
-             const std::vector<Relation> &relations,
-             const Configuration &config) const;
-     void exportRelationsWays(
-             const std::vector<Relation> &relations,
-             const Configuration &config) const;
-     void exportTypes(const std::map<std::string, Type>& types) const;
-     void exportClasses(const std::map<std::string, Type>& types) const;
+             size_t i(0);
+             for (auto it = items.begin(); it != items.end(); ++it, ++i) {
+                 auto item = *it;
+                 if (m_vm.count("hstore")) {
+                     values[i] = tab_separated(item.values(osm_table.columns(), true));
+                 } else {
+                     values[i] = tab_separated(item.values(osm_table.columns(), false));
+                 }
+             }
+
+             export_osm(values, osm_table);
+         }
+
+     void export_configuration(
+             const std::map<std::string, Tag_key>& items) const;
 
      void exportWays(
              const Ways &ways,
              const Configuration &config) const;
 
-     //! Be careful! It deletes the created tables!
      void dropTables() const;
-     void createFKeys();
+     void createFKeys() const;
 
  private:
 
-     void export_osm(const std::vector<std::string> &values, const Table &table) const;
+     void export_osm(
+             const std::vector<std::string> &values,
+             const Table &table) const;
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
 
-     void dropTempTables() const;
-     void dropTempTable(
-             const std::string &table) const;
-
-     void dropTable(const std::string &table, pqxx::work &Xaction) const;
-     bool createTempTable(
-             const std::string &sql,
-             const std::string &table);
-     bool createTable(
-             const std::string &sql,
-             const std::string &table,
-             const std::string &constraint = std::string("")) const;
-     void addTempGeometry(
-             const std::string &table,
-             const std::string &geometry_type,
-             pqxx::work &Xaction) const;
-     void addTempGeometry(
-             const std::string &table,
-             const std::string &geometry_type) const;
-     void addGeometry(
-             const std::string &schema,
-             const std::string &table,
-             const std::string &geometry_type) const;
-     void create_gindex(
-             const std::string &index,
-             const std::string &table) const;
-     void create_idindex(
-             const std::string &colname,
-             const std::string &table) const;
-
-     inline std::string full_table_name(const std::string &table) const {
-         return tables_prefix + table + tables_suffix;
-     }
-
-     inline std::string addSchema(const std::string &table) const {
-         return  (default_tables_schema() == "" ? ""
-                 : default_tables_schema() + ".") + table;
-     }
-     inline std::string default_tables_schema() const {
-         return tables_schema;
-     }
      void fill_vertices_table(
              const std::string &table,
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
+
      void fill_source_target(
              const std::string &table,
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
 
  private:
-#if 1
      PGconn *mycon;
-#endif
-#if 1
      mutable pqxx::connection db_conn;
-#endif
      po::variables_map m_vm;
 
      std::string conninf;
-     std::string tables_schema;
-     std::string tables_prefix;
-     std::string tables_suffix;
-
-     // create table query constants
-     std::string create_classes;
-     std::string create_nodes;
-     std::string create_ways;
-     std::string create_relations;
-     std::string create_relations_ways;
-     std::string create_way_tag;
-     std::string create_types;
-     std::string create_vertices;
 
      Tables m_tables;
 

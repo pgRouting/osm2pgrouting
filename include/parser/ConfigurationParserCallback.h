@@ -36,7 +36,7 @@
 namespace osm2pgr {
 
 class Configuration;
-class Type;
+class Tag_key;
 
 /**
   Parser callback for configuration files
@@ -55,7 +55,7 @@ class ConfigurationParserCallback : public xml::XMLParserCallback {
     Configuration& m_config;
 
     //! current type, which will be parsed
-    Type *m_current;
+    Tag_key* m_current;
 
     virtual void StartElement(const char *name, const char** atts);
 

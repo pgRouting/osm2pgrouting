@@ -42,8 +42,6 @@ Way::Way(const char **atts) :
     m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") { }
 
-
-
 Tag
 Way::add_tag(const Tag &tag) {
     m_tags[tag.key()] = tag.value();
@@ -54,11 +52,15 @@ Way::add_tag(const Tag &tag) {
 
 
 void
+Way::add_node(int64_t node_id) {
+    m_node_ids.push_back(node_id);
+}
+
+void
 Way::add_node(Node *node) {
     assert(node);
     m_NodeRefs.push_back(node);
 }
-
 
 
 std::string
@@ -74,6 +76,8 @@ Way::length_str() const {
 
 std::string
 Way::geometry_str(const std::vector<Node*> &nodeRefs) const {
+    if (nodeRefs.size() < 2) return "srid=4326;LINESTRING EMPTY";
+
     std::string geometry("srid=4326;LINESTRING(");
 
     for (auto it = nodeRefs.begin();
@@ -224,7 +228,7 @@ Way::pedestrian(const std::string &key, const std::string &value) {
             || (key == "highway" && value == "cycleway")
             || (key == "highway" && value == "bridleway")
             || (key == "highway" && value == "track")
-            || (key == "sidewak" && value != "no")  )
+            || (key == "sidewalk" && value != "no")  )
         || (key == "foot" && value != "no")  )
             || (key == "highway" && value == "steps") {
                 m_pedestrian = "YES";
@@ -247,7 +251,7 @@ Way::is_number(const std::string& s) const {
  */
 double
 Way::get_kph(const std::string &value) const {
-    auto mph_pos = value.find("mph");
+    auto mph_pos = value.find(" mph");
     if (mph_pos != std::string::npos) {
         auto newstr = value;
         newstr.erase(mph_pos, std::string::npos);
@@ -284,16 +288,19 @@ void
 Way::max_speed(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
-    if (key == "maxspeed:forward") {
+    if (key == "maxspeed:forward" && m_maxspeed_forward < 0) {
         m_maxspeed_forward = get_kph(value);
         return;
     }
-    if (key == "maxspeed:backward") {
+    if (key == "maxspeed:backward" && m_maxspeed_backward < 0) {
         m_maxspeed_backward = get_kph(value);
         return;
     }
     if (key == "maxspeed") {
-        m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
+        m_maxspeed_backward = m_maxspeed_backward < 0?
+            get_kph(value) : m_maxspeed_backward;
+        m_maxspeed_forward = m_maxspeed_forward < 0?
+            get_kph(value) : m_maxspeed_forward;
         return;
     }
 }
@@ -315,6 +322,18 @@ Way::insert_tags(const std::map<std::string, std::string> &tags) {
         auto tag = *it;
         m_tags[tag.first] = tag.second;
     }
+}
+
+std::string
+Way::members_str() const {
+    /* this list comes from the node_ids becuase a node might not be on the file */
+    std::string node_list("");
+    for (const auto &node_id : m_node_ids) {
+        node_list += boost::lexical_cast<std::string>(node_id) + "=>\"type=>nd\",";
+    } 
+    node_list[node_list.size() -1] = ' ';
+
+    return node_list;
 }
 
 

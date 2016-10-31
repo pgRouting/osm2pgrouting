@@ -18,41 +18,34 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef SRC_CLASS_H_
+#define SRC_CLASS_H_
 
-#include "configuration/Configuration.h"
 #include <boost/lexical_cast.hpp>
-#include <iostream>
+#include <osm_elements/osm_element.h>
+#include <cassert>
+#include <map>
 #include <string>
-#include "osm_elements/osm_tag.h"
-#include "configuration/Type.h"
-#include "configuration/Class.h"
-
+#include <vector>
 
 namespace osm2pgr {
 
+class Tag_value : public Element {
+ public:
+     Tag_value() = default;
+     Tag_value(const Tag_value &) = default;
+     /** @brief build it */
+     explicit Tag_value(const char ** attributes);
 
-void Configuration::AddType(Type t) {
-    if (has_type(t.name())) {
-        std::cerr << "duplicate Type found in condfiguration file"
-            << t.name() << "\n";
-        return;
-    }
-    m_Types[t.name()] = t;
-}
 
-Type& Configuration::FindType(std::string name) {
-    return m_Types.at(name);
-}
-Type Configuration::FindType(std::string name) const {
-    return m_Types.at(name);
-}
+     /** @brief get it */
+     inline int64_t id() const {return osm_id();}
+     std::string name() const;
+     std::string get(const std::string &str) const;
+     std::vector<std::string> export_values() const; 
 
-Class Configuration::FindClass(const Tag &tag) const {
-    return m_Types.at(tag.key()).classes()[tag.value()];
-}
+};
 
-std::string Configuration::priority_str(const Tag &tag) const {
-    return  boost::lexical_cast<std::string>(FindClass(tag).priority());
-}
 
 }  // end namespace osm2pgr
+#endif  // SRC_CLASS_H_

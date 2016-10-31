@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
   <type name="highway" id="1">
     <class name="residential" id="112"  priority="2.5" maxspeed="5" />
     <class name="living_street" id="113"  priority="3" maxspeed="2" />

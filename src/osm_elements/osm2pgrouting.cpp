@@ -112,7 +112,6 @@ int main(int argc, char* argv[]) {
 
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
-        auto skipnodes(!vm.count("addnodes"));
         auto clean(vm.count("clean"));
 
         handle_pgpass(vm);
@@ -146,17 +145,18 @@ int main(int argc, char* argv[]) {
         osm2pgr::Export2DB dbConnection(vm, connection_str);
         if (dbConnection.connect() == 1)
             return 1;
-        if (!dbConnection.has_postGIS()) {
-            if (vm.count("postgis")) {
-                dbConnection.install_postGIS();
-            } else {
+
+#ifndef NDEBUG
+        dbConnection.install_postGIS();
+#endif
+
+        if (!dbConnection.has_extension("postgis")) {
                 std::cout << "ERROR: postGIS not found\n";
                 std::cout << "   HINT: CREATE EXTENSION postGIS\n";
                 return 1;
-            }
         }
         if ((vm.count("attributes") || vm.count("tags")) && 
-                (vm.count("hstore") && !dbConnection.has_hstore())) {
+                (vm.count("hstore") && !dbConnection.has_extension("hstore"))) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
             return 1;
@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "\nCreating tables..." << endl;
         dbConnection.createTables();
+
         /* 
          * End: preparing the databasse
          */
@@ -186,6 +187,8 @@ int main(int argc, char* argv[]) {
                 << endl;
             return 1;
         }
+        std::cout << "\nExporting configuration ..." << endl;
+        dbConnection.export_configuration(config.types());
 
         auto total_lines = lines_in_file(dataFile);
 
@@ -212,30 +215,14 @@ int main(int argc, char* argv[]) {
         {
 
             std::cout << "Adding auxiliary tables to database..." << endl;
-#if 0
-            if (!skipnodes) {
-                std::cout << "\nExport Nodes ..." << endl;
-                dbConnection.exportNodes(document.nodes());
-            }
-#endif
-            std::cout << "\nExport Types ..." << endl;
-            dbConnection.exportTypes(config.types());
-            std::cout << "\nExport Classes ..." << endl;
-            dbConnection.exportClasses(config.types());
-            std::cout << "\nExport Relations ..." << endl;
-            dbConnection.exportRelations(document.relations(), config);
-            std::cout << "\nExport Relations Ways ..." << endl;
-            dbConnection.exportRelationsWays(document.relations(), config);
-            std::cout << "\nexport Tags ..." << endl;
-            dbConnection.exportTags(document.ways(), config);
+
+
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
 
-
-#if 1
-            std::cout << "Creating Foreign Keys ..." << endl;
+            std::cout << "\nCreating indexes ..." << endl;
             dbConnection.createFKeys();
-#endif
+
         }
 
 

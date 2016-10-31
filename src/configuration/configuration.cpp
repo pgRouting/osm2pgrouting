@@ -18,40 +18,63 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+
+#include "configuration/configuration.h"
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <string>
-
-#include "configuration/Class.h"
-
 
 namespace osm2pgr {
 
-
-Class::Class(const char **atts) :
-    m_priority(0),
-    m_default_maxspeed(50) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name ==  "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else if (name == "priority") {
-            m_priority = boost::lexical_cast<double>(value);
-        } else if (name == "maxspeed") {
-            m_default_maxspeed = boost::lexical_cast<int>(value);
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
+void Configuration::add_tag_key(const Tag_key &t_key) {
+    if (has_tag_key(t_key.name())) {
+        std::cerr << "Duplicate Tag_key found in condfiguration file"
+            << t_key.name() << " ....  sikipping\n";
+        return;
     }
+    m_Tag_keys[t_key.name()] = t_key;
 }
 
 
+bool 
+Configuration::has_tag_key(const std::string &key) const {
+        return m_Tag_keys.count(key) != 0; 
+}                      
 
+
+bool
+Configuration::has_tag(const Tag &tag) const {
+    return has_tag_key(tag.key())
+        && tag_key(tag).has_tag_value(tag);
+}
+
+
+const Tag_value& 
+Configuration::tag_value(const Tag &tag) const {
+    return tag_key(tag).tag_value(tag);
+}                      
+
+
+const Tag_key& 
+Configuration::tag_key(const Tag &tag) const {
+    return m_Tag_keys.at(tag.key()); 
+}                      
+
+
+double
+Configuration::maxspeed(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "maxspeed"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "maxspeed"));
+    return 50;
+}
+
+
+double
+Configuration::priority(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "priority"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "priority"));
+    return 0;
+}
 
 
 }  // end namespace osm2pgr

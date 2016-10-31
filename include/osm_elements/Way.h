@@ -62,10 +62,13 @@ class Way : public Element {
      explicit Way(const char **atts);
      Tag add_tag(const Tag &tag);
      void add_node(Node* node);
+     void add_node(int64_t node_id);
 
      std::vector<Node*>& nodeRefs() {return m_NodeRefs;}
      const std::vector<Node*> nodeRefs() const {return m_NodeRefs;}
 
+
+     std::string members_str() const;
 
  public:
      inline void maxspeed_forward(double p_max) {m_maxspeed_forward = p_max;}
@@ -119,11 +122,14 @@ class Way : public Element {
 
 
  private:
+     /** references to node that its on the file */
      std::vector<Node*> m_NodeRefs;
+
+     /** node identifiers found as part of the way */
+     std::vector<int64_t> m_node_ids;
 
      double m_maxspeed_forward;
      double m_maxspeed_backward;
-
      std::string m_oneWay;
 };
 

@@ -29,7 +29,7 @@
 #include <sys/wait.h>
 #include "utilities/utilities.h"
 #include "osm_elements/OSMDocument.h"
-#include "configuration/Configuration.h"
+#include "configuration/configuration.h"
 #include "osm_elements/Node.h"
 #include "osm_elements/Relation.h"
 #include "osm_elements/Way.h"
@@ -45,6 +45,7 @@ OSMDocument::OSMDocument(
     m_rConfig(config),
     m_vm(vm),
     m_db_conn(db_conn),
+    m_chunk_size(vm["chunk"].as<size_t>()),
     m_nodeErrs(0),
     m_lines(lines) {
 }
@@ -66,35 +67,54 @@ OSMDocument::wait_child() const {
     }
 }
 
-void OSMDocument::AddNode(const Node &n) {
+
+void
+OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
-    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
+    if (do_export_osm(m_nodes)) {
         wait_child();
-        export_nodes();
+        osm_table_export(m_nodes, "osm_nodes");
     }
 }
 
 void OSMDocument::AddWay(const Way &w) {
     if (m_vm.count("addnodes") && m_ways.empty()) {
         wait_child();
-        export_nodes();
+        osm_table_export(m_nodes, "osm_nodes");
         std::cout << "\nSaving first way\n\n\n";
     }
-    if (m_vm.count("addnodes") && (m_nodes.size() % m_vm["chunk"].as<size_t>()) == 0) {
-        wait_child();
-        export_ways();
-    }
+
     m_ways.push_back(w);
+    if (do_export_osm(m_ways)) {
+        wait_child();
+        osm_table_export(m_ways, "osm_ways");
+    }
 }
 
-void OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addnodes") && m_Relations.empty()) {
+void
+OSMDocument::AddRelation(const Relation &r) {
+    if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
-        export_ways();
+        osm_table_export(m_ways, "osm_ways");
         std::cout << "\nSaving first relation\n\n\n";
     }
-    m_Relations.push_back(r);
+
+    m_relations.push_back(r);
+    if (do_export_osm(m_relations)) {
+        wait_child();
+        osm_table_export(m_relations, "osm_relations");
+    }
 }
+
+void
+OSMDocument::endOfFile() const {
+    if (m_vm.count("addnodes")) {
+        wait_child();
+        osm_table_export(m_relations, "osm_relations");
+        std::cout << "\nEnd Of file\n\n\n";
+    }
+}
+
 
 template <typename T>
 static
@@ -134,6 +154,10 @@ OSMDocument::add_node(Way &way, const char **atts) {
     std::string key = *attribut++;
     std::string value = *attribut++;
     auto node_id =  (key == "ref")?  boost::lexical_cast<int64_t>(value): -1;
+    way.add_node(node_id);
+
+#if 1
+    // TODO leave this when splitting
     if (!has_node(node_id)) {
         ++m_nodeErrs;
     } else {
@@ -141,145 +165,33 @@ OSMDocument::add_node(Way &way, const char **atts) {
         node->incrementUse();
         way.add_node(node);
     }
+#endif
 }
 
+/*
+ * for example
+ *  <tag highway="kerb">
+ *  
+ *
+ * And the configuration file has:
+ * <type name="highway" id="1">
+ *     <class name="kerb" id="101" priority="1.0" maxspeed="130" />
+ *
+ */
+
 void
-OSMDocument::add_config(Node &node, const Tag &tag) const {
+OSMDocument::add_config(Element *item, const Tag &tag) const {
     auto  k = tag.key();
     auto  v = tag.value();
-    /*
-     * for example
-     *  <tag highway="kerb">
-     *  
-     *
-     * And the configuration file has:
-     * <type name="highway" id="1">
-     *     <class name="kerb" id="101" priority="1.0" maxspeed="130" />
-     *
-     * max_speed currently ignored for nodes
-     */
-    if (m_rConfig.has_class(tag)) {
-        if ((node.tag_config().key() == "" && node.tag_config().value() == "")
-                || (
-                    m_rConfig.has_class(tag)
-                    && m_rConfig.has_class(node.tag_config())
-                    && m_rConfig.class_priority(tag)
-                    < m_rConfig.class_priority(node.tag_config())
+    if (config_has_tag(tag)) {
+        if (!(item->is_tag_configured())
+                || (config_has_tag(item->tag_config())
+                    && m_rConfig.priority(tag) < m_rConfig.priority(item->tag_config())
                    )) {
-            node.tag_config(tag);
+            item->tag_config(tag);
         }
     }
 }
-
-void
-OSMDocument::add_config(Way &way, const Tag &tag) const {
-    auto  k = tag.key();
-    auto  v = tag.value();
-    /*
-     * for example
-     *  <tag highway=motorway>    // k = highway  v = motorway
-     *  <tag highway=path>    // k = highway  v = motorway
-     *
-     * And the configuration file has:
-     * <type name="highway" id="1">
-     *     <class name="motorway" id="101" priority="1.0" maxspeed="130" />
-     *     // there is no class name="path"
-     */
-    if (m_rConfig.has_class(tag)) {
-        if ((way.tag_config().key() == "" && way.tag_config().value() == "")
-                || (
-                    m_rConfig.has_class(tag)
-                    && m_rConfig.has_class(way.tag_config())
-                    && m_rConfig.class_priority(tag)
-                    < m_rConfig.class_priority(way.tag_config())
-                   )
-           ) {
-            way.tag_config(tag);
-
-            if (m_rConfig.has_class(way.tag_config())) {
-                way.add_tag(tag);
-
-                auto newValue = m_rConfig.class_default_maxspeed(way.tag_config());
-                if (way.maxspeed_forward() <= 0) {
-                    way.maxspeed_forward(newValue);
-                }
-                if (way.maxspeed_backward() <= 0) {
-                    way.maxspeed_backward(newValue);
-                }
-            }
-        }
-    }
-}
-
-/* @brief fork process to export a chunk of nodes 
- *
- */
-void
-OSMDocument::export_nodes() const {
-    auto pid = fork();
-    if (pid < 0) {
-        std::cerr << "Failed to fork" << endl;
-        // TODO throw
-        exit(1);
-    }
-    if (pid > 0) return;
-    /*
-     * TODO make it a member
-     */
-    size_t m_chunk_size =  m_vm["chunk"].as<size_t>();
-    /* todo end */
-
-    auto residue = m_nodes.size() % m_chunk_size;
-    size_t start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size; 
-#if 0
-    std::cout << "\n\t" << getpid() << "\t\texporting nodes" << start << " to " << m_nodes.size() << "\t Total" << (m_nodes.size() - start) << "\n";
-#endif
-    auto nodes = Nodes(m_nodes.begin() + start, m_nodes.end());
-
-    m_db_conn.export_osm_nodes(nodes);
-
-    /*
-     * finish the child process
-     */
-    exit(0);
-}
-
-
-
-
-/* @brief fork process to export a chunk of ways 
- *
- */
-void
-OSMDocument::export_ways() const {
-    auto pid = fork();
-    if (pid < 0) {
-        std::cerr << "Failed to fork" << endl;
-        // TODO throw
-        exit(1);
-    }
-    if (pid > 0) return;
-    /*
-     * TODO make it a member
-     */
-    size_t m_chunk_size =  m_vm["chunk"].as<size_t>();
-    /* todo end */
-
-    auto residue = m_ways.size() % m_chunk_size;
-    size_t start = residue? m_ways.size() - residue : m_ways.size() - m_chunk_size; 
-#if 0
-    std::cout << "\n\t" << getpid() << "\t\texporting nodes" << start << " to " << m_nodes.size() << "\t Total" << (m_nodes.size() - start) << "\n";
-#endif
-    auto ways = Ways(m_ways.begin() + start, m_ways.end());
-
-    m_db_conn.export_osm_ways(ways);
-
-    /*
-     * finish the child process
-     */
-    exit(0);
-}
-
 
 
 

@@ -25,7 +25,7 @@
 #include <map>
 #include <vector>
 #include "utilities/utilities.h"
-#include "configuration/Configuration.h"
+#include "configuration/configuration.h"
 #include "utilities/prog_options.h"
 #include "database/Export2DB.h"
 
@@ -43,6 +43,7 @@ class OSMDocument {
  public:
     typedef std::vector<Node> Nodes;
     typedef std::vector<Way> Ways;
+    typedef std::vector<Relation> Relations;
 
     //! Constructor
     OSMDocument(
@@ -52,25 +53,28 @@ class OSMDocument {
             size_t lines);
 
     inline size_t lines() const {return m_lines;}
-    inline bool has_class(const Tag &tag) const {
-        return m_rConfig.has_class(tag);
+
+    //! Do the configuration has the @b tag ?
+    inline bool config_has_tag(const Tag &tag) const {
+        return m_rConfig.has_tag(tag);
     }
-    inline double class_priority(const Tag &tag) const {
-        return m_rConfig.class_priority(tag);
+
+    inline double priority(const Tag &tag) const {
+        return m_rConfig.priority(tag);
     }
-    inline double class_default_maxspeed(const Tag &tag) const {
-        return m_rConfig.class_default_maxspeed(tag);
+
+    inline double maxspeed(const Tag &tag) const {
+        return m_rConfig.maxspeed(tag);
     }
 
     const Nodes& nodes() const {return m_nodes;}
     const Ways& ways() const {return m_ways;}
-    const std::vector<Relation>& relations() const {return m_Relations;}
+    const Relations& relations() const {return m_relations;}
 
-    //! add node to the map
     void AddNode(const Node &n);
-
-    //! add way to the map
     void AddWay(const Way &w);
+    void AddRelation(const Relation &r);
+    void endOfFile() const;
 
     //! find node by using an ID
     bool has_node(int64_t nodeRefId) const;
@@ -79,21 +83,48 @@ class OSMDocument {
     bool has_way(int64_t way_id) const;
     Way* FindWay(int64_t way_id);
 
-    void AddRelation(const Relation &r);
 
     void add_node(Way &way, const char **atts);
 
     /**
      * add the configuration tag used for the speeds
      */
-    void add_config(Node &node, const Tag &tag) const;
-    void add_config(Way &way, const Tag &tag) const;
+    void add_config(Element *osm_element, const Tag &tag) const;
+
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:
-    void export_nodes() const;
-    void export_ways() const;
+    template <typename T> bool
+    do_export_osm(const T &container) {
+        return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
+    }
+
+
+
     void wait_child() const;
+
+    template <typename T> void
+    osm_table_export(const T &osm_items, const std::string &table) const {
+        if (osm_items.empty()) return;
+
+        auto pid = fork();
+        if (pid < 0) {
+            std::cerr << "Failed to fork" << endl;
+            exit(1);
+        }
+        if (pid > 0) return;
+        auto residue = osm_items.size() % m_chunk_size;
+        size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
+        auto exprt_items = T(osm_items.begin() + start, osm_items.end());
+
+        m_db_conn.export_osm(exprt_items, table);
+
+        /*
+         * finish the child process
+         */
+        exit(0);
+    }
+
 
 
  private:
@@ -101,16 +132,14 @@ class OSMDocument {
     Nodes m_nodes;
     //! parsed ways
     Ways m_ways;
-#if 0
-    std::map<int64_t, Way> m_Ways;
-#endif
     //! parsed relations
-    std::vector<Relation> m_Relations;
+    Relations  m_relations;
 
     const Configuration& m_rConfig;
     po::variables_map m_vm;
     const Export2DB &m_db_conn;
 
+    size_t m_chunk_size;
     uint16_t m_nodeErrs;
     size_t m_lines;
 };

@@ -38,9 +38,9 @@ Element::Element(const char **atts) :
                 m_osm_id = boost::lexical_cast<int64_t>(value);
             }
             if (name == "visible") {
-                m_osm_id = boost::lexical_cast<bool>(value);
+                m_visible = boost::lexical_cast<bool>(value);
             }
-            m_attributes[name] = value;
+           m_attributes[name] = value;
         }
     }
 
@@ -60,6 +60,13 @@ Element::get_tag(const std::string& key) const {
     return m_tags.find(key)->second;
 }
 
+
+bool
+Element::is_tag_configured() const {
+        return (m_tag_config.key() != "" && m_tag_config.value() != "");
+}
+
+
 bool
 Element::has_attribute(const std::string& key) const {
     return m_attributes.find(key) != m_attributes.end();
@@ -70,7 +77,8 @@ Element::get_attribute(const std::string& key) const {
     return m_attributes.find(key)->second;
 }
 
-std::string Element::attributes_str() const {
+std::string
+Element::attributes_str() const {
     if (m_tags.empty()) return "\"\"";
     std::string str("\"");
     for (auto it = m_attributes.begin(); it != m_attributes.end(); ++it) {
@@ -81,7 +89,8 @@ std::string Element::attributes_str() const {
     return str;
 }
 
-std::string Element::tags_str() const {
+std::string
+Element::tags_str() const {
     if (m_tags.empty()) return "";
     std::string str("\"");
     for (auto it = m_tags.begin(); it != m_tags.end(); ++it) {
@@ -158,7 +167,7 @@ std::vector<std::string>
 Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
     std::vector<std::string> values;
     for (const auto column : columns) {
-        if (column == "osm_id") { 
+        if (column == "osm_id" || column == "tag_id") { 
             values.push_back(boost::lexical_cast<std::string>(osm_id()));
             continue;
         }   
@@ -172,6 +181,11 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
         }
         if (column == "the_geom") {
             values.push_back(get_geometry());
+            continue;
+        }
+
+        if (column == "members") {
+            values.push_back(members_str());
             continue;
         }
 

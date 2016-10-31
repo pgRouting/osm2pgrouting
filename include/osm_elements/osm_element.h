@@ -60,13 +60,14 @@ class Element {
      inline bool visible() const {return m_visible;}
      inline void tag_config(const Tag &tag) {m_tag_config = tag;}
      inline Tag tag_config() const {return m_tag_config;}
+     bool is_tag_configured() const;
 
 
 
      std::string attributes_str() const;
      std::string tags_str() const;
 
-     virtual std::string get_geometry() const = 0;
+     virtual std::string get_geometry() const {return "";}
      bool has_attribute(const std::string&) const;
      std::string get_attribute(const std::string&) const;
      std::map<std::string, std::string>& attributes() {return m_attributes;}
@@ -83,9 +84,11 @@ class Element {
      std::vector<std::string> values(
              const std::vector<std::string> &columns,
              bool is_hstore) const;
+     virtual std::string members_str() const {return std::string();};
 
  protected:
      // ! OSM ID of the element
+     // or id of a configuraton
      int64_t m_osm_id;
      bool m_visible;
      Tag m_tag_config;

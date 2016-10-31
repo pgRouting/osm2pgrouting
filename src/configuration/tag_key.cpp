@@ -18,39 +18,67 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "configuration/tag_key.h"
+#include "utilities/utilities.h"
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <map>
-#include "configuration/Class.h"
-#include "configuration/Type.h"
 
 namespace osm2pgr {
 
-void Type::AddClass(const Class &pClass) {
-    m_Classes[pClass.name()] = pClass;
-}
 
-
-Type::Type(const char **atts) {
-    auto **attribut = atts;
-    while (*attribut != NULL) {
-        std::string name = *attribut++;
-        std::string value = *attribut++;
-        if (name == "id") {
-            m_id = boost::lexical_cast<int64_t>(value);
-        } else if (name == "name") {
-            m_name = value;
-        } else {
-            auto tag_key = boost::lexical_cast<std::string>(name);
-            auto tag_value = boost::lexical_cast<std::string>(value);
-            m_tags[tag_key] = tag_value;
-        }
-    }
+Tag_key::Tag_key(const char **atts) 
+    : Element(atts) {
 }
 
 void
-Type::add_class(const char **atts) {
-    AddClass(Class(atts));
+Tag_key::add_tag_value(const Tag_value &value) {
+    m_Tag_values[value.name()] =  value;
+}
+
+bool
+Tag_key::has_tag_value(const Tag &tag) const {
+    return m_Tag_values.count(tag.value());
+}
+
+const
+Tag_value&
+Tag_key::tag_value(
+        const Tag &tag) const {
+    return m_Tag_values.at(tag.value());
+}
+
+bool
+Tag_key::has(const Tag &tag, const std::string &str) const {
+    return tag_value(tag).has_attribute(str)
+           || this->has_attribute(str);
+}
+
+std::string
+Tag_key::get(const Tag &tag, const std::string &str) const {
+    assert(this->has(tag, str));
+    return (tag_value(tag).has_attribute(str)) ?
+        tag_value(tag).get(str)
+        : this->get_attribute(str);
+}
+
+
+std::vector<std::string> 
+Tag_key::values(const std::vector<std::string> &columns) const {
+    std::vector<std::string> export_values;
+
+    for (const auto &item : m_Tag_values) {
+        auto row = item.second.values(columns, true);
+        row[1] = name();
+        row[2] = item.second.get_attribute("name"); 
+
+        if (row[4] == "") row[4] = "-1"; 
+        if (row[5] == "") row[5] = "-1"; 
+        if (row[6] == "") row[6] = "-1"; 
+        if (row[7] == "") row[7] = "N"; 
+        export_values.push_back(tab_separated(row));
+    }
+    return export_values;
 }
 
 

@@ -18,34 +18,48 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef SRC_CLASS_H_
-#define SRC_CLASS_H_
-
-#include <map>
+#include "configuration/tag_value.h"
+#include <boost/lexical_cast.hpp>
 #include <string>
+#include <cassert>
+
+
 
 namespace osm2pgr {
 
-class Class {
- public:
-     Class() = default;
-     Class(const Class &) = default;
-     explicit Class(const char ** attributes);
+
+Tag_value::Tag_value(const char **atts) :
+    Element(atts){
+        assert(has_attribute("name"));
+}
+
+std::string
+Tag_value::get(const std::string &str) const {
+    assert(has_attribute(str));
+    return  get_attribute(str);
+}
+
+#if 0
+std::string
+Tag_value::priority() const {
+    assert(has_attribute("priority"));
+    return  get_attribute("priority");
+}
+
+std::string
+Tag_value::maxspeed() const {
+    assert(has_attribute("maxspeed"));
+    return  get_attribute("maxspeed");
+}
+#endif
+
+std::string
+Tag_value::name() const {
+    assert(has_attribute("name"));
+    return get_attribute("name");
+}
 
 
-     inline int64_t id() const {return m_id;}
-     inline std::string name() const {return m_name;}
-     inline double priority() const {return m_priority;}
-     inline double default_maxspeed() const {return m_default_maxspeed;}
-
- private:
-    int64_t m_id;
-    std::string m_name;
-    double m_priority;
-    double m_default_maxspeed;
-    std::map<std::string, std::string> m_tags;
-};
 
 
 }  // end namespace osm2pgr
-#endif  // SRC_CLASS_H_
