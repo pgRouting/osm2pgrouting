@@ -94,7 +94,10 @@ Table::tmp_create() const {
 
 std::string
 Tables::post_process(const Table &table) const  {
-    if (table.name() == "osm_nodes" || table.name() == "osm_ways" || table.name() == "osm_relations") { 
+    if (table.name() == "osm_nodes"
+            || table.name() == "pointsofinterest"
+            || table.name() == "osm_ways"
+            || table.name() == "osm_relations") { 
         std::string str(
                 " WITH data AS ("
                 " SELECT a.* "
@@ -127,10 +130,10 @@ Tables::Tables(const  po::variables_map &vm) :
      * initializing tables
      */
     ways(ways_config()),
-#if 1
     ways_vertices_pgr(ways_vertices_pgr_config()),
-#endif
+    points_of_interest(pois_config()),
     configuration(configuration_config()),
+
     osm_nodes(osm_nodes_config()),
     osm_ways(osm_ways_config()),
     osm_relations(osm_relations_config())

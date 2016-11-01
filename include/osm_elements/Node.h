@@ -74,6 +74,9 @@ class Node : public Element {
      inline std::string lat() {return get_attribute("lat");}
      inline std::string lon() {return get_attribute("lon");}
 
+     void tag_config(const Tag &tag);
+
+
      std::string get_geometry() const {
          return
              std::string("srid=4326; POINT(")

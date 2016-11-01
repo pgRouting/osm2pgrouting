@@ -71,17 +71,23 @@ OSMDocument::wait_child() const {
 void
 OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
-    if (do_export_osm(m_nodes)) {
-        wait_child();
-        osm_table_export(m_nodes, "osm_nodes");
+    if ((m_nodes.size() % m_chunk_size) == 0) {
+        if (do_export_osm(m_nodes)) {
+            wait_child();
+            osm_table_export(m_nodes, "osm_nodes");
+        }
+        export_pois();
     }
 }
 
 void OSMDocument::AddWay(const Way &w) {
-    if (m_vm.count("addnodes") && m_ways.empty()) {
-        wait_child();
-        osm_table_export(m_nodes, "osm_nodes");
-        std::cout << "\nSaving first way\n\n\n";
+    if (m_ways.empty()) {
+        if (m_vm.count("addnodes")) {
+            wait_child();
+            osm_table_export(m_nodes, "osm_nodes");
+        }
+        export_pois();
+    std::cout << "\nSaving first way\n\n\n";
     }
 
     m_ways.push_back(w);
@@ -193,6 +199,43 @@ OSMDocument::add_config(Element *item, const Tag &tag) const {
     }
 }
 
+static
+bool
+has_no_tags(const Node &node) {
+    return !node.has_tags();
+}
+
+void
+OSMDocument::export_pois() const {
+    std::string table("pointsofinterest");
+    if (m_nodes.empty()) return;
+
+    auto pid = fork();
+    if (pid < 0) {
+        std::cerr << "Failed to fork" << endl;
+        exit(1);
+    }
+    if (pid > 0) return;
+
+
+    auto residue = m_nodes.size() % m_chunk_size;
+    size_t start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size;
+
+    auto export_items = Nodes(m_nodes.begin() + start, m_nodes.end());
+    /*
+     * deleting nodes with no tag information
+     */
+    export_items.erase(
+            std::remove_if(export_items.begin(), export_items.end(), has_no_tags),
+            export_items.end());
+
+    m_db_conn.export_osm(export_items, table);
+
+    /*
+     * finish the child process
+     */
+    exit(0);
+}
 
 
 }  // namespace osm2pgr

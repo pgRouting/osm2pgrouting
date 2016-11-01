@@ -41,14 +41,21 @@ Node::Node(const char **atts) :
         assert(has_attribute("lon"));
     }
 
+void 
+Node::tag_config(const Tag &tag) {
+    Element::tag_config(tag);
+    ++m_numsOfUse;
+    ++m_numsOfUse;
+}
+
 
 double
 Node::getLength(const Node &previous) const {
-     auto y1 = boost::lexical_cast<double>(get_attribute("lat"));
-     auto x1 = boost::lexical_cast<double>(get_attribute("lon"));
-     auto y2 = boost::lexical_cast<double>(previous.get_attribute("lat"));
-     auto x2 = boost::lexical_cast<double>(previous.get_attribute("lon"));
-     return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    auto y1 = boost::lexical_cast<double>(get_attribute("lat"));
+    auto x1 = boost::lexical_cast<double>(get_attribute("lon"));
+    auto y2 = boost::lexical_cast<double>(previous.get_attribute("lat"));
+    auto x2 = boost::lexical_cast<double>(previous.get_attribute("lon"));
+    return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 #if 0
     typedef boost::geometry::model::d2::point_xy<double> point_type;
 
@@ -66,5 +73,7 @@ Node::getLength(const Node &previous) const {
     return boost::geometry::distance(p, q);
 #endif
 }
+
+
 
 }  // namespace osm2pgr

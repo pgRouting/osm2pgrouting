@@ -44,6 +44,12 @@ Element::Element(const char **atts) :
         }
     }
 
+void 
+Element::tag_config(const Tag &tag) {
+    m_tag_config = tag;
+}
+
+
 Tag
 Element::add_tag(const Tag &tag) {
     m_tags[tag.key()] = tag.value();

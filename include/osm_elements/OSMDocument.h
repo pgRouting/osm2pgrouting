@@ -94,37 +94,38 @@ class OSMDocument {
     inline uint16_t nodeErrs() const {return m_nodeErrs;}
 
  private:
-    template <typename T> bool
-    do_export_osm(const T &container) {
-        return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
-    }
-
-
+    template <typename T>
+        bool
+        do_export_osm(const T &container) {
+            return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
+        }
 
     void wait_child() const;
 
-    template <typename T> void
-    osm_table_export(const T &osm_items, const std::string &table) const {
-        if (osm_items.empty()) return;
+    template <typename T>
+        void
+        osm_table_export(const T &osm_items, const std::string &table) const {
+            if (osm_items.empty()) return;
 
-        auto pid = fork();
-        if (pid < 0) {
-            std::cerr << "Failed to fork" << endl;
-            exit(1);
+            auto pid = fork();
+            if (pid < 0) {
+                std::cerr << "Failed to fork" << endl;
+                exit(1);
+            }
+            if (pid > 0) return;
+            auto residue = osm_items.size() % m_chunk_size;
+            size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
+            auto export_items = T(osm_items.begin() + start, osm_items.end());
+
+            m_db_conn.export_osm(export_items, table);
+
+            /*
+             * finish the child process
+             */
+            exit(0);
         }
-        if (pid > 0) return;
-        auto residue = osm_items.size() % m_chunk_size;
-        size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
-        auto exprt_items = T(osm_items.begin() + start, osm_items.end());
 
-        m_db_conn.export_osm(exprt_items, table);
-
-        /*
-         * finish the child process
-         */
-        exit(0);
-    }
-
+   void export_pois() const; 
 
 
  private:
