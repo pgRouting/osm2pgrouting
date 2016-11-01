@@ -58,7 +58,7 @@ class Element {
 
      inline int64_t osm_id() const {return m_osm_id;}
      inline bool visible() const {return m_visible;}
-     inline void tag_config(const Tag &tag) {m_tag_config = tag;}
+     virtual void tag_config(const Tag &tag);
      inline Tag tag_config() const {return m_tag_config;}
      bool is_tag_configured() const;
 
@@ -78,6 +78,8 @@ class Element {
 
      bool has_tag(const std::string&) const;
      std::string get_tag(const std::string&) const;
+
+     bool has_tags() const {return !m_tags.empty();}
      std::map<std::string, std::string>& tags() {return m_tags;}
      const std::map<std::string, std::string> tags() const {return m_tags;}
 

@@ -17,8 +17,8 @@ std::string
 tab_separated(const std::vector<std::string> &columns) {
     std::string result(" ");
     for (auto column: columns) {
-        if (column.empty()) {
-            result += '\t';
+        if (column.empty() || column == "") {
+            result += "\\N\t";
         } else {
             result += column + "\t";
         }

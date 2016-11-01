@@ -120,6 +120,9 @@ void Export2DB::createTables() const {
         Xaction.exec(m_tables.ways.create());
         std::cout << "TABLE: " << m_tables.ways.addSchema() << " created ... OK.\n";
 
+        Xaction.exec(m_tables.points_of_interest.create());
+        std::cout << "TABLE: " << m_tables.ways.addSchema() << " created ... OK.\n";
+
         Xaction.exec(m_tables.configuration.create());
         std::cout << "TABLE: " << m_tables.configuration.addSchema() << " created ... OK.\n";
 
@@ -477,20 +480,23 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
  *
  */
 void Export2DB::createFKeys() const {
-    pqxx::work Xaction(db_conn);
+    std::string sql;
     try {
         /*
          * configuration:
          */
-        Xaction.exec(
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
                 "ALTER TABLE " + m_tables.configuration.addSchema()
                 + " ADD PRIMARY KEY (id);"
                 + "ALTER TABLE " + m_tables.configuration.addSchema()
                 + " ADD UNIQUE (tag_id);");
+        Xaction.exec(sql);
+        Xaction.commit();
 
     } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr <<  m_tables.configuration.addSchema() << "\n";
+        std::cout << "\nWARNING: " << e.what() << std::endl;
+        std::cout <<  m_tables.configuration.addSchema() << "\n";
     }
 
     try {
@@ -499,15 +505,19 @@ void Export2DB::createFKeys() const {
          *   id set PRIMARY KEY
          *   osm_id UNIQUE
          */
-        Xaction.exec(
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
                 "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
                 + " ADD PRIMARY KEY (id);"
                 + "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
                 + " ADD UNIQUE (osm_id);");
+        Xaction.exec(sql);
+        Xaction.commit();
 
+        std::cerr << "\n" << sql << "\n";
     } catch (const std::exception &e) {
         std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr <<  m_tables.ways_vertices_pgr.addSchema() << "\n";
+        std::cerr << "\n" << sql << "\n";
     }
 
     try {
@@ -516,7 +526,8 @@ void Export2DB::createFKeys() const {
          *   id set PRIMARY KEY
          *   osm_id UNIQUE
          */
-        Xaction.exec(
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
                 " ALTER TABLE " + m_tables.ways.addSchema()
                 + " ADD PRIMARY KEY (id);"
 
@@ -543,10 +554,127 @@ void Export2DB::createFKeys() const {
                 + " CREATE INDEX "
                 + " ON " + m_tables.ways.addSchema()
                 + " USING GIST (the_geom);");
+        Xaction.exec(sql);
+        Xaction.commit();
 
     } catch (const std::exception &e) {
-        std::cerr <<"\nWARNING: " << e.what() << std::endl;
-        std::cerr <<  m_tables.ways.addSchema() << "\n";
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr << "\n" << sql << "\n";
+    }
+
+
+        auto ways =  m_tables.ways.addSchema();
+        auto vertices = m_tables.ways_vertices_pgr.addSchema(); 
+        auto pois = m_tables.points_of_interest.addSchema();
+    try {
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
+                " UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
+                + " FROM " + vertices + " AS b"
+                + " WHERE a.osm_id = b.osm_id;"
+                );
+
+        Xaction.exec(sql);
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr << "\n" << sql << "\n";
+    }
+                
+    try {
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
+                 " WITH "
+                 " first AS ("
+                 "    SELECT " + ways + ".id AS wid,"
+                + "    source_osm, target_osm,"
+                + "    st_distance(" + ways + ".the_geom::geography, " + pois + ".the_geom::geography) AS dist,"
+                + "    " + pois + ".osm_id AS vid, st_linelocatepoint(" + ways + ".the_geom, " + pois + ".the_geom) AS fraction"
+                + "    FROM " + ways + ", " + pois
+                + "    WHERE " + pois + ".vertex_id is NULL"
+                + "    AND ST_DWithin(" + ways +".the_geom::geography, " + pois + ".the_geom::geography, 50)"
+                + "    ),"
+
+                + "second AS ("
+                + "    SELECT  vid, min(dist) FROM first group by vid"
+                + "    ),"
+
+                + "third  AS ("
+                + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, source_osm AS v_osm_id  FROM first, second WHERE dist = min AND fraction in (0)"
+                + "    UNION "
+                + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, target_osm FROM first, second WHERE dist = min AND fraction in (1)"
+                + "    ),"
+
+                + "last AS ("
+                + "        SELECT third.*, b.id  FROM third join " + vertices + " AS b ON (third.v_osm_id = b.osm_id)"
+                + "        UNION"
+                + "        SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
+                + "        )"
+
+                + " UPDATE " + pois + " SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
+                + " FROM last WHERE " +pois + ".osm_id = last.vid;"
+                );
+
+        Xaction.exec(sql);
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr << "\n" << sql << "\n";
+    }
+
+    try {
+        pqxx::work Xaction(db_conn);
+        sql = std::string(
+                 " WITH "
+                 " base AS ("
+                 "     SELECT pid, w.id as wid, w.the_geom as wgeom, p.the_geom as pgeom"
+                 "     FROM " + pois + " as p JOIN " + ways + " as w ON (edge_id = w.id)"
+                + "     WHERE edge_id is not NULL"
+                + " ),"
+
+                + " foo AS ("
+                + "     SELECT wid, st_dumppoints(wgeom) AS dp"
+                + "     FROM base"
+                + " ),"
+
+                + " blade AS ("
+                + "     SELECT wid, st_collect((dp).geom) AS blade"
+                + "     FROM foo"
+                + "     GROUP BY wid"
+                + " ),"
+
+                + " split AS ("
+                + "     SELECT base.*, (ST_Dump(st_split(wgeom, blade))).geom AS line"
+                + "     FROM blade JOIN base"
+                + "     USING (wid)"
+                + " ),"
+
+                + " distance AS ("
+                + "     select split.*, st_distance(line, pgeom) as dist from split"
+                + " ),"
+                + " second AS ("
+                + "     SELECT  pid, min(dist) FROM distance group by pid"
+                + " ), "
+                + " last AS ("
+                + "     SELECT pid,"
+                + "         (st_y(st_startpoint(line)) - st_y(st_endpoint(line))) * st_x(pgeom)"
+                + "      +  (st_x(st_endpoint(line)) - st_x(st_startpoint(line))) * st_y(pgeom)"
+                + "      +  (st_x(st_startpoint(line)) * st_y(st_endpoint(line)) - st_x(st_endpoint(line))"
+                + "      * st_y(st_startpoint(line))) AS val"
+                + "     FROM distance join second using (pid) where dist = min"
+                + " )"
+
+                + " UPDATE " + pois + " set side = case when val>0 then 'L' when val<0 then 'R' else 'B' end "
+                + " FROM last "
+                + " WHERE last.pid = " + pois + ".pid;"
+
+                );
+
+        Xaction.exec(sql);
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "\nWARNING: " << e.what() << std::endl;
+        std::cerr << "\n" << sql << "\n";
     }
 }
 

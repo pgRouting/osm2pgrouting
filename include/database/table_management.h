@@ -70,6 +70,7 @@ class Tables {
             else if (name == "osm_ways") return osm_ways;
             else if (name == "osm_relations") return osm_relations;
             else if (name == "configuration") return configuration;
+            else if (name == "pointsofinterest") return points_of_interest;
             else if (name == "ways") return ways;
             else return ways_vertices_pgr;
         }
@@ -84,6 +85,7 @@ class Tables {
          */
         Table ways;
         Table ways_vertices_pgr;
+        Table points_of_interest;
         Table configuration;
 
         /*
@@ -95,6 +97,7 @@ class Tables {
 
     private:
         Table osm_nodes_config() const;
+        Table pois_config() const;
         Table osm_ways_config() const;
         Table osm_relations_config() const;
         Table configuration_config() const;
