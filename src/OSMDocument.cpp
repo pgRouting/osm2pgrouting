@@ -115,7 +115,7 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
                    )
            ) {
             way.tag_config(tag);
-
+#if 0
             if (m_rConfig.has_class(way.tag_config())) {
                 way.add_tag(tag);
 
@@ -127,6 +127,7 @@ OSMDocument::add_config(Way &way, const Tag &tag) const {
                     way.maxspeed_backward(newValue);
                 }
             }
+#endif
         }
     }
 }

@@ -86,10 +86,12 @@ class Way : public Element {
 
 
      inline std::string maxspeed_forward_str() const {
-         return boost::lexical_cast<std::string>(m_maxspeed_forward);
+         return boost::lexical_cast<std::string>(
+                 static_cast<int>(m_maxspeed_forward));
      }
      inline std::string maxspeed_backward_str() const {
-         return boost::lexical_cast<std::string>(m_maxspeed_backward);
+         return boost::lexical_cast<std::string>(
+                 static_cast<int>(m_maxspeed_backward));
      }
 
 
