@@ -284,16 +284,21 @@ void
 Way::max_speed(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
-    if (key == "maxspeed:forward") {
+    if (key == "maxspeed:forward" && m_maxspeed_forward <=0) {
         m_maxspeed_forward = get_kph(value);
         return;
     }
-    if (key == "maxspeed:backward") {
+    if (key == "maxspeed:backward" && m_maxspeed_backward <=0) {
         m_maxspeed_backward = get_kph(value);
         return;
     }
     if (key == "maxspeed") {
-        m_maxspeed_backward =  m_maxspeed_forward = get_kph(value);
+        if (m_maxspeed_forward <=0) { 
+            m_maxspeed_forward = get_kph(value);
+        }
+        if (m_maxspeed_backward <=0) {
+            m_maxspeed_backward = get_kph(value);
+        }
         return;
     }
 }

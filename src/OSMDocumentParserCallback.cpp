@@ -161,6 +161,7 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         if (m_rDocument.has_class(last_way->tag_config())) {
             auto newValue = m_rDocument.class_default_maxspeed(
                     last_way->tag_config());
+
             if (last_way->maxspeed_forward() <= 0) {
                 last_way->maxspeed_forward(newValue);
             }

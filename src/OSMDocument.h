@@ -90,7 +90,9 @@ class OSMDocument {
 
 
     size_t m_nodesErrs;
+ public:
     const Configuration& m_rConfig;
+ private:
     size_t m_lines;
 };
 
