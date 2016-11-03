@@ -922,6 +922,7 @@ void Export2DB::createFKeys() {
         std::cout << "Foreign keys for " + addSchema("osm_way_classes")  + " table created" << std::endl;
     }
 
+#if 0
     std::string fk_way_tag(
             "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
             "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(ways_name) + "(gid); ");
@@ -935,6 +936,7 @@ void Export2DB::createFKeys() {
     } else {
         std::cout << "Foreign keys for " + addSchema("osm_way_tags") + " table created" << std::endl;
     }
+#endif
 
     std::string fk_relations(
             "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
