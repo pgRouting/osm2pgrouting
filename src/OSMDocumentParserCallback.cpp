@@ -158,10 +158,10 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         return;
     }
     if (strcmp(name, "way") == 0) {
+        if (m_rDocument.has_class(last_way->tag_config())) {
+            auto newValue = m_rDocument.class_default_maxspeed(
+                    last_way->tag_config());
 
-        if (m_rDocument.m_rConfig.has_class(last_way->tag_config())) {
-
-            auto newValue = m_rDocument.m_rConfig.class_default_maxspeed(last_way->tag_config());
             if (last_way->maxspeed_forward() <= 0) {
                 last_way->maxspeed_forward(newValue);
             }
