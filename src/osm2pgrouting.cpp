@@ -38,6 +38,7 @@
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
+#if 0
 static
 size_t lines_in_file(const std::string file_name) {
     FILE *in;
@@ -59,7 +60,7 @@ size_t lines_in_file(const std::string file_name) {
 
     return boost::lexical_cast<size_t>(number);
 }
-
+#endif
 
 int main(int argc, char* argv[]) {
 #ifdef WITH_TIME
@@ -139,6 +140,8 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        size_t total_lines = 100000;
+#if 0
         auto total_lines = lines_in_file(dataFile);
 
         std::cout << "Opening data file: "
@@ -146,10 +149,11 @@ int main(int argc, char* argv[]) {
             << " total lines "
             << total_lines
             << endl;
+#endif
         osm2pgr::OSMDocument document(config, total_lines);
         osm2pgr::OSMDocumentParserCallback callback(document);
 
-        std::cout << "    Parsing data\n" << endl;
+        std::cout << "    Parsing data (progress line per " << total_lines << " elements)\n" << endl;
         ret = parser.Parse(callback, dataFile.c_str());
         if (ret != 0) {
             cerr << "Failed to open / parse data file " << dataFile << endl;
