@@ -38,29 +38,6 @@
 #include "./Export2DB.h"
 #include "./prog_options.h"
 
-#if 0
-static
-size_t lines_in_file(const std::string file_name) {
-    FILE *in;
-    char buff[512];
-    std::string command = "wc -l  " + file_name;
-
-    if (!(in = popen(command.c_str(), "r"))) {
-        exit(1);
-    }
-
-    std::string word;
-    if (fgets(buff, 512, in) != NULL) {
-        word = buff;
-    }
-    pclose(in);
-    std::istringstream iss(word);
-    std::string number;
-    iss >> number;
-
-    return boost::lexical_cast<size_t>(number);
-}
-#endif
 
 int main(int argc, char* argv[]) {
 #ifdef WITH_TIME
@@ -74,9 +51,7 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed =
         std::chrono::steady_clock::now();
 #endif
-#if 1
     try {
-#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -141,15 +116,7 @@ int main(int argc, char* argv[]) {
         }
 
         size_t total_lines = 100000;
-#if 0
-        auto total_lines = lines_in_file(dataFile);
 
-        std::cout << "Opening data file: "
-            << dataFile
-            << " total lines "
-            << total_lines
-            << endl;
-#endif
         osm2pgr::OSMDocument document(config, total_lines);
         osm2pgr::OSMDocumentParserCallback callback(document);
 
@@ -187,10 +154,6 @@ int main(int argc, char* argv[]) {
             dbConnection.exportRelations(document.relations(), config);
             std::cout << "\nExport RelationsWays ..." << endl;
             dbConnection.exportRelationsWays(document.relations(), config);
-#if 0
-            std::cout << "\nexport Tags ..." << endl;
-            dbConnection.exportTags(document.m_SplitWays, config);
-#endif
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
 
@@ -228,7 +191,6 @@ int main(int argc, char* argv[]) {
 
         std::cout << "#########################" << endl;
         return 0;
-#if 1
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -242,5 +204,4 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
-#endif
 }

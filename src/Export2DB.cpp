@@ -425,12 +425,6 @@ void Export2DB::fill_vertices_table(const std::string &table, const std::string 
 
     PGresult* q_result = PQexec(mycon, sql.c_str());
     std::cout << "Vertices inserted " << PQcmdTuples(q_result);
-#if 0
-    if (PQresultStatus(q_result) == PGRES_COMMAND_OK)
-        std::cout << " OK " << PQcmdStatus(q_result) << std::endl;
-    else
-        std::cout  << "   " << PQresultErrorMessage(q_result)  << std::endl;
-#endif
     PQclear(q_result);
 }
 
@@ -903,12 +897,6 @@ void Export2DB::createFKeys() {
     auto vertices_name = ways_name + "_vertices_pgr";
 
 
-    // return; // TODO
-    /*
-       ALTER TABLE osm_way_classes
-       ADD FOREIGN KEY (type_id) REFERENCES osm_way_types (type_id) ON UPDATE NO ACTION ON DELETE NO ACTION;
-       */
-
     std::string fk_classes(
             "ALTER TABLE " + addSchema("osm_way_classes")  + " ADD  FOREIGN KEY (type_id) REFERENCES " +  addSchema("osm_way_types")  + "(type_id)");
     PGresult *result = PQexec(mycon, fk_classes.c_str());
@@ -922,30 +910,10 @@ void Export2DB::createFKeys() {
         std::cout << "Foreign keys for " + addSchema("osm_way_classes")  + " table created" << std::endl;
     }
 
-#if 0
-    std::string fk_way_tag(
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (class_id) REFERENCES " + addSchema("osm_way_classes") + "(class_id); " +
-            "ALTER TABLE " + addSchema("osm_way_tags")  + " ADD FOREIGN KEY (way_id) REFERENCES " + addSchema(ways_name) + "(gid); ");
-    result = PQexec(mycon, fk_way_tag.c_str());
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << PQresultStatus(result);
-        std::cerr << "foreign keys for " + addSchema("osm_way_tags") + " failed: "
-            << PQerrorMessage(mycon)
-            << std::endl;
-        PQclear(result);
-    } else {
-        std::cout << "Foreign keys for " + addSchema("osm_way_tags") + " table created" << std::endl;
-    }
-#endif
 
     std::string fk_relations(
             "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (relation_id) REFERENCES " + addSchema("osm_relations") + "(relation_id); ");
     result = PQexec(mycon, fk_relations.c_str());
-#if 0
-    // its not working as there are several ways with the same osm_id
-    // the gid is not possible because that is "on the fly" sequential
-    "ALTER TABLE " + addSchema(full_table_name("relations_ways"))  + " ADD FOREIGN KEY (way_id) REFERENCES " +  addSchema(full_table_name("ways")) + "(osm_id);");
-#endif
     if (PQresultStatus(result) != PGRES_COMMAND_OK) {
         std::cerr << PQresultStatus(result);
         std::cerr << "foreign keys for " + addSchema(full_table_name("relations_ways"))  + " failed: "
