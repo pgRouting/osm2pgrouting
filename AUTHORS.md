@@ -14,4 +14,5 @@
 * Daniel Wendt (Initial author) 
 * Jordan Anderson
 * J Kishore Kumar
+* Luís de Sousa
 * Sarthak Agarwal
