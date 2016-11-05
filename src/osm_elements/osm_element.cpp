@@ -124,6 +124,15 @@ addquotes(const std::string str, bool force) {
             result += '\\';
         } else if (c == '\'') {
             result += '\'';
+        } else if (c == '\n') {
+            result += "\\n";
+            continue;
+        } else if (c == '\r') {
+            result += "\\r";
+            continue;
+        } else if (c == '\t') {
+            result += "\\t";
+            continue;
         }
         result += c;
     }
@@ -143,7 +152,8 @@ static
 std::string
 getHstore(const std::map<std::string, std::string> &values) {
     std::string hstore;
-    if (values.empty()) return std::string("");
+    if (values.empty()) return std::string();
+
     for (const auto item : values) {
         hstore += item.first 
             + " => "

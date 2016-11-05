@@ -130,6 +130,8 @@ class Export2DB {
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
 
+     void execute(const std::string sql) const;
+
  private:
      PGconn *mycon;
      mutable pqxx::connection db_conn;

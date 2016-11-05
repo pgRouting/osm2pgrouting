@@ -72,8 +72,8 @@ void
 OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
     if ((m_nodes.size() % m_chunk_size) == 0) {
+        wait_child();
         if (do_export_osm(m_nodes)) {
-            wait_child();
             osm_table_export(m_nodes, "osm_nodes");
         }
         export_pois();
@@ -82,8 +82,8 @@ OSMDocument::AddNode(const Node &n) {
 
 void OSMDocument::AddWay(const Way &w) {
     if (m_ways.empty()) {
+        wait_child();
         if (m_vm.count("addnodes")) {
-            wait_child();
             osm_table_export(m_nodes, "osm_nodes");
         }
         export_pois();
@@ -229,12 +229,14 @@ OSMDocument::export_pois() const {
             std::remove_if(export_items.begin(), export_items.end(), has_no_tags),
             export_items.end());
 
-    m_db_conn.export_osm(export_items, table);
+    if (!export_items.empty()) {
+        m_db_conn.export_osm(export_items, table);
+    }
 
     /*
      * finish the child process
      */
-    exit(0);
+    _exit(0);
 }
 
 

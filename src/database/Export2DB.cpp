@@ -215,6 +215,7 @@ void
 Export2DB::export_osm(
         const std::vector<std::string> &values,
         const Table &table) const {
+    if (values.empty()) return;
 
     auto columns = table.columns();
     std::string temp_table(table.temp_name());
@@ -247,7 +248,23 @@ Export2DB::export_osm(
         }
 
         PQputline(mycon, "\\.\n");
-        PQendcopy(mycon);
+
+        if (PQendcopy(mycon) != 0) {
+            Xaction.exec("DROP TABLE " + temp_table);
+            PQfinish(mycon);
+            Xaction.commit();
+
+            if (values.size() < 2) {
+                for (const auto &v : values) {
+                std::cout << "\n*****ERROR HERE:\n" << v << "\n******";
+                }
+                return;
+            }
+            size_t inc = values.size() / 2;
+            export_osm(std::vector<std::string>(values.begin(), values.begin() + inc), table);
+            export_osm(std::vector<std::string>(values.begin() + inc , values.end()), table);
+            return;
+        };
 
         Xaction.exec(m_tables.post_process(table));
         Xaction.exec("DROP TABLE " + temp_table);
@@ -467,6 +484,17 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
+void Export2DB::execute(const std::string sql) const {
+    std::cout << "\nExecuting: \n" << sql << "\n";
+    try {
+        pqxx::work Xaction(db_conn);
+        Xaction.exec(sql);
+        Xaction.commit();
+    } catch (const std::exception &e) {
+        std::cout << "\nWARNING: " << e.what() << std::endl;
+        std::cout <<  sql << "\n";
+    }
+}
 
 
 
@@ -481,112 +509,130 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
  */
 void Export2DB::createFKeys() const {
     std::string sql;
+    auto ways =  m_tables.ways.addSchema();
+    auto vertices = m_tables.ways_vertices_pgr.addSchema(); 
+    auto pois = m_tables.points_of_interest.addSchema();
+    auto configuration = m_tables.configuration.addSchema();
+
+    /*
+     * configuration:
+     */
+    execute(
+            "ALTER TABLE " + configuration
+            + " ADD PRIMARY KEY (id);");
+
+    execute(
+            "ALTER TABLE " + configuration
+            + " ADD UNIQUE (tag_id);");
+
+    /*
+     * vertices
+     */
+    execute(
+            "ALTER TABLE " + vertices
+            + " ADD PRIMARY KEY (id);");
+    execute(
+            "ALTER TABLE " + vertices
+            + " ADD UNIQUE (osm_id);");
+
+    execute(
+            " CREATE INDEX ON " + vertices
+            + " USING GIST (the_geom);");
+    /*
+     * Ways
+     */
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD PRIMARY KEY (id);");
+
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD FOREIGN KEY (source) REFERENCES " + vertices + "(id) "
+            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD FOREIGN KEY (target) REFERENCES " + vertices + "(id) "
+            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD FOREIGN KEY (source_osm) REFERENCES " + vertices + "(osm_id) "
+            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD FOREIGN KEY (target_osm) REFERENCES " + vertices + "(osm_id) "
+            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+
+    execute(
+            " ALTER TABLE " + ways
+            + " ADD FOREIGN KEY (tag_id) REFERENCES " + configuration + "(tag_id) "
+            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+
+    execute(
+            " CREATE INDEX ON " + ways
+            + " USING GIST (the_geom);");
+
+    /*
+     * ponitsOfInterest
+     */
+
+
+    execute(
+            " ALTER TABLE " + pois
+            + " ADD PRIMARY KEY (pid);");
+
+    execute(
+            " UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
+            + " FROM " + vertices + " AS b"
+            + " WHERE a.osm_id = b.osm_id;");
+
+
+    execute(
+            " CREATE INDEX ON " + pois
+            + " USING GIST (the_geom);");
+
+    exit(0);
+#if 1
+    execute(
+            " WITH "
+            " first AS ("
+            "    SELECT " + ways + ".id AS wid,"
+            + "    source_osm, target_osm,"
+            + "    st_distance(" + ways + ".the_geom::geography, " + pois + ".the_geom::geography) AS dist,"
+            + "    " + pois + ".osm_id AS vid, st_linelocatepoint(" + ways + ".the_geom, " + pois + ".the_geom) AS fraction"
+            + "    FROM " + ways + ", " + pois
+            + "    WHERE " + pois + ".vertex_id is NULL"
+            + "    AND ST_DWithin(" + ways +".the_geom::geography, " + pois + ".the_geom::geography, 50)"
+            + "    ),"
+
+            + "second AS ("
+            + "    SELECT  vid, min(dist) FROM first group by vid"
+            + "    ),"
+
+            + "third  AS ("
+            + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, source_osm AS v_osm_id  FROM first, second WHERE dist = min AND fraction in (0)"
+            + "    UNION "
+            + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, target_osm FROM first, second WHERE dist = min AND fraction in (1)"
+            + "    ),"
+
+            + "last AS ("
+            + "        SELECT third.*, b.id  FROM third join " + vertices + " AS b ON (third.v_osm_id = b.osm_id)"
+            + "        UNION"
+            + "        SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
+            + "        )"
+
+            + " UPDATE " + pois + " SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
+            + " FROM last WHERE " +pois + ".osm_id = last.vid;"
+            );
+#else
     try {
-        /*
-         * configuration:
-         */
         pqxx::work Xaction(db_conn);
         sql = std::string(
-                "ALTER TABLE " + m_tables.configuration.addSchema()
-                + " ADD PRIMARY KEY (id);"
-                + "ALTER TABLE " + m_tables.configuration.addSchema()
-                + " ADD UNIQUE (tag_id);");
-        Xaction.exec(sql);
-        Xaction.commit();
-
-    } catch (const std::exception &e) {
-        std::cout << "\nWARNING: " << e.what() << std::endl;
-        std::cout <<  m_tables.configuration.addSchema() << "\n";
-    }
-
-    try {
-        /*
-         * vertices:
-         *   id set PRIMARY KEY
-         *   osm_id UNIQUE
-         */
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
-                + " ADD PRIMARY KEY (id);"
-                + "ALTER TABLE " + m_tables.ways_vertices_pgr.addSchema()
-                + " ADD UNIQUE (osm_id);");
-        Xaction.exec(sql);
-        Xaction.commit();
-
-        std::cerr << "\n" << sql << "\n";
-    } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr << "\n" << sql << "\n";
-    }
-
-    try {
-        /*
-         * ways:
-         *   id set PRIMARY KEY
-         *   osm_id UNIQUE
-         */
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD PRIMARY KEY (id);"
-
-                + " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD FOREIGN KEY (source) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(id) "
-                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
-
-                + " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD FOREIGN KEY (target) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(id) "
-                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
-
-                + " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD FOREIGN KEY (source_osm) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(osm_id) "
-                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
-
-                + " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD FOREIGN KEY (target_osm) REFERENCES " + m_tables.ways_vertices_pgr.addSchema() + "(osm_id) "
-                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
-
-                + " ALTER TABLE " + m_tables.ways.addSchema()
-                + " ADD FOREIGN KEY (tag_id) REFERENCES " + m_tables.configuration.addSchema() + "(tag_id) "
-                + " ON UPDATE NO ACTION ON DELETE NO ACTION;"
-
-                + " CREATE INDEX "
-                + " ON " + m_tables.ways.addSchema()
-                + " USING GIST (the_geom);");
-        Xaction.exec(sql);
-        Xaction.commit();
-
-    } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr << "\n" << sql << "\n";
-    }
-
-
-        auto ways =  m_tables.ways.addSchema();
-        auto vertices = m_tables.ways_vertices_pgr.addSchema(); 
-        auto pois = m_tables.points_of_interest.addSchema();
-    try {
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                " UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
-                + " FROM " + vertices + " AS b"
-                + " WHERE a.osm_id = b.osm_id;"
-                );
-
-        Xaction.exec(sql);
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr << "\n" << sql << "\n";
-    }
-                
-    try {
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                 " WITH "
-                 " first AS ("
-                 "    SELECT " + ways + ".id AS wid,"
+                " WITH "
+                " first AS ("
+                "    SELECT " + ways + ".id AS wid,"
                 + "    source_osm, target_osm,"
                 + "    st_distance(" + ways + ".the_geom::geography, " + pois + ".the_geom::geography) AS dist,"
                 + "    " + pois + ".osm_id AS vid, st_linelocatepoint(" + ways + ".the_geom, " + pois + ".the_geom) AS fraction"
@@ -621,14 +667,15 @@ void Export2DB::createFKeys() const {
         std::cerr << "\nWARNING: " << e.what() << std::endl;
         std::cerr << "\n" << sql << "\n";
     }
+#endif
 
     try {
         pqxx::work Xaction(db_conn);
         sql = std::string(
-                 " WITH "
-                 " base AS ("
-                 "     SELECT pid, w.id as wid, w.the_geom as wgeom, p.the_geom as pgeom"
-                 "     FROM " + pois + " as p JOIN " + ways + " as w ON (edge_id = w.id)"
+                " WITH "
+                " base AS ("
+                "     SELECT pid, w.id as wid, w.the_geom as wgeom, p.the_geom as pgeom"
+                "     FROM " + pois + " as p JOIN " + ways + " as w ON (edge_id = w.id)"
                 + "     WHERE edge_id is not NULL"
                 + " ),"
 
