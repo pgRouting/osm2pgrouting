@@ -37,6 +37,7 @@ class Table {
      std::string temp_name() const;
      std::string name() const {return m_name;};
      std::string full_name() const {return m_full_name;};
+     std::string primary_key(const std::string &column) const;
 
      inline std::vector<std::string> columns() const {
          return m_columns;

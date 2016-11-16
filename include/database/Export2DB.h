@@ -130,6 +130,7 @@ class Export2DB {
              const std::string &vertices_tab,
              pqxx::work &Xaction) const;
 
+     int64_t get_val(const std::string sql) const;
      void execute(const std::string sql) const;
 
  private:

@@ -2,12 +2,12 @@
  *   Copyright (C) 2016 by pgRouting developers                            *
  *   project@pgrouting.org                                                 *
  *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
+ *   This program IS free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License AS published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
+ *   This program IS distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License t &or more details.                        *
@@ -290,11 +290,11 @@ void Export2DB::fill_vertices_table(
     // std::cout << "Filling '" << vertices_tab << "' based on '" << table <<"'\n";
     std::string sql(
             "WITH osm_vertex AS ("
-            "(select source_osm as osm_id, x1 as lon, y1 as lat FROM " + table + " where source is NULL)"
+            "(SELECT source_osm AS osm_id, x1 AS lon, y1 AS lat FROM " + table + " where source IS NULL)"
             " union "
-            "(select target_osm as osm_id, x2 as lon, y2 as lat FROM " + table + " where target is NULL)"
+            "(SELECT target_osm AS osm_id, x2 AS lon, y2 AS lat FROM " + table + " where target IS NULL)"
             ") , "
-            " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * from osm_vertex) a "
+            " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * FROM osm_vertex) a "
             ") "
             " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, the_geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
     auto result = Xaction.exec(sql);
@@ -315,26 +315,26 @@ void Export2DB::fill_source_target(
             " UPDATE " + table + " AS w"
             " SET source = v.id "
             " FROM " + vertices_tab + " AS v"
-            " WHERE w.source is NULL and w.source_osm = v.osm_id;");
+            " WHERE w.source IS NULL and w.source_osm = v.osm_id;");
     Xaction.exec(sql1);
 
     std::string sql2(
             " UPDATE " + table + " AS w"
             " SET target = v.id "
             " FROM " + vertices_tab + " AS v"
-            " WHERE w.target is NULL and w.target_osm = v.osm_id;");
+            " WHERE w.target IS NULL and w.target_osm = v.osm_id;");
     Xaction.exec(sql2);
 
     std::string sql3(
             " UPDATE " + table +
-            " SET  length_m = st_length(geography(ST_Transform(the_geom, 4326))),"
-            "      cost_s = CASE "
-            "           WHEN one_way = -1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
-            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            " SET  length_m = ST_length(geography(ST_Transform(the_geom, 4326))),"
+            "      coST_s = CASE "
+            "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
+            "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END, "
-            "      reverse_cost_s = CASE "
-            "           WHEN one_way = 1 THEN -st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
-            "           ELSE st_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "      reverse_coST_s = CASE "
+            "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
             " WHERE length_m IS NULL;");
     Xaction.exec(sql3);
@@ -433,8 +433,8 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
             Xaction.commit();
         } catch (const std::exception &e) {
             std::cerr <<  "\n" << e.what() << std::endl;
-            std::cerr << "While processing from " << start << "th \t to: " << limit << "th way\n";
-            std::cerr << "count" << count << " While processing from " << start << "th \t to: " << limit << "th way\n";
+            std::cerr << "While processing FROM " << start << "th \t to: " << limit << "th way\n";
+            std::cerr << "count" << count << " While processing FROM " << start << "th \t to: " << limit << "th way\n";
         }
 
         start = limit;
@@ -454,7 +454,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-    //  std::cout << "Deleting  duplicated ways from temporary table\n";
+    //  std::cout << "Deleting  duplicated ways FROM temporary table\n";
     std::string delete_from_temp(
             " DELETE FROM "+ temp_table + " a "
             "     USING " + m_tables.ways.addSchema() + " b "
@@ -484,8 +484,29 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
 
 
 
-void Export2DB::execute(const std::string sql) const {
+int64_t
+Export2DB::get_val(const std::string sql) const {
+#if 0
     std::cout << "\nExecuting: \n" << sql << "\n";
+#endif
+    try {
+        pqxx::work Xaction(db_conn);
+        auto result = Xaction.exec(sql);
+        Xaction.commit();
+        if (result.size() == 0) return 0;
+        return result[0][0].as<int64_t>();
+    } catch (const std::exception &e) {
+        std::cout << "\nWARNING: " << e.what() << std::endl;
+        std::cout <<  sql << "\n";
+    }
+    return 0;
+}
+
+void
+Export2DB::execute(const std::string sql) const {
+#if 1
+    std::cout << "\nExecuting: \n" << sql << "\n";
+#endif
     try {
         pqxx::work Xaction(db_conn);
         Xaction.exec(sql);
@@ -500,11 +521,11 @@ void Export2DB::execute(const std::string sql) const {
 
 /*
  *
- *  Integrity of the OSM data is not ensured so failings are ignored
+ *  Integrity of the OSM data IS not ensured so failings are ignored
  *
- *  Due to the fact that indexes slow down the process, no index is created
+ *  Due to the fact that indexes slow down the process, no index IS created
  *
- *  After all the data is inserted then its time to create indices & foreign keys
+ *  After all the data IS inserted then its time to create indices & foreign keys
  *
  */
 void Export2DB::createFKeys() const {
@@ -517,62 +538,65 @@ void Export2DB::createFKeys() const {
     /*
      * configuration:
      */
+#if 0
     execute(
             "ALTER TABLE " + configuration
-            + " ADD PRIMARY KEY (id);");
-
+            + "\n  ADD PRIMARY KEY (id);");
+#else
+    execute(m_tables.configuration.primary_key("id"));
+#endif
     execute(
             "ALTER TABLE " + configuration
-            + " ADD UNIQUE (tag_id);");
+            + "\n  ADD UNIQUE (tag_id);");
 
     /*
      * vertices
      */
     execute(
             "ALTER TABLE " + vertices
-            + " ADD PRIMARY KEY (id);");
+            + "\n  ADD PRIMARY KEY (id);");
     execute(
             "ALTER TABLE " + vertices
-            + " ADD UNIQUE (osm_id);");
+            + "\n  ADD UNIQUE (osm_id);");
 
     execute(
             " CREATE INDEX ON " + vertices
-            + " USING GIST (the_geom);");
+            + "\n  USING GIST (the_geom);");
     /*
      * Ways
      */
     execute(
             " ALTER TABLE " + ways
-            + " ADD PRIMARY KEY (id);");
+            + "\n  ADD PRIMARY KEY (id);");
 
     execute(
             " ALTER TABLE " + ways
-            + " ADD FOREIGN KEY (source) REFERENCES " + vertices + "(id) "
-            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+            + "\n  ADD FOREIGN KEY (source) REFERENCES " + vertices + "(id) "
+            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
 
     execute(
             " ALTER TABLE " + ways
-            + " ADD FOREIGN KEY (target) REFERENCES " + vertices + "(id) "
-            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+            + "\n  ADD FOREIGN KEY (target) REFERENCES " + vertices + "(id) "
+            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
 
     execute(
             " ALTER TABLE " + ways
-            + " ADD FOREIGN KEY (source_osm) REFERENCES " + vertices + "(osm_id) "
-            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+            + "\n  ADD FOREIGN KEY (source_osm) REFERENCES " + vertices + "(osm_id) "
+            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
 
     execute(
             " ALTER TABLE " + ways
-            + " ADD FOREIGN KEY (target_osm) REFERENCES " + vertices + "(osm_id) "
-            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+            + "\n  ADD FOREIGN KEY (target_osm) REFERENCES " + vertices + "(osm_id) "
+            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
 
     execute(
             " ALTER TABLE " + ways
-            + " ADD FOREIGN KEY (tag_id) REFERENCES " + configuration + "(tag_id) "
-            + " ON UPDATE NO ACTION ON DELETE NO ACTION;");
+            + "\n  ADD FOREIGN KEY (tag_id) REFERENCES " + configuration + "(tag_id) "
+            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
 
     execute(
             " CREATE INDEX ON " + ways
-            + " USING GIST (the_geom);");
+            + "\n  USING GIST (the_geom);");
 
     /*
      * ponitsOfInterest
@@ -580,149 +604,220 @@ void Export2DB::createFKeys() const {
 
 
     execute(
-            " ALTER TABLE " + pois
-            + " ADD PRIMARY KEY (pid);");
+            "\n ALTER TABLE " + pois
+            +"\n ADD PRIMARY KEY (pid);");
 
     execute(
-            " UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
-            + " FROM " + vertices + " AS b"
-            + " WHERE a.osm_id = b.osm_id;");
+            "\n  UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
+            + "\n  FROM " + vertices + " AS b"
+            + "\n  WHERE a.osm_id = b.osm_id;");
 
 
     execute(
-            " CREATE INDEX ON " + pois
-            + " USING GIST (the_geom);");
+            "\n  CREATE INDEX ON " + pois
+            + "\n  USING GIST (the_geom);");
 
-    exit(0);
-#if 1
+
+
     execute(
-            " WITH "
-            " first AS ("
-            "    SELECT " + ways + ".id AS wid,"
-            + "    source_osm, target_osm,"
-            + "    st_distance(" + ways + ".the_geom::geography, " + pois + ".the_geom::geography) AS dist,"
-            + "    " + pois + ".osm_id AS vid, st_linelocatepoint(" + ways + ".the_geom, " + pois + ".the_geom) AS fraction"
-            + "    FROM " + ways + ", " + pois
-            + "    WHERE " + pois + ".vertex_id is NULL"
-            + "    AND ST_DWithin(" + ways +".the_geom::geography, " + pois + ".the_geom::geography, 50)"
-            + "    ),"
+            "\nCREATE OR REPLACE FUNCTION osm2pgrouting_findClosestEdge(radius FLOAT, within FLOAT)"
 
-            + "second AS ("
-            + "    SELECT  vid, min(dist) FROM first group by vid"
-            + "    ),"
+            "\n RETURNS BIGINT AS"
+            "\n $$"
+            "\n DECLARE"
+            "\n    curr_tot BIGINT;"
+            "\n    total BIGINT :=0;"
+            "\n    rec RECORD;"
+            "\n    factor FLOAT = 0.5;"
+            "\n    tooFar BIGINT[];"
+            "\n BEGIN"
+            "\n    SELECT count(*) FROM " + pois
+            +"\n    WHERE vertex_id IS NULL AND edge_id IS NULL"
+            +"\n    INTO rec; "
 
-            + "third  AS ("
-            + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, source_osm AS v_osm_id  FROM first, second WHERE dist = min AND fraction in (0)"
-            + "    UNION "
-            + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, target_osm FROM first, second WHERE dist = min AND fraction in (1)"
-            + "    ),"
+            +"\n    FOR i IN 1..rec.count LOOP"
+            +"\n        curr_tot = osm2pgrouting_updateClosestEdge(radius, within, tooFar);"
 
-            + "last AS ("
-            + "        SELECT third.*, b.id  FROM third join " + vertices + " AS b ON (third.v_osm_id = b.osm_id)"
-            + "        UNION"
-            + "        SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
-            + "        )"
+            +"          RAISE NOTICE '%: Updated % points of Interest', i, curr_tot;"
+            +"\n        --curr_tot := rec.osm2pgrouting_updateClosestEdge;"
+            +"\n        total := total + curr_tot;"
+            +"\n        IF (curr_tot = 0) THEN"
+            +"\n            SELECT pid FROM " + pois
+            +"\n                WHERE vertex_id IS NULL AND edge_id IS NULL"
+            +"\n                AND pid not in (SELECT unnest(tooFar))"
+            +"\n                limit 1 INTO rec;"
+            +"\n            raise notice 'Not within range: pid = %', rec.pid;"
+            +"\n            tooFar := tooFar || rec.pid;"
+            +"\n            SELECT count(*) FROM (SELECT * FROM " + pois
+            +"\n                WHERE vertex_id IS NULL AND edge_id IS NULL"
+            +"\n                AND pid not in (SELECT unnest(tooFar)) LIMIT 1) a  INTO rec;"
 
-            + " UPDATE " + pois + " SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
-            + " FROM last WHERE " +pois + ".osm_id = last.vid;"
+            +"\n            EXIT WHEN rec.count = 0;"
+            +"\n        END IF;"
+            +"\n    END LOOP;"
+
+            +"\n    return total;"
+            +"\n END;"
+            +"\n $$"
+            +"\n LANGUAGE plpgsql;"
             );
-#else
-    try {
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                " WITH "
-                " first AS ("
-                "    SELECT " + ways + ".id AS wid,"
-                + "    source_osm, target_osm,"
-                + "    st_distance(" + ways + ".the_geom::geography, " + pois + ".the_geom::geography) AS dist,"
-                + "    " + pois + ".osm_id AS vid, st_linelocatepoint(" + ways + ".the_geom, " + pois + ".the_geom) AS fraction"
-                + "    FROM " + ways + ", " + pois
-                + "    WHERE " + pois + ".vertex_id is NULL"
-                + "    AND ST_DWithin(" + ways +".the_geom::geography, " + pois + ".the_geom::geography, 50)"
-                + "    ),"
 
-                + "second AS ("
-                + "    SELECT  vid, min(dist) FROM first group by vid"
-                + "    ),"
+    execute(
+            "CREATE OR REPLACE FUNCTION osm2pgrouting_updateClosestEdge(radius FLOAT, within FLOAT, tooFar BIGINT[])"
+            "\n RETURNS BIGINT AS"
+            "\n $$"
+            "\n DECLARE"
+            "\n    curr_tot BIGINT;"
+            "\n BEGIN"
+            "\n        WITH "
+            "\n        poi AS ("
+            "\n            SELECT ST_buffer(the_geom::geography, $1)::geometry AS bufferPois,"
+            "\n            ST_buffer(the_geom::geography, $1 + $2)::geometry AS bufferWays"
+            "\n            FROM " + pois
+            +"\n            WHERE vertex_id IS NULL AND edge_id IS NULL"
+            +"\n            AND pid not in (SELECT unnest(tooFar))"
+            +"\n            limit 1"
+            +"\n        ),"
+            +"\n        pois AS ("
+            +"\n            SELECT * FROM " + pois + ", poi"
+            +"\n            WHERE ST_Within(the_geom, bufferPois) "
+            +"\n            AND vertex_id IS NULL AND edge_id IS NULL"
+            +"\n            AND pid not in (SELECT unnest(tooFar))"
+            +"\n        ),"
+            +"\n        wayss AS ("
+            +"\n            SELECT * FROM " + ways + ", poi"
+            +"\n            WHERE ST_Intersects(the_geom, bufferWays)"
+            +"\n        ),"
+            +"\n        first AS ("
+            +"\n            SELECT   ways.id AS wid,"
+            +"\n            source_osm, target_osm,"
+            +"\n            ST_distance(pois.the_geom::geography,   ways.the_geom::geography) AS dist,"
+            +"\n            pois.osm_id AS vid,"
+            +"\n            ST_linelocatepoint(ways.the_geom, pois.the_geom) AS fraction"
+            +"\n            FROM  wayss AS ways , pois"
+            +"\n            WHERE pois.vertex_id IS NULL AND pois.edge_id IS NULL"
+            +"\n        ),"
 
-                + "third  AS ("
-                + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, source_osm AS v_osm_id  FROM first, second WHERE dist = min AND fraction in (0)"
-                + "    UNION "
-                + "    SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT as fraction, first.dist, target_osm FROM first, second WHERE dist = min AND fraction in (1)"
-                + "    ),"
+            +"\n        second AS ("
+            +"\n            SELECT  vid, min(dist) FROM first group by vid"
+            +"\n       ),"
 
-                + "last AS ("
-                + "        SELECT third.*, b.id  FROM third join " + vertices + " AS b ON (third.v_osm_id = b.osm_id)"
-                + "        UNION"
-                + "        SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
-                + "        )"
 
-                + " UPDATE " + pois + " SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
-                + " FROM last WHERE " +pois + ".osm_id = last.vid;"
-                );
+            +"\n        third  AS ("
+            +"\n            SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT AS fraction, first.dist, source_osm AS v_osm_id FROM first, second WHERE dist = min AND fraction in (0)"
+            +"\n            UNION "
+            +"\n            SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT AS fraction, first.dist, target_osm AS v_osm_id FROM first, second WHERE dist = min AND fraction in (1)"
+            +"\n        ),"
 
-        Xaction.exec(sql);
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr << "\n" << sql << "\n";
-    }
+            +"\n        last AS ("
+            +"\n            SELECT third.*, b.id  FROM third join   ways_vertices_pgr AS b ON (third.v_osm_id = b.osm_id)"
+            +"\n            UNION"
+            +"\n            SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
+            +"\n        )"
+
+            +"\n        UPDATE   pointsofinterest AS pois   SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
+            +"\n        FROM last WHERE  pois.osm_id = last.vid;"
+            +"\n        GET DIAGNOSTICS curr_tot = ROW_COUNT;"
+            +"\n    return curr_tot;"
+            +"\n END;"
+            +"\n $$"
+            +"\n LANGUAGE plpgsql;"
+            );
+
+    std::string array;
+    int64_t total = 0;
+    auto limit = get_val(
+            "SELECT count(*) FROM " + pois
+            + "\n  WHERE vertex_id IS NULL AND edge_id IS NULL");
+
+#if 0
+    std::cout << "\nlimit " << limit;
 #endif
 
-    try {
-        pqxx::work Xaction(db_conn);
-        sql = std::string(
-                " WITH "
-                " base AS ("
-                "     SELECT pid, w.id as wid, w.the_geom as wgeom, p.the_geom as pgeom"
-                "     FROM " + pois + " as p JOIN " + ways + " as w ON (edge_id = w.id)"
-                + "     WHERE edge_id is not NULL"
-                + " ),"
+    std::cout << "\nFinding closest edge to " << limit << " Points Of Interest\n";
+    for (int64_t i = 0; i < limit; ++i) {
+        auto curr_tot = get_val(
+                "SELECT osm2pgrouting_updateClosestEdge(200, 50, ARRAY[" + array + "]::BIGINT[])");
+        total += curr_tot;
 
-                + " foo AS ("
-                + "     SELECT wid, st_dumppoints(wgeom) AS dp"
-                + "     FROM base"
-                + " ),"
+        if (curr_tot == 0) {
+            auto pid_outOfRange = get_val(" SELECT pid FROM " + pois
+                    +"\n  WHERE vertex_id IS NULL AND edge_id IS NULL"
+                    +"\n  AND pid not in (SELECT unnest(ARRAY[" + array +"]::BIGINT[]))"
+                    +"\n  limit 1;");
+            if (array.empty()) {
+                array += boost::lexical_cast<std::string>(pid_outOfRange);
+            } else {
+                array += "," + boost::lexical_cast<std::string>(pid_outOfRange);
+            }
+#if 0
+            std::cout << "\nNot within distance: pid = " << pid_outOfRange;
+#endif
 
-                + " blade AS ("
-                + "     SELECT wid, st_collect((dp).geom) AS blade"
-                + "     FROM foo"
-                + "     GROUP BY wid"
-                + " ),"
-
-                + " split AS ("
-                + "     SELECT base.*, (ST_Dump(st_split(wgeom, blade))).geom AS line"
-                + "     FROM blade JOIN base"
-                + "     USING (wid)"
-                + " ),"
-
-                + " distance AS ("
-                + "     select split.*, st_distance(line, pgeom) as dist from split"
-                + " ),"
-                + " second AS ("
-                + "     SELECT  pid, min(dist) FROM distance group by pid"
-                + " ), "
-                + " last AS ("
-                + "     SELECT pid,"
-                + "         (st_y(st_startpoint(line)) - st_y(st_endpoint(line))) * st_x(pgeom)"
-                + "      +  (st_x(st_endpoint(line)) - st_x(st_startpoint(line))) * st_y(pgeom)"
-                + "      +  (st_x(st_startpoint(line)) * st_y(st_endpoint(line)) - st_x(st_endpoint(line))"
-                + "      * st_y(st_startpoint(line))) AS val"
-                + "     FROM distance join second using (pid) where dist = min"
-                + " )"
-
-                + " UPDATE " + pois + " set side = case when val>0 then 'L' when val<0 then 'R' else 'B' end "
-                + " FROM last "
-                + " WHERE last.pid = " + pois + ".pid;"
-
-                );
-
-        Xaction.exec(sql);
-        Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr << "\nWARNING: " << e.what() << std::endl;
-        std::cerr << "\n" << sql << "\n";
+            if (get_val(
+                    +"SELECT count(*) FROM (SELECT * FROM " + pois
+                    +"\n  WHERE vertex_id IS NULL AND edge_id IS NULL"
+                    +"\n  AND pid not in (SELECT unnest(ARRAY[" + array +"]::BIGINT[]))) AS a"
+                    ) == 0) break;
+        }
+#if 0
+        std::cout << i << ": total " << total;
+#endif
+        print_progress(limit, total);
     }
+
+    if (!array.empty()) {
+        std::cout << "\nNo edge found within distance (200 + 50)mts on pid(s): " << array << "\n";
+    }
+
+
+    execute(
+            "\n WITH "
+            "\n base AS ("
+            "\n     SELECT pid, w.id AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
+            "\n     FROM " + pois + " AS p JOIN " + ways + " AS w ON (edge_id = w.id)"
+            + "\n     WHERE edge_id IS not NULL"
+            + "\n ),"
+
+            + "\n foo AS ("
+            + "\n     SELECT wid, ST_dumppoints(wgeom) AS dp"
+            + "\n     FROM base"
+            + "\n ),"
+
+            + "\n blade AS ("
+            + "\n     SELECT wid, ST_collect((dp).geom) AS blade"
+            + "\n     FROM foo"
+            + "\n     GROUP BY wid"
+            + "\n ),"
+
+            + "\n split AS ("
+            + "\n     SELECT base.*, (ST_Dump(ST_split(wgeom, blade))).geom AS line"
+            + "\n     FROM blade JOIN base"
+            + "\n     USING (wid)"
+            + "\n ),"
+
+            + "\n distance AS ("
+            + "\n     SELECT split.*, ST_distance(line, pgeom) AS dist FROM split"
+            + "\n ),"
+
+            + "\n second AS ("
+            + "\n     SELECT  pid, min(dist) FROM distance GROUP BY pid"
+            + "\n ), "
+
+            + "\n last AS ("
+            + "\n     SELECT pid,"
+            + "\n         (ST_y(ST_startpoint(line)) - ST_y(ST_endpoint(line))) * ST_x(pgeom)"
+            + "\n      +  (ST_x(ST_endpoint(line)) - ST_x(ST_startpoint(line))) * ST_y(pgeom)"
+            + "\n      +  (ST_x(ST_startpoint(line)) * ST_y(ST_endpoint(line)) - ST_x(ST_endpoint(line))"
+            + "\n      * ST_y(ST_startpoint(line))) AS val"
+            + "\n     FROM distance join second using (pid) where dist = min"
+            + "\n )"
+
+            + "\n UPDATE " + pois + " set side = case when val>0 then 'L' when val<0 then 'R' else 'B' end "
+            + "\n FROM last "
+            + "\n WHERE last.pid = " + pois + ".pid;"
+
+            );
 }
 
 }  // namespace osm2pgr

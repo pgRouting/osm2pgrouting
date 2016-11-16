@@ -22,6 +22,15 @@ Table::Table(
     m_geometry(geometry)
     { }
 
+
+std::string
+Table::primary_key(const std::string &column) const {
+    return "ALTER TABLE " + addSchema()
+        + "\n  ADD PRIMARY KEY (" + column + ");";
+}
+
+
+
 void 
 Table::set_columns(const std::vector<std::string> &columns) {
     m_columns = columns;

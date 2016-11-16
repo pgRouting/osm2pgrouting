@@ -2,9 +2,6 @@
 <configuration>
 
   <type name="highway" id="1">
-    <class name="residential" id="112"  priority="2.5" maxspeed="5" />
-    <class name="living_street" id="113"  priority="3" maxspeed="2" />
-    <class name="service" id="114"  priority="2.5" maxspeed="5" />
     <class name="footway" id="115"  priority="2.5" maxspeed="5" />
     <class name="steps" id="116"  priority="2.5" maxspeed="5" />
     <class name="pedestrian" id="117"  priority="2.5" maxspeed="5" />
