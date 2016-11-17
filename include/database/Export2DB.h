@@ -111,6 +111,7 @@ class Export2DB {
 
      void dropTables() const;
      void createFKeys() const;
+     void process_pois() const;
 
  private:
 
@@ -132,6 +133,14 @@ class Export2DB {
 
      int64_t get_val(const std::string sql) const;
      void execute(const std::string sql) const;
+
+     Table configuration() const {return m_tables.configuration();}
+     Table vertices() const {return m_tables.vertices();}
+     Table ways() const {return m_tables.ways();}
+     Table pois() const {return m_tables.pois();}
+     Table osm_ways() const {return m_tables.osm_ways();}
+     Table osm_nodes() const {return m_tables.osm_nodes();}
+     Table osm_relations() const {return m_tables.osm_relations();}
 
  private:
      PGconn *mycon;

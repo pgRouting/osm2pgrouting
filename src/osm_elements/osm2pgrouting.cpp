@@ -223,6 +223,9 @@ int main(int argc, char* argv[]) {
             std::cout << "\nCreating indexes ..." << endl;
             dbConnection.createFKeys();
 
+            std::cout << "\nProcessing Points of Interest ..." << endl;
+            dbConnection.process_pois();
+
         }
 
 

@@ -114,17 +114,17 @@ void Export2DB::createTables() const {
     try {
         pqxx::work Xaction(db_conn);
 
-        Xaction.exec(m_tables.ways_vertices_pgr.create());
-        std::cout << "TABLE: " << m_tables.ways_vertices_pgr.addSchema() << " created ... OK.\n";
+        Xaction.exec(vertices().create());
+        std::cout << "TABLE: " << vertices().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(m_tables.ways.create());
-        std::cout << "TABLE: " << m_tables.ways.addSchema() << " created ... OK.\n";
+        Xaction.exec(ways().create());
+        std::cout << "TABLE: " << ways().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(m_tables.points_of_interest.create());
-        std::cout << "TABLE: " << m_tables.ways.addSchema() << " created ... OK.\n";
+        Xaction.exec(pois().create());
+        std::cout << "TABLE: " << pois().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(m_tables.configuration.create());
-        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " created ... OK.\n";
+        Xaction.exec(configuration().create());
+        std::cout << "TABLE: " << configuration().addSchema() << " created ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -138,14 +138,14 @@ void Export2DB::createTables() const {
         /*
          * optional tables
          */
-        Xaction.exec(m_tables.osm_nodes.create());
-        std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " created ... OK.\n";
+        Xaction.exec(osm_nodes().create());
+        std::cout << "TABLE: " << osm_nodes().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(m_tables.osm_ways.create());
-        std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " created ... OK.\n";
+        Xaction.exec(osm_ways().create());
+        std::cout << "TABLE: " << osm_ways().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(m_tables.osm_relations.create());
-        std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " created ... OK.\n";
+        Xaction.exec(osm_relations().create());
+        std::cout << "TABLE: " << osm_relations().addSchema() << " created ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -162,14 +162,14 @@ void Export2DB::dropTables() const {
     try {
         pqxx::work Xaction(db_conn);
 
-        Xaction.exec(m_tables.ways.drop());
-        std::cout << "TABLE: " << m_tables.ways.addSchema() << " droped ... OK.\n";
+        Xaction.exec(ways().drop());
+        std::cout << "TABLE: " << ways().addSchema() << " droped ... OK.\n";
 
-        Xaction.exec(m_tables.ways_vertices_pgr.drop());
-        std::cout << "TABLE: " << m_tables.ways_vertices_pgr.addSchema() << " droped ... OK.\n";
+        Xaction.exec(vertices().drop());
+        std::cout << "TABLE: " << vertices().addSchema() << " droped ... OK.\n";
 
-        Xaction.exec(m_tables.configuration.drop());
-        std::cout << "TABLE: " << m_tables.configuration.addSchema() << " droped ... OK.\n";
+        Xaction.exec(configuration().drop());
+        std::cout << "TABLE: " << configuration().addSchema() << " droped ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -179,14 +179,14 @@ void Export2DB::dropTables() const {
 
     try {
         pqxx::work Xaction(db_conn);
-        Xaction.exec(m_tables.osm_nodes.drop());
-        std::cout << "TABLE: " << m_tables.osm_nodes.addSchema() << " droped ... OK.\n";
+        Xaction.exec(osm_nodes().drop());
+        std::cout << "TABLE: " << osm_nodes().addSchema() << " droped ... OK.\n";
 
-        Xaction.exec(m_tables.osm_ways.drop());
-        std::cout << "TABLE: " << m_tables.osm_ways.addSchema() << " droped ... OK.\n";
+        Xaction.exec(osm_ways().drop());
+        std::cout << "TABLE: " << osm_ways().addSchema() << " droped ... OK.\n";
 
-        Xaction.exec(m_tables.osm_relations.drop());
-        std::cout << "TABLE: " << m_tables.osm_relations.addSchema() << " droped ... OK.\n";
+        Xaction.exec(osm_relations().drop());
+        std::cout << "TABLE: " << osm_relations().addSchema() << " droped ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -346,7 +346,7 @@ void Export2DB::fill_source_target(
 void Export2DB::exportWays(const Ways &ways, const Configuration &config) const {
     std::cout << "    Processing " <<  ways.size() <<  " ways"  << ":\n";
 
-    Table table = m_tables.ways;
+    Table table = this->ways();
 
     auto columns = table.columns();
     auto ways_columns = comma_separated(columns);
@@ -445,7 +445,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
 
 void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xaction) const {
     //  std::cout << "Creating indices in temporary table\n";
-    auto temp_table(m_tables.ways.temp_name());
+    auto temp_table(ways().temp_name());
 
     Xaction.exec("CREATE INDEX "+ temp_table + "_gdx ON "+ temp_table + " using gist(the_geom);");
     Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (source_osm)");
@@ -457,23 +457,23 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
     //  std::cout << "Deleting  duplicated ways FROM temporary table\n";
     std::string delete_from_temp(
             " DELETE FROM "+ temp_table + " a "
-            "     USING " + m_tables.ways.addSchema() + " b "
+            "     USING " + ways().addSchema() + " b "
             "     WHERE a.the_geom ~= b.the_geom AND ST_OrderingEquals(a.the_geom, b.the_geom);");
     Xaction.exec(delete_from_temp);
 
     //  std::cout << "Updating to existing toplology the temporary table\n";
-    fill_source_target(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
+    fill_source_target(temp_table, vertices().addSchema(), Xaction);
 
     //  std::cout << "Inserting new vertices in the vertex table\n";
-    fill_vertices_table(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
+    fill_vertices_table(temp_table, vertices().addSchema(), Xaction);
 
     //  std::cout << "Updating to new toplology the temporary table\n";
-    fill_source_target(temp_table, m_tables.ways_vertices_pgr.addSchema(), Xaction);
+    fill_source_target(temp_table, vertices().addSchema(), Xaction);
 
 
     //  std::cout << "Inserting new split ways to '" << addSchema(full_table_name("ways")) << "'\n";
     std::string insert_into_ways(
-            " INSERT INTO " + m_tables.ways.addSchema() +
+            " INSERT INTO " + ways().addSchema() +
             "(" + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s) "
             " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM " + temp_table + "); ");
     auto result = Xaction.exec(insert_into_ways);
@@ -504,7 +504,7 @@ Export2DB::get_val(const std::string sql) const {
 
 void
 Export2DB::execute(const std::string sql) const {
-#if 1
+#if 0
     std::cout << "\nExecuting: \n" << sql << "\n";
 #endif
     try {
@@ -529,240 +529,91 @@ Export2DB::execute(const std::string sql) const {
  *
  */
 void Export2DB::createFKeys() const {
-    std::string sql;
-    auto ways =  m_tables.ways.addSchema();
-    auto vertices = m_tables.ways_vertices_pgr.addSchema(); 
-    auto pois = m_tables.points_of_interest.addSchema();
-    auto configuration = m_tables.configuration.addSchema();
 
     /*
      * configuration:
      */
-#if 0
-    execute(
-            "ALTER TABLE " + configuration
-            + "\n  ADD PRIMARY KEY (id);");
-#else
-    execute(m_tables.configuration.primary_key("id"));
-#endif
-    execute(
-            "ALTER TABLE " + configuration
-            + "\n  ADD UNIQUE (tag_id);");
+    execute(configuration().primary_key("id"));
+    execute(configuration().unique("tag_id"));
 
     /*
      * vertices
      */
-    execute(
-            "ALTER TABLE " + vertices
-            + "\n  ADD PRIMARY KEY (id);");
-    execute(
-            "ALTER TABLE " + vertices
-            + "\n  ADD UNIQUE (osm_id);");
+    execute(vertices().primary_key("id"));
+    execute(vertices().unique("osm_id"));
+    execute(vertices().gist_index());
 
-    execute(
-            " CREATE INDEX ON " + vertices
-            + "\n  USING GIST (the_geom);");
     /*
      * Ways
      */
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD PRIMARY KEY (id);");
-
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD FOREIGN KEY (source) REFERENCES " + vertices + "(id) "
-            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
-
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD FOREIGN KEY (target) REFERENCES " + vertices + "(id) "
-            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
-
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD FOREIGN KEY (source_osm) REFERENCES " + vertices + "(osm_id) "
-            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
-
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD FOREIGN KEY (target_osm) REFERENCES " + vertices + "(osm_id) "
-            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
-
-    execute(
-            " ALTER TABLE " + ways
-            + "\n  ADD FOREIGN KEY (tag_id) REFERENCES " + configuration + "(tag_id) "
-            + "\n  ON UPDATE NO ACTION ON DELETE NO ACTION;");
-
-    execute(
-            " CREATE INDEX ON " + ways
-            + "\n  USING GIST (the_geom);");
+    execute(ways().primary_key("id"));
+    execute(ways().foreign_key("source", vertices(), "id"));
+    execute(ways().foreign_key("target", vertices(), "id"));
+    execute(ways().foreign_key("source_osm", vertices(), "osm_id"));
+    execute(ways().foreign_key("target_osm", vertices(), "osm_id"));
+    execute(ways().foreign_key("tag_id", configuration(), "tag_id"));
+    execute(ways().gist_index());
 
     /*
      * ponitsOfInterest
      */
+    execute(pois().primary_key("pid"));
+    execute(pois().gist_index());
+}
+
+void Export2DB::process_pois() const {
+    /* osm2pgr_pois_update_part_of_topology */
+    execute(pois().sql(0));
 
 
-    execute(
-            "\n ALTER TABLE " + pois
-            +"\n ADD PRIMARY KEY (pid);");
-
-    execute(
-            "\n  UPDATE " + pois + " AS a set (vertex_id, length_m) = (b.id, 0)"
-            + "\n  FROM " + vertices + " AS b"
-            + "\n  WHERE a.osm_id = b.osm_id;");
+    /* osm2pgr_pois_update_not_part_of_topology */
+    execute(pois().sql(1));
 
 
-    execute(
-            "\n  CREATE INDEX ON " + pois
-            + "\n  USING GIST (the_geom);");
+    /* osm2pgr_pois_find_side */
+    execute(pois().sql(2));
+    
+    
+    /* osm2pgr_pois_new_geom */
+    execute(pois().sql(3));
 
 
+    /* osm2pgr_pois_update */
+    execute(pois().sql(4));
 
-    execute(
-            "\nCREATE OR REPLACE FUNCTION osm2pgrouting_findClosestEdge(radius FLOAT, within FLOAT)"
-
-            "\n RETURNS BIGINT AS"
-            "\n $$"
-            "\n DECLARE"
-            "\n    curr_tot BIGINT;"
-            "\n    total BIGINT :=0;"
-            "\n    rec RECORD;"
-            "\n    factor FLOAT = 0.5;"
-            "\n    tooFar BIGINT[];"
-            "\n BEGIN"
-            "\n    SELECT count(*) FROM " + pois
-            +"\n    WHERE vertex_id IS NULL AND edge_id IS NULL"
-            +"\n    INTO rec; "
-
-            +"\n    FOR i IN 1..rec.count LOOP"
-            +"\n        curr_tot = osm2pgrouting_updateClosestEdge(radius, within, tooFar);"
-
-            +"          RAISE NOTICE '%: Updated % points of Interest', i, curr_tot;"
-            +"\n        --curr_tot := rec.osm2pgrouting_updateClosestEdge;"
-            +"\n        total := total + curr_tot;"
-            +"\n        IF (curr_tot = 0) THEN"
-            +"\n            SELECT pid FROM " + pois
-            +"\n                WHERE vertex_id IS NULL AND edge_id IS NULL"
-            +"\n                AND pid not in (SELECT unnest(tooFar))"
-            +"\n                limit 1 INTO rec;"
-            +"\n            raise notice 'Not within range: pid = %', rec.pid;"
-            +"\n            tooFar := tooFar || rec.pid;"
-            +"\n            SELECT count(*) FROM (SELECT * FROM " + pois
-            +"\n                WHERE vertex_id IS NULL AND edge_id IS NULL"
-            +"\n                AND pid not in (SELECT unnest(tooFar)) LIMIT 1) a  INTO rec;"
-
-            +"\n            EXIT WHEN rec.count = 0;"
-            +"\n        END IF;"
-            +"\n    END LOOP;"
-
-            +"\n    return total;"
-            +"\n END;"
-            +"\n $$"
-            +"\n LANGUAGE plpgsql;"
-            );
-
-    execute(
-            "CREATE OR REPLACE FUNCTION osm2pgrouting_updateClosestEdge(radius FLOAT, within FLOAT, tooFar BIGINT[])"
-            "\n RETURNS BIGINT AS"
-            "\n $$"
-            "\n DECLARE"
-            "\n    curr_tot BIGINT;"
-            "\n BEGIN"
-            "\n        WITH "
-            "\n        poi AS ("
-            "\n            SELECT ST_buffer(the_geom::geography, $1)::geometry AS bufferPois,"
-            "\n            ST_buffer(the_geom::geography, $1 + $2)::geometry AS bufferWays"
-            "\n            FROM " + pois
-            +"\n            WHERE vertex_id IS NULL AND edge_id IS NULL"
-            +"\n            AND pid not in (SELECT unnest(tooFar))"
-            +"\n            limit 1"
-            +"\n        ),"
-            +"\n        pois AS ("
-            +"\n            SELECT * FROM " + pois + ", poi"
-            +"\n            WHERE ST_Within(the_geom, bufferPois) "
-            +"\n            AND vertex_id IS NULL AND edge_id IS NULL"
-            +"\n            AND pid not in (SELECT unnest(tooFar))"
-            +"\n        ),"
-            +"\n        wayss AS ("
-            +"\n            SELECT * FROM " + ways + ", poi"
-            +"\n            WHERE ST_Intersects(the_geom, bufferWays)"
-            +"\n        ),"
-            +"\n        first AS ("
-            +"\n            SELECT   ways.id AS wid,"
-            +"\n            source_osm, target_osm,"
-            +"\n            ST_distance(pois.the_geom::geography,   ways.the_geom::geography) AS dist,"
-            +"\n            pois.osm_id AS vid,"
-            +"\n            ST_linelocatepoint(ways.the_geom, pois.the_geom) AS fraction"
-            +"\n            FROM  wayss AS ways , pois"
-            +"\n            WHERE pois.vertex_id IS NULL AND pois.edge_id IS NULL"
-            +"\n        ),"
-
-            +"\n        second AS ("
-            +"\n            SELECT  vid, min(dist) FROM first group by vid"
-            +"\n       ),"
-
-
-            +"\n        third  AS ("
-            +"\n            SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT AS fraction, first.dist, source_osm AS v_osm_id FROM first, second WHERE dist = min AND fraction in (0)"
-            +"\n            UNION "
-            +"\n            SELECT first.vid, NULL::bigint AS wid, NULL::FLOAT AS fraction, first.dist, target_osm AS v_osm_id FROM first, second WHERE dist = min AND fraction in (1)"
-            +"\n        ),"
-
-            +"\n        last AS ("
-            +"\n            SELECT third.*, b.id  FROM third join   ways_vertices_pgr AS b ON (third.v_osm_id = b.osm_id)"
-            +"\n            UNION"
-            +"\n            SELECT first.vid, first.wid, first.fraction, first.dist, NULL AS v_osm_id, NULL::bigint AS id FROM first, second WHERE dist = min AND fraction not in (0, 1)"
-            +"\n        )"
-
-            +"\n        UPDATE   pointsofinterest AS pois   SET (vertex_id, edge_id, fraction, length_m) = (last.id, last.wid, last.fraction, last.dist)"
-            +"\n        FROM last WHERE  pois.osm_id = last.vid;"
-            +"\n        GET DIAGNOSTICS curr_tot = ROW_COUNT;"
-            +"\n    return curr_tot;"
-            +"\n END;"
-            +"\n $$"
-            +"\n LANGUAGE plpgsql;"
-            );
-
+    return;
     std::string array;
     int64_t total = 0;
     auto limit = get_val(
-            "SELECT count(*) FROM " + pois
+            "SELECT count(*) FROM " + pois().addSchema()
             + "\n  WHERE vertex_id IS NULL AND edge_id IS NULL");
 
-#if 0
-    std::cout << "\nlimit " << limit;
-#endif
 
     std::cout << "\nFinding closest edge to " << limit << " Points Of Interest\n";
     for (int64_t i = 0; i < limit; ++i) {
         auto curr_tot = get_val(
-                "SELECT osm2pgrouting_updateClosestEdge(200, 50, ARRAY[" + array + "]::BIGINT[])");
+                "SELECT osm2pgr_pois_update_not_part_of_topology(200, 50, ARRAY[" + array + "]::BIGINT[])");
         total += curr_tot;
 
         if (curr_tot == 0) {
-            auto pid_outOfRange = get_val(" SELECT pid FROM " + pois
+            auto pid_outOfRange = get_val(" SELECT pid FROM " + pois().addSchema()
                     +"\n  WHERE vertex_id IS NULL AND edge_id IS NULL"
                     +"\n  AND pid not in (SELECT unnest(ARRAY[" + array +"]::BIGINT[]))"
                     +"\n  limit 1;");
+            if (pid_outOfRange == 0) break;
             if (array.empty()) {
                 array += boost::lexical_cast<std::string>(pid_outOfRange);
             } else {
                 array += "," + boost::lexical_cast<std::string>(pid_outOfRange);
             }
-#if 0
-            std::cout << "\nNot within distance: pid = " << pid_outOfRange;
-#endif
 
             if (get_val(
-                    +"SELECT count(*) FROM (SELECT * FROM " + pois
+                    +"SELECT count(*) FROM (SELECT * FROM " + pois().addSchema()
                     +"\n  WHERE vertex_id IS NULL AND edge_id IS NULL"
                     +"\n  AND pid not in (SELECT unnest(ARRAY[" + array +"]::BIGINT[]))) AS a"
                     ) == 0) break;
         }
-#if 0
-        std::cout << i << ": total " << total;
-#endif
+
         print_progress(limit, total);
     }
 
@@ -770,12 +621,14 @@ void Export2DB::createFKeys() const {
         std::cout << "\nNo edge found within distance (200 + 50)mts on pid(s): " << array << "\n";
     }
 
-
+    execute("SELECT osm2pgr_pois_find_side()");
+    execute("SELECT osm2pgr_pois_new_geom()");
+#if 0
     execute(
             "\n WITH "
             "\n base AS ("
             "\n     SELECT pid, w.id AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
-            "\n     FROM " + pois + " AS p JOIN " + ways + " AS w ON (edge_id = w.id)"
+            "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.id)"
             + "\n     WHERE edge_id IS not NULL"
             + "\n ),"
 
@@ -813,11 +666,12 @@ void Export2DB::createFKeys() const {
             + "\n     FROM distance join second using (pid) where dist = min"
             + "\n )"
 
-            + "\n UPDATE " + pois + " set side = case when val>0 then 'L' when val<0 then 'R' else 'B' end "
+            + "\n UPDATE " + pois().addSchema() + " set side = case when val>0 then 'L' when val<0 then 'R' else 'B' end "
             + "\n FROM last "
-            + "\n WHERE last.pid = " + pois + ".pid;"
+            + "\n WHERE last.pid = " + pois().addSchema() + ".pid;"
 
             );
+#endif
 }
 
 }  // namespace osm2pgr
