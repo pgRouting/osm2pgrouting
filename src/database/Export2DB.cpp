@@ -559,6 +559,7 @@ void Export2DB::createFKeys() const {
      */
     execute(pois().primary_key("pid"));
     execute(pois().gist_index());
+    execute(pois().unique("osm_id"));
 }
 
 void Export2DB::process_pois() const {
