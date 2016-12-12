@@ -197,17 +197,24 @@ void Export2DB::dropTables() const {
 
 void
 Export2DB::export_configuration(const std::map<std::string, Tag_key>& items) const {
-
-    auto osm_table = m_tables.get_table("configuration");
+    std::cout << "EXPORT CONFIGURATION\n";
 
     std::vector<std::string> values;
 
     for (const auto &item : items) {
-        auto row = item.second.values(osm_table.columns());
+        auto row = item.second.values(configuration().columns());
         values.insert(values.end(), row.begin(), row.end());
+        for (const auto r : row) {
+            std::cout << r << ",";
+        }
+        std::cout << "\n";
     }
+    for (const auto v : values) {
+        std::cout << v << ",";
+    }
+    std::cout << "\n";
 
-    export_osm(values, osm_table);
+    export_osm(values, configuration());
 }
 
 
