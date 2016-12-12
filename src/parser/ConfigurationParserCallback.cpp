@@ -35,10 +35,10 @@ void ConfigurationParserCallback::StartElement(
         const char *name,
         const char** atts) {
     /* the type is the tag_key */
-    if (strcmp(name, "type") == 0) {
+    if (strcmp(name, "tag_name") == 0) {
         m_current = new Tag_key(atts);
     /* the class is the tag_value */
-    } else if (strcmp(name, "class") == 0) {
+    } else if (strcmp(name, "tag_value") == 0) {
          m_current->add_tag_value(Tag_value(atts));
     } else if (strcmp(name, "configuration") == 0) {
     }
@@ -47,7 +47,7 @@ void ConfigurationParserCallback::StartElement(
 
 void ConfigurationParserCallback::EndElement(const char* name) {
     /* the type is the tag_key */
-    if (strcmp(name, "type") == 0) {
+    if (strcmp(name, "tag_name") == 0) {
         m_config.add_tag_key(*m_current);
         delete m_current;
     }
