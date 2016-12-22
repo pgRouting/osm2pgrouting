@@ -22,6 +22,7 @@
 #ifndef SRC_OSMDOCUMENT_H_
 #define SRC_OSMDOCUMENT_H_
 
+#include <iostream>
 #include <map>
 #include <vector>
 #include "utilities/utilities.h"
@@ -125,7 +126,7 @@ class OSMDocument {
             exit(0);
         }
 
-   void export_pois() const; 
+   void export_pois() const;
 
 
  private:
