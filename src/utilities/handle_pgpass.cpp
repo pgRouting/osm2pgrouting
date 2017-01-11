@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <boost/program_options.hpp>
 #include <sys/stat.h>
 #include <fstream>
@@ -11,7 +12,7 @@ void
 handle_pgpass(po::variables_map &vm) {
 
     if (!vm["password"].as<std::string>().empty()) {
-        /* 
+        /*
          * nothing to do password is given
          */
         return;
@@ -58,7 +59,7 @@ handle_pgpass(po::variables_map &vm) {
         std::getline(infile, dbase, ':');
         std::getline(infile, user, ':');
         std::getline(infile, passwd);
-        if ((host == ""  || host == "*" || host == vm["host"].as<std::string>()) 
+        if ((host == ""  || host == "*" || host == vm["host"].as<std::string>())
                 && (port == "*" || port == vm["port"].as<std::string>())
                 && (dbase == "*" || dbase == vm["dbname"].as<std::string>())
                 && (user == "*" || user == username)
@@ -71,5 +72,3 @@ handle_pgpass(po::variables_map &vm) {
     }
     return;
 }
-
-
