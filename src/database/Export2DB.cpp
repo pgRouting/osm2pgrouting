@@ -168,6 +168,9 @@ void Export2DB::dropTables() const {
         Xaction.exec(vertices().drop());
         std::cout << "TABLE: " << vertices().addSchema() << " droped ... OK.\n";
 
+        Xaction.exec(pois().drop());
+        std::cout << "TABLE: " << pois().addSchema() << " droped ... OK.\n";
+
         Xaction.exec(configuration().drop());
         std::cout << "TABLE: " << configuration().addSchema() << " droped ... OK.\n";
 
@@ -573,8 +576,8 @@ void Export2DB::process_pois() const {
 
     /* osm2pgr_pois_find_side */
     execute(pois().sql(2));
-    
-    
+
+
     /* osm2pgr_pois_new_geom */
     execute(pois().sql(3));
 
