@@ -56,8 +56,14 @@ namespace osm2pgr {
 
 void
 OSMDocumentParserCallback::show_progress() {
-    if ((++m_line % (m_rDocument.lines() / 100)) == 0) {
-        print_progress(m_rDocument.lines(), m_line);
+    try {
+        if (m_line == 0) return;
+        if (m_rDocument.lines() == 0) return;
+        if (((++m_line) % (m_rDocument.lines() / 100)) == 0) {
+            print_progress(m_rDocument.lines(), m_line);
+        }
+    } catch(...) {
+        m_line = 1;
     }
 }
 
@@ -139,6 +145,9 @@ OSMDocumentParserCallback::StartElement(
 }
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
+    if (strcmp(name, "osm") == 0) {
+        return;
+    }
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
         delete last_node;
