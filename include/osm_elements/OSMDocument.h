@@ -108,22 +108,26 @@ class OSMDocument {
         osm_table_export(const T &osm_items, const std::string &table) const {
             if (osm_items.empty()) return;
 
-            auto pid = fork();
-            if (pid < 0) {
-                std::cerr << "Failed to fork" << endl;
-                exit(1);
+            if (m_vm.count("addnodes")) {
+                auto pid = fork();
+                if (pid < 0) {
+                    std::cerr << "Failed to fork" << endl;
+                    exit(1);
+                }
+                if (pid > 0) return;
             }
-            if (pid > 0) return;
             auto residue = osm_items.size() % m_chunk_size;
             size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
             auto export_items = T(osm_items.begin() + start, osm_items.end());
 
             m_db_conn.export_osm(export_items, table);
 
-            /*
-             * finish the child process
-             */
-            exit(0);
+            if (m_vm.count("addnodes")) {
+                /*
+                 * finish the child process
+                 */
+                _exit(0);
+            }
         }
 
    void export_pois() const;

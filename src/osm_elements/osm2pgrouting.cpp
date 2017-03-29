@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
 #endif
 
         if (!dbConnection.has_extension("postgis")) {
-                std::cout << "ERROR: postGIS not found\n";
-                std::cout << "   HINT: CREATE EXTENSION postGIS\n";
-                return 1;
+            std::cout << "ERROR: postGIS not found\n";
+            std::cout << "   HINT: CREATE EXTENSION postGIS\n";
+            return 1;
         }
         if ((vm.count("attributes") || vm.count("tags")) && 
                 (vm.count("hstore") && !dbConnection.has_extension("hstore"))) {
@@ -165,10 +165,13 @@ int main(int argc, char* argv[]) {
         if (clean) {
             std::cout << "\nDropping tables..." << endl;
             dbConnection.dropTables();
+            std::cout << "\nCreating tables..." << endl;
+            dbConnection.createTables();
         }
+#if 0
         std::cout << "\nCreating tables..." << endl;
         dbConnection.createTables();
-
+#endif
         /* 
          * End: preparing the databasse
          */
@@ -189,6 +192,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "\nExporting configuration ..." << endl;
         dbConnection.export_configuration(config.types());
+
 
         auto total_lines = lines_in_file(dataFile);
 

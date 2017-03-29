@@ -210,12 +210,14 @@ OSMDocument::export_pois() const {
     std::string table("pointsofinterest");
     if (m_nodes.empty()) return;
 
-    auto pid = fork();
-    if (pid < 0) {
-        std::cerr << "Failed to fork" << endl;
-        exit(1);
+    if (m_vm.count("fork")) {
+        auto pid = fork();
+        if (pid < 0) {
+            std::cerr << "Failed to fork" << endl;
+            exit(1);
+        }
+        if (pid > 0) return;
     }
-    if (pid > 0) return;
 
 
     auto residue = m_nodes.size() % m_chunk_size;
@@ -233,10 +235,12 @@ OSMDocument::export_pois() const {
         m_db_conn.export_osm(export_items, table);
     }
 
-    /*
-     * finish the child process
-     */
-    _exit(0);
+    if (m_vm.count("fork")) {
+        /*
+         * finish the child process
+         */
+        _exit(0);
+    }
 }
 
 

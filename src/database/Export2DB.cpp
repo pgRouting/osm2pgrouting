@@ -47,8 +47,6 @@ TO_STR(const T &x) {
 
 
 Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection) :
-    mycon(0),
-    db_conn(connection),
     m_vm(vm),
     conninf(connection),
     m_tables(vm)
@@ -56,20 +54,21 @@ Export2DB::Export2DB(const  po::variables_map &vm, const std::string &connection
 }
 
 Export2DB::~Export2DB() {
+#if 0
     PQfinish(mycon);
+#endif
 }
 
 int Export2DB::connect() {
-    cout << conninf << endl;
-    mycon = PQconnectdb(conninf.c_str());
-
-    auto type = PQstatus(mycon);
-    if (type == CONNECTION_BAD) {
-        cout << "connection failed: "<< PQerrorMessage(mycon) << endl;
-        return 1;
-    } else {
+    try {
+        pqxx::connection db_conn(conninf);
+        pqxx::work Xaction(db_conn);
         cout << "connection success"<< endl;
         return 0;
+
+    } catch (const std::exception &e) {
+        cerr << e.what() << std::endl;
+        return 1;
     }
 }
 
@@ -77,6 +76,7 @@ int Export2DB::connect() {
 bool
 Export2DB::has_extension(const std::string &name) const {
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         std::string sql = "SELECT * FROM pg_extension WHERE extname = '" + name + "'";
         auto result = Xaction.exec(sql);
@@ -93,6 +93,7 @@ Export2DB::has_extension(const std::string &name) const {
 bool
 Export2DB::install_postGIS() const {
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         Xaction.exec("CREATE EXTENSION postgis");
         Xaction.exec("CREATE EXTENSION hstore");
@@ -112,6 +113,7 @@ Export2DB::install_postGIS() const {
 void Export2DB::createTables() const {
     //  the following are particular of the file tables
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
 
         Xaction.exec(vertices().create());
@@ -134,6 +136,7 @@ void Export2DB::createTables() const {
     }
 
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         /*
          * optional tables
@@ -160,6 +163,7 @@ void Export2DB::createTables() const {
 
 void Export2DB::dropTables() const {
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
 
         Xaction.exec(ways().drop());
@@ -181,6 +185,7 @@ void Export2DB::dropTables() const {
     }
 
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         Xaction.exec(osm_nodes().drop());
         std::cout << "TABLE: " << osm_nodes().addSchema() << " droped ... OK.\n";
@@ -269,11 +274,10 @@ Export2DB::export_osm(
             return;
         };
 
+        PQfinish(mycon);
         Xaction.exec(m_tables.post_process(table));
         Xaction.exec("DROP TABLE " + temp_table);
-        PQfinish(mycon);
         Xaction.commit();
-
     } catch (const std::exception &e) {
         std::cerr <<  "\n" << e.what() << std::endl;
         std::cerr << "While exporting to " << table.addSchema() << " TODO insert one by one skip the guilty one\n";
@@ -493,6 +497,7 @@ Export2DB::get_val(const std::string sql) const {
     std::cout << "\nExecuting: \n" << sql << "\n";
 #endif
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         auto result = Xaction.exec(sql);
         Xaction.commit();
@@ -511,6 +516,7 @@ Export2DB::execute(const std::string sql) const {
     std::cout << "\nExecuting: \n" << sql << "\n";
 #endif
     try {
+        pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         Xaction.exec(sql);
         Xaction.commit();

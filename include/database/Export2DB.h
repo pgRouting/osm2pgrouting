@@ -62,8 +62,10 @@ class Export2DB {
       */
      ~Export2DB();
 
+#if 1
      //! connects to database
      int connect();
+#endif
 
      bool has_extension(const std::string &name) const;
 #ifndef NDBEUG
@@ -143,8 +145,6 @@ class Export2DB {
      Table osm_relations() const {return m_tables.osm_relations();}
 
  private:
-     PGconn *mycon;
-     mutable pqxx::connection db_conn;
      po::variables_map m_vm;
 
      std::string conninf;

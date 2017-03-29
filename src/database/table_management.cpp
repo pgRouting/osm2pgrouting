@@ -80,7 +80,9 @@ Table::create() const {
         "CREATE TABLE " + addSchema() + " ("
         + m_create
         + m_other_columns
-        + m_constraint + ");";
+        + m_constraint + ")";
+
+    sql += " WITH (autovacuum_enabled = false);";
 
     if (m_geometry != "") {
         sql += "SELECT AddGeometryColumn('"
@@ -95,6 +97,7 @@ Table::create() const {
                 + table_name() + "', 'new_geom', 4326, '" + m_geometry + "', 2);";
         }
     }
+
 
     return sql;
 }
