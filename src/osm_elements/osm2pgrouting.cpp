@@ -47,6 +47,7 @@ size_t lines_in_file(const std::string file_name) {
     std::string command = "wc -l  " + file_name;
 
     if (!(in = popen(command.c_str(), "r"))) {
+        std::cerr << "File not found" << file_name << "\n";
         exit(1);
     }
 
@@ -58,8 +59,14 @@ size_t lines_in_file(const std::string file_name) {
     std::istringstream iss(word);
     std::string number;
     iss >> number;
+    std::cout << number;
 
-    return boost::lexical_cast<size_t>(number);
+    try {
+        return boost::lexical_cast<size_t>(number);
+    } catch (...) {
+        std::cerr << "File not found" << file_name << "\n";
+        exit(1);
+    }
 }
 
 
@@ -113,6 +120,7 @@ int main(int argc, char* argv[]) {
         auto dataFile(vm["file"].as<string>());
         auto confFile(vm["conf"].as<string>());
         auto clean(vm.count("clean"));
+        auto no_index(vm.count("no-index"));
 
         handle_pgpass(vm);
         std::string connection_str(
@@ -224,8 +232,10 @@ int main(int argc, char* argv[]) {
             std::cout << "\nExport Ways ..." << endl;
             dbConnection.exportWays(document.ways(), config);
 
-            std::cout << "\nCreating indexes ..." << endl;
-            dbConnection.createFKeys();
+            if (!no_index) {
+                std::cout << "\nCreating indexes ..." << endl;
+                dbConnection.createFKeys();
+            }
 
             std::cout << "\nProcessing Points of Interest ..." << endl;
             dbConnection.process_pois();

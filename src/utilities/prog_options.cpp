@@ -58,6 +58,7 @@ void get_option_description(po::options_description &od_desc) {
         ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
         ("chunk", po::value<std::size_t>()->default_value(20000), "Exporting chunk size.")
         ("clean", "Drop previously created tables.")
+        ("no-index", "Do not create indexes (when is not the first file)")
         ("fork", "Use fork (works on small files).");
 
     db_options_od_desc.add_options()
@@ -97,6 +98,7 @@ process_command_line(po::variables_map &vm) {
     std::cout << "suffix = " << vm["suffix"].as<std::string>() << "\n";
     std::cout << (vm.count("postgis")? "I" : "Don't I") << "nstall postgis if not found\n";
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
+    std::cout << (vm.count("no-index")? "D" : "Don't c") << "reate indexes\n";
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
     std::cout << "***************************************************\n";
