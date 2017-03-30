@@ -38,15 +38,29 @@ namespace osm2pgr {
 
 Way::Way(const char **atts) :
     Element(atts),
-    m_maxspeed_forward(-1),
-    m_maxspeed_backward(-1),
-    m_oneWay("UNKNOWN") { }
+    m_maxspeed_forward(50),
+    m_maxspeed_backward(50),
+    m_oneWay("UNKNOWN") { 
+#ifndef NDEBUG
+    if (osm_id() == 5245846) {
+        std::cout << oneWay() << "\n";
+        std::cout << (*this);
+    }
+#endif
+    }
 
 Tag
 Way::add_tag(const Tag &tag) {
     m_tags[tag.key()] = tag.value();
+    implied_oneWay(tag);
     oneWay(tag);
     max_speed(tag);
+#ifndef NDEBUG
+    if (osm_id() == 5245846) {
+        std::cout << oneWay() << "\n";
+        std::cout << (*this);
+    }
+#endif
     return tag;
 }
 
@@ -154,17 +168,19 @@ Way::split_me() {
 
 std::string
 Way::oneWay() const {
-    return m_oneWay;
+    return static_cast<std::string>(m_oneWay);
 }
 
 void
 Way::oneWay(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
+
     if (key != "oneway") {
-        implied_oneWay(tag);
         return;
     }
+
+    if (m_oneWay != "UNKNOWN") return;
 
     // one way tag
     if ((value == "yes") || value == "true" || value == "1") {
@@ -200,7 +216,14 @@ Way::implied_oneWay(const Tag &tag) {
             || (key == "highway"
                 && (value == "motorway"
                     || value == "trunk") )) {
-        m_oneWay == "YES";
+#ifndef NDEBUG
+        std::cout << "changing , oneWay\n";
+        std::cout << oneWay() << "\n";
+#endif
+        m_oneWay = "YES";
+#ifndef NDEBUG
+        std::cout << oneWay() << "\n";
+#endif
         return;
     }
 
@@ -208,7 +231,7 @@ Way::implied_oneWay(const Tag &tag) {
             && (value == "primary"
                 || value == "secondary"
                 || value == "tertiary")) {
-        m_oneWay == "NO";
+        m_oneWay = "NO";
         return;
     }
 }
@@ -288,19 +311,17 @@ void
 Way::max_speed(const Tag &tag) {
     auto key = tag.key();
     auto value = tag.value();
-    if (key == "maxspeed:forward" && m_maxspeed_forward <= 0) {
+    if (key == "maxspeed:forward") {
         m_maxspeed_forward = get_kph(value);
         return;
     }
-    if (key == "maxspeed:backward" && m_maxspeed_backward <= 0) {
+    if (key == "maxspeed:backward") {
         m_maxspeed_backward = get_kph(value);
         return;
     }
     if (key == "maxspeed") {
-        m_maxspeed_backward = m_maxspeed_backward <= 0?
-            get_kph(value) : m_maxspeed_backward;
-        m_maxspeed_forward = m_maxspeed_forward <= 0?
-            get_kph(value) : m_maxspeed_forward;
+        m_maxspeed_backward = get_kph(value);
+        m_maxspeed_forward = get_kph(value);
         return;
     }
 }
