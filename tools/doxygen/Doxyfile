@@ -44,14 +44,14 @@ PROJECT_NUMBER         = 2.1
 # for a project that appears at the top of each page and should give viewer a
 # quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "osm2pgrouting provides the tools to import to a SQL geospatial database the routabla data from osm."
+PROJECT_BRIEF          = "osm2pgrouting provides the tools to import to a SQL geospatial database the routable data from osm."
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is included in
 # the documentation. The maximum height of the logo should not exceed 55 pixels
 # and the maximum width should not exceed 200 pixels. Doxygen will copy the logo
 # to the output directory.
 
-PROJECT_LOGO           = "../../doc/static/images/pgrouting-logo.png"
+PROJECT_LOGO           = "./images/pgrouting-logo.png"
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
@@ -742,7 +742,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # messages should be written. If left blank the output is written to standard
 # error (stderr).
 
-WARN_LOGFILE           =
+WARN_LOGFILE           = "LOG.txt"
 
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
@@ -805,7 +805,7 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */notUsed/*
+EXCLUDE_PATTERNS       = */notUsed/* */tools/* */build/* */fix_typos/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -842,7 +842,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = ../../doc/static/images/developers/
+IMAGE_PATH             = ./images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -2237,7 +2237,7 @@ DOT_PATH               =
 # command).
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOTFILE_DIRS           = ../doc/images/
+DOTFILE_DIRS           = ./images
 
 # The MSCFILE_DIRS tag can be used to specify one or more directories that
 # contain msc files that are included in the documentation (see the \mscfile
