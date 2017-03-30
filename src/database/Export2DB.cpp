@@ -246,6 +246,7 @@ Export2DB::export_osm(
 
         PGresult *res = PQexec(mycon, create_sql.c_str());
         res = PQexec(mycon, copy_sql.c_str());
+        if (res) {};
 
         for (auto it = values.begin(); it != values.end(); ++it) {
             auto str = *it;
@@ -380,6 +381,7 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
             PGconn *mycon = PQconnectdb(conninf.c_str());
             PGresult *res = PQexec(mycon, create_sql.c_str());
             res = PQexec(mycon, copy_sql.c_str());
+            if (res) {};
 
 
             for (auto i = start; i < limit; ++i) {
