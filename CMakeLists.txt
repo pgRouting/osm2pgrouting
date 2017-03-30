@@ -59,6 +59,7 @@ INSTALL(FILES
     "${CMAKE_SOURCE_DIR}/mapconfig.xml"
     "${CMAKE_SOURCE_DIR}/mapconfig_for_cars.xml"
     "${CMAKE_SOURCE_DIR}/mapconfig_for_bicycles.xml"
+    "${CMAKE_SOURCE_DIR}/mapconfig_for_pedestrian.xml"
     DESTINATION "${SHARE_DIR}")
 
 
