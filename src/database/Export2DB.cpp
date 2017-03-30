@@ -340,7 +340,7 @@ void Export2DB::fill_source_target(
             "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END, "
-            "      reverse_coST_s = CASE "
+            "      reverse_cost_s = CASE "
             "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
@@ -398,7 +398,8 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 common_values.push_back(way.maxspeed_forward_str());
                 common_values.push_back(way.maxspeed_backward_str());
                 common_values.push_back(way.oneWayType_str());
-                common_values.push_back(way.has_attribute("oneway") ? way.get_attribute("oneway") : std::string(""));
+                common_values.push_back(way.oneWay());
+                // common_values.push_back(way.has_attribute("oneway") ? way.get_attribute("oneway") : std::string(""));
                 common_values.push_back(TO_STR(config.priority(way.tag_config())));
 
                 auto splits = way.split_me();

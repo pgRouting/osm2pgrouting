@@ -59,8 +59,7 @@ class OSMDocumentParserCallback :
     /**
      *    Constructor
      */
-    explicit OSMDocumentParserCallback(OSMDocument& doc)
-    :
+    explicit OSMDocumentParserCallback(OSMDocument& doc) :
         m_rDocument(doc),
         m_pActRelation(0),
         last_node(nullptr),
