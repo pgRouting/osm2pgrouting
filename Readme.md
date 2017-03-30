@@ -17,7 +17,7 @@ and to prepare a database.
 
 ## Documentation
 
-See in the documentation of the pgrouting website for more informations: http://pgrouting.org
+See in the documentation of the pgrouting website for more information: http://pgrouting.org
 
 ## Installation
 
@@ -38,6 +38,9 @@ Install some prerqeuisites
 ```
 sudo apt-get install expat
 sudo apt-get install libexpat1-dev
+sudo apt-get install libboost-dev
+sudo apt-get install libboost-program-options-dev
+sudo apt install libpqxx-dev
 ```
 
 CMAKE options:

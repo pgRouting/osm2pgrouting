@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <type name="highway" id="1">
-    <class name="motorway" id="101" />
-    <class name="motorway_link" id="102" />
-    <class name="motorway_junction" id="103" />
-    <class name="trunk" id="104" />
-    <class name="trunk_link" id="105" />    
-    <class name="primary" id="106" />
-    <class name="primary_link" id="107" />    
-    <class name="secondary" id="108" />
-    <class name="secondary_link" id="124" />
-    <class name="tertiary" id="109" />
-    <class name="tertiary_link" id="125" />
-    <class name="residential" id="110" />
-    <class name="living_street" id="111" />
-    <class name="service" id="112" />
-    <class name="track" id="113" />
-    <class name="pedestrian" id="114" />
-    <class name="services" id="115" />
-    <class name="bus_guideway" id="116" />
-    <class name="path" id="117" />
-    <class name="cycleway" id="118" />
-    <class name="footway" id="119" />
-    <class name="bridleway" id="120" />
-    <class name="byway" id="121" />
-    <class name="steps" id="122" />
+  <tag_name name="highway" id="1">
+    <tag_value name="motorway" id="101" />
+    <tag_value name="motorway_link" id="102" />
+    <tag_value name="motorway_junction" id="103" />
+    <tag_value name="trunk" id="104" />
+    <tag_value name="trunk_link" id="105" />    
+    <tag_value name="primary" id="106" />
+    <tag_value name="primary_link" id="107" />    
+    <tag_value name="secondary" id="108" />
+    <tag_value name="secondary_link" id="124" />
+    <tag_value name="tertiary" id="109" />
+    <tag_value name="tertiary_link" id="125" />
+    <tag_value name="residential" id="110" />
+    <tag_value name="living_street" id="111" />
+    <tag_value name="service" id="112" />
+    <tag_value name="track" id="113" />
+    <tag_value name="pedestrian" id="114" />
+    <tag_value name="services" id="115" />
+    <tag_value name="bus_guideway" id="116" />
+    <tag_value name="path" id="117" />
+    <tag_value name="cycleway" id="118" />
+    <tag_value name="footway" id="119" />
+    <tag_value name="bridleway" id="120" />
+    <tag_value name="byway" id="121" />
+    <tag_value name="steps" id="122" />
         
-    <class name="unclassified" id="123" />
-    <class name="road" id="100" />
-  </type>
-  <type name="cycleway" id="2">
-    <class name="lane" id="201" />
-    <class name="track" id="202" />
-    <class name="opposite_lane" id="203" />
-    <class name="opposite" id="204" />
-  </type>  
-  <type name="tracktype" id="3">
-    <class name="grade1" id="301" />
-    <class name="grade2" id="302" />
-    <class name="grade3" id="303" />
-    <class name="grade4" id="304" />
-    <class name="grade5" id="305" />
-  </type>  
-  <type name="junction" id="4">
-    <class name="roundabout" id="401" />
-  </type>  
+    <tag_value name="unclassified" id="123" />
+    <tag_value name="road" id="100" />
+  </tag_name>
+  <tag_name name="cycleway" id="2">
+    <tag_value name="lane" id="201" />
+    <tag_value name="track" id="202" />
+    <tag_value name="opposite_lane" id="203" />
+    <tag_value name="opposite" id="204" />
+  </tag_name>  
+  <tag_name name="tracktype" id="3">
+    <tag_value name="grade1" id="301" />
+    <tag_value name="grade2" id="302" />
+    <tag_value name="grade3" id="303" />
+    <tag_value name="grade4" id="304" />
+    <tag_value name="grade5" id="305" />
+  </tag_name>  
+  <tag_name name="junction" id="4">
+    <tag_value name="roundabout" id="401" />
+  </tag_name>  
 </configuration>

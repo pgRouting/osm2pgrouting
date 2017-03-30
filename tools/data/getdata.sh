@@ -12,3 +12,5 @@ wget --progress=dot:mega -O "sampledataSW.osm" "http://www.overpass-api.de/api/x
 BBOX="-122.65,45.4, -122.6,45.45"
 wget --progress=dot:mega -O "small.osm" "http://www.overpass-api.de/api/xapi?*[bbox=${BBOX}][@meta]"
 
+BBOX="4.2878,50.8139,4.5023,50.8926"
+wget --progress=dot:mega -O "brussels.osm" "http://www.overpass-api.de/api/xapi?*[bbox=${BBOX}][@meta]"

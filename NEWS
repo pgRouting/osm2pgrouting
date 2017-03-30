@@ -1,5 +1,26 @@
+osm2pgRouting 2.3.0 develop
 
-osm2pgRouting 2.1.0-alpha
+* Cost should not return the same value
+* Added a points of Interest table
+* Some default one_way values are taken into consideration
+* Relations are also condsidered
+* Can be forked
+* TODO remove install postGIS, that should be taken care of the user
+* New mapconfig_for_pedestrian.xml
+
+
+osm2pgRouting 2.2.0
+
+* Adding foreign keys to the tables.
+* Added a progress bar.
+* New mapconfig_for_bicycles.xml
+* Improved the C++ code.
+  * remove the use of pointers to avoid leaks.
+* Table `osm_ways_tags` because information is redundant.
+
+
+
+osm2pgRouting 2.1.0
 
    New "ways" table structure:
       Column       |           Type            |  Modifications
