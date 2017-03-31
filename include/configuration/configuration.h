@@ -60,6 +60,8 @@ class Configuration {
       */
 
      double maxspeed(const Tag &tag) const;
+     double maxspeed_forward(const Tag &tag) const;
+     double maxspeed_backward(const Tag &tag) const;
 
      /** retrieves the priority based on the tag
       * 
