@@ -395,8 +395,8 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 std::vector<std::string> common_values;
                 common_values.push_back(TO_STR(config.tag_value(way.tag_config()).id()));
                 common_values.push_back(TO_STR(way.osm_id()));
-                common_values.push_back(way.maxspeed_forward_str());
-                common_values.push_back(way.maxspeed_backward_str());
+                common_values.push_back(way.maxspeed_forward_str() == "-1" ? TO_STR(config.maxspeed_forward(way.tag_config())) : way.maxspeed_forward_str()) ;
+                common_values.push_back(way.maxspeed_backward_str() == "-1" ? TO_STR(config.maxspeed_backward(way.tag_config())) : way.maxspeed_backward_str()) ;
                 common_values.push_back(way.oneWayType_str());
                 common_values.push_back(way.oneWay());
                 // common_values.push_back(way.has_attribute("oneway") ? way.get_attribute("oneway") : std::string(""));

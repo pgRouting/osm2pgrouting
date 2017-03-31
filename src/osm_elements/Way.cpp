@@ -38,15 +38,9 @@ namespace osm2pgr {
 
 Way::Way(const char **atts) :
     Element(atts),
-    m_maxspeed_forward(50),
-    m_maxspeed_backward(50),
+    m_maxspeed_forward(-1),
+    m_maxspeed_backward(-1),
     m_oneWay("UNKNOWN") { 
-#ifndef NDEBUG
-    if (osm_id() == 5245846) {
-        std::cout << oneWay() << "\n";
-        std::cout << (*this);
-    }
-#endif
     }
 
 Tag
@@ -55,12 +49,6 @@ Way::add_tag(const Tag &tag) {
     implied_oneWay(tag);
     oneWay(tag);
     max_speed(tag);
-#ifndef NDEBUG
-    if (osm_id() == 5245846) {
-        std::cout << oneWay() << "\n";
-        std::cout << (*this);
-    }
-#endif
     return tag;
 }
 
@@ -216,14 +204,7 @@ Way::implied_oneWay(const Tag &tag) {
             || (key == "highway"
                 && (value == "motorway"
                     || value == "trunk") )) {
-#ifndef NDEBUG
-        std::cout << "changing , oneWay\n";
-        std::cout << oneWay() << "\n";
-#endif
         m_oneWay = "YES";
-#ifndef NDEBUG
-        std::cout << oneWay() << "\n";
-#endif
         return;
     }
 

@@ -71,10 +71,10 @@ Tag_key::values(const std::vector<std::string> &columns) const {
         auto row = item.second.values(columns, true);
         row[1] = name();
         row[2] = item.second.get_attribute("name"); 
-
-        if (row[4] == "") row[4] = "-1"; 
-        if (row[5] == "") row[5] = "-1"; 
-        if (row[6] == "") row[6] = "-1"; 
+        // row[3] has priority
+        if (row[4] == "") row[4] = "40"; // max_speed
+        if (row[5] == "") row[5] = row[4]; 
+        if (row[6] == "") row[6] = row[4];
         if (row[7] == "") row[7] = "N"; 
         export_values.push_back(tab_separated(row));
     }

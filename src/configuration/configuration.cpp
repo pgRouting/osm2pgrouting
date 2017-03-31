@@ -68,6 +68,19 @@ Configuration::maxspeed(const Tag &tag) const {
     return 50;
 }
 
+double
+Configuration::maxspeed_forward(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "maxspeed:backward"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "maxspeed:backward"));
+    return maxspeed(tag);
+}
+
+double
+Configuration::maxspeed_backward(const Tag &tag) const {
+    if (tag_key(tag).has(tag, "maxspeed:forward"))
+        return boost::lexical_cast<double>(tag_key(tag).get(tag, "maxspeed:backward"));
+    return maxspeed(tag);
+}
 
 double
 Configuration::priority(const Tag &tag) const {
