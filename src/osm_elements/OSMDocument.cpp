@@ -105,6 +105,11 @@ OSMDocument::AddRelation(const Relation &r) {
         std::cout << "\nSaving first relation\n\n\n";
     }
 
+#if 0
+    std::cout << r << "\n";
+    assert(false);
+#endif
+
     m_relations.push_back(r);
     if (do_export_osm(m_relations)) {
         wait_child();
@@ -117,8 +122,8 @@ OSMDocument::endOfFile() const {
     if (m_vm.count("addnodes")) {
         wait_child();
         osm_table_export(m_relations, "osm_relations");
-        std::cout << "\nEnd Of file\n\n\n";
     }
+    std::cout << "\nEnd Of file\n\n\n";
 }
 
 

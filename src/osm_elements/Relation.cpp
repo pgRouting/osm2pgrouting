@@ -33,6 +33,9 @@ Relation::Relation(const char **atts) :
 
 int64_t
 Relation::add_member(const char **atts) {
+#if 0
+    std::cout << " --> " << __PRETTY_FUNCTION__ << "\n";
+#endif
     auto **attribut = atts;
     std::string type;
     int64_t osm_id(0);
@@ -54,6 +57,10 @@ Relation::add_member(const char **atts) {
         }
     }
     m_WayRefs.push_back(osm_id);
+#if 0
+    std::cout << "members" << members_str() << "\n";
+    std::cout << " <-- " << __PRETTY_FUNCTION__ << "\n";
+#endif
     return osm_id;
 }
 
@@ -65,13 +72,17 @@ Relation::members_str() const {
         /*
          * currently only adding way
          */
-            + "=>\"type=>way,role=>TODO\"" + ",";
+            + "=>\"type=>way\",";
     }
     way_list[way_list.size() -1] = ' ';
 
     return way_list;
 }
 
+std::ostream& operator<<(std::ostream &os, const Relation &r) {
+    os << r.members_str();
+    return os;
+}
 
 }  // end namespace osm2pgr
 

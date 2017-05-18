@@ -76,6 +76,11 @@ OSMDocumentParserCallback::StartElement(
         const char *name,
         const char** atts) {
     show_progress();
+
+    if (strcmp(name, "osm") == 0) {
+        m_section = 1;
+    }
+
     if ((m_section == 1 && (strcmp(name, "way") == 0))
             || (m_section == 2 && (strcmp(name, "relation") == 0))) {
         ++m_section;
@@ -140,14 +145,17 @@ OSMDocumentParserCallback::StartElement(
             auto tag = last_relation->add_tag(Tag(atts));
             m_rDocument.add_config(last_relation, tag);
         }
-    } else if (strcmp(name, "osm") == 0) {
+        return;
     }
 }
 
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "osm") == 0) {
+        m_rDocument.endOfFile();
+        show_progress();
         return;
     }
+
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
         delete last_node;
@@ -167,8 +175,10 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         }
         delete last_way;
         return;
+    }
 
-    } else if (strcmp(name, "relation") == 0) {
+    if (strcmp(name, "relation") == 0) {
+        m_rDocument.AddRelation(*last_relation);
         if (m_rDocument.config_has_tag(last_relation->tag_config())) {
             for (auto it = last_relation->way_refs().begin();  it != last_relation->way_refs().end(); ++it) {
                 auto way_id = *it;
@@ -187,13 +197,9 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                 }
             }
         }
-        m_rDocument.AddRelation(*last_relation);
         delete last_relation;
-
-    } else if (strcmp(name, "osm") == 0) {
-        m_rDocument.endOfFile();
-        show_progress();
-    }
+        return;
+    } 
 }
 
 }  // end namespace osm2pgr
