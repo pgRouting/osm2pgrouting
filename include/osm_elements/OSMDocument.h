@@ -106,18 +106,15 @@ class OSMDocument {
     template <typename T>
         void
         osm_table_export(const T &osm_items, const std::string &table) const {
-            std::cout << "--> " << __PRETTY_FUNCTION__ << "\n";
             if (osm_items.empty()) return;
 
             if (m_vm.count("addnodes")) {
                 auto pid = fork();
                 if (pid < 0) {
                     std::cerr << "Failed to fork" << endl;
-                    std::cout << "<-- " << __PRETTY_FUNCTION__ << "\n";
                     exit(1);
                 }
                 if (pid > 0) {
-                    std::cout << "<-- " << __PRETTY_FUNCTION__ << "\n";
                     return;
                 }
             }
@@ -131,7 +128,6 @@ class OSMDocument {
                 /*
                  * finish the child process
                  */
-                std::cout << "<-- " << __PRETTY_FUNCTION__ << "\n";
                 _exit(0);
             }
         }
