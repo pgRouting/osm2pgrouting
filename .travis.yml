@@ -7,10 +7,9 @@
 
 #choose precise or trusty
 
-#group: edge
-#dist: trusty    
+group: edge
+dist: trusty    
 
-#dist: precise
 
 
 language: cpp
@@ -18,33 +17,11 @@ language: cpp
 compiler:
     - gcc
 
-#notifications:
-#  email:
-#    on_failure: project@pgrouting.org
 
 env: POSTGRESQL_VERSION=9.6   PG_USER=postgres DIST=precise
       
 matrix:
   include:
-
-    - os: linux
-      sudo: required
-      dist: precise
-      env: POSTGRESQL_VERSION=9.5   PG_USER=postgres DIST=precise
-
-
-    - os: linux
-      sudo: required
-      dist: precise
-      env: POSTGRESQL_VERSION=9.4   PG_USER=postgres DIST=precise
-
-
-    - os: linux
-      sudo: required
-      dist: trusty
-      group: edge
-      env: POSTGRESQL_VERSION=9.6   PG_USER=postgres DIST=trusty
-
 
     - os: linux
       sudo: required
@@ -65,7 +42,7 @@ matrix:
 addons:
   apt:
     sources:
-      - - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test
       # For cmake
       - kubuntu-backports
       - boost-latest
