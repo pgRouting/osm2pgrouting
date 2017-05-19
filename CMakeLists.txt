@@ -1,12 +1,19 @@
 PROJECT(osm2pgrouting)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-set (SHARE_DIR "/usr/share/osm2pgrouting")
+if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
+    message(FATAL_ERROR "In-source builds not allowed.
+    Please make a new directory (called a build directory) and run CMake from there.
+    You may need to remove CMakeCache.txt." )
+endif()
+
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+SET(SHARE_DIR "/usr/share/osm2pgrouting")
 
 FIND_PACKAGE(PostgreSQL REQUIRED)
 find_package(LibPQXX REQUIRED)
 FIND_PACKAGE(EXPAT REQUIRED)
+
 
 FIND_PACKAGE(Boost)
 if(Boost_INCLUDE_DIRS)
