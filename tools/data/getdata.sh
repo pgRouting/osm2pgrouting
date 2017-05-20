@@ -1,4 +1,4 @@
-BBOX="13.15,47.33,13.43,47.45"
+BBOX="13.15,47.24,13.52,47.45"
 wget --progress=dot:mega -O "restrictions.osm" "http://www.overpass-api.de/api/xapi?*[bbox=${BBOX}][@meta]"
 
 BBOX="-122.8,45.4,-122.5,45.6"
