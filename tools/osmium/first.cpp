@@ -1,5 +1,5 @@
 
-
+#include <fstream>
 #include <iostream>
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/location.hpp>
@@ -50,7 +50,46 @@
 using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
+std::string
+add_quotes(const std::string str, bool force) {
+    std::string result("");
 
+    for (auto c : str) {
+        if ( c == '"' ) {
+            /*
+             * To avoid problems with json & hstore
+             * all quotes are converted to single quotes
+             */
+            result += "\'\'";
+            continue;
+        } else if ( c == '\\' ) {
+            result += '\\';
+        } else if (c == '\'') {
+            result += '\'';
+        } else if (c == '\n') {
+            result += "\\n";
+            continue;
+        } else if (c == '\r') {
+            result += "\\r";
+            continue;
+        } else if (c == '\t') {
+            result += "\\t";
+            continue;
+        }
+        result += c;
+    }
+    if (!force) {
+        for (auto c : result) {
+            if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
+                return std::string("\"") + result + "\"";
+            }
+        }
+        return result;
+    }
+    return std::string("\"") + result + "\"";
+}
+
+#if 0
 class MyHandler : public osmium::handler::Handler {
     public:
         void way(const osmium::Way& way) {
@@ -68,7 +107,7 @@ class MyHandler : public osmium::handler::Handler {
             std::cout << node.location() << '\n';
         }
 };
-
+#endif
 
 class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true, true, true> {
 
@@ -96,124 +135,131 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
     public:
 
 #if 0
-     explicit MyRelCollector() :
-         m_output_buffer(initial_output_buffer_size, osmium::memory::Buffer::auto_grow::yes) {
-         }
+    explicit MyRelCollector() :
+        m_output_buffer(initial_output_buffer_size, osmium::memory::Buffer::auto_grow::yes) {
+        }
 #endif
 
-   /**
-    * Interested in all relations tagged with type=restriction
-    *
-    * OSM WIKI about restrictions
-    * http://wiki.openstreetmap.org/wiki/Relation:restriction
-    *
-    * Overwritten from the base class.
-    */
-     bool keep_relation(const osmium::Relation& relation) const {
-         const char* type = relation.tags().get_value_by_key("type");
+    /**
+     * Interested in all relations tagged with type=restriction
+     *
+     * OSM WIKI about restrictions
+     * http://wiki.openstreetmap.org/wiki/Relation:restriction
+     *
+     * Overwritten from the base class.
+     */
+    bool keep_relation(const osmium::Relation& relation) const {
+        const char* type = relation.tags().get_value_by_key("type");
+        /*
+         * known transportation modes
+         * TODO save in a configuration file
+         */
+        std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
+        /*
+         *  ignore relations without "type" tag
+         */
+        if (!type) {
+            return false;
+        }
 
-         /*
-          *  ignore relations without "type" tag
-          */
-         if (!type) {
-             return false;
-         }
+        if ((!std::strcmp(type, "restriction"))) {
+            return true;
+        }
 
-         if ((!std::strcmp(type, "restriction"))) {
-                    return true;
-         }
+        for (const auto& tm : transportation_mode) {
+            if ((std::string("restriction:") + tm) == std::string(type)) return true;
+        }
+        return false;
+    }
 
-         return false;
-     }
+    /**
+     * Overwritten from the base class.
+     */
+    bool keep_member(
+            const osmium::relations::RelationMeta&,
+            const osmium::RelationMember& member) const {
+        /*
+         * Interested in members of type way & node.
+         */
+        return member.type() == osmium::item_type::way || 
+            member.type() == osmium::item_type::node;
+    }
 
-     /**
-      * Overwritten from the base class.
-      */
-     bool keep_member(
-             const osmium::relations::RelationMeta&,
-             const osmium::RelationMember& member) const {
-         /*
-          * Interested in members of type way & node.
-          */
-         return member.type() == osmium::item_type::way || 
-             member.type() == osmium::item_type::node;
-     }
+    /*
+     * (2654080,'no_right_turn',30513235,30513221,336812979,'n','version=>1,timestamp=>2012-12-22T17:01:50Z,changeset=>14368535,uid=>381316,user=>Schermy'::hstore,'except=>hgv,restriction=>no_right_turn,type=>restriction'::hstore)
+     */
+    std::string attributes_str(
+            const osmium::Relation& relation) const {
+        std::string user = std::string(relation.user());
+        user = add_quotes(user, true);
+        std::string str("\'");
+        str += "version=>" + std::to_string(relation.version()) + ",";
+        str += "timestamp=>" + relation.timestamp().to_iso() + ",";
+        str += "changeset=>" + std::to_string(relation.changeset()) + ",";
+        str += "uid=>" + std::to_string(relation.uid()) + ",";
+        str += "user=>" + user;
+        str += '\'';
+        str += "::hstore";
+        return str;
+    }
 
-     /**
-      * Overwritten from the base class.
-      */
-     void complete_relation(osmium::relations::RelationMeta& relation_meta) {
-         const osmium::Relation& relation = this->get_relation(relation_meta);
-         std::cout << "Working on relation "
-             << relation.id()
-             << " which has following tags:\n";
 
-         for (const osmium::Tag& tag : relation.tags()) {
-             std::cout << tag.key() << " = " << tag.value() << '\n';
-         }
+    std::string tags_str(
+            const osmium::Relation& relation) const {
+        std::string str("\'");
+        for (const osmium::Tag& tag : relation.tags()) {
+            str += std::string(tag.key()) + "=>" +  tag.value() + ',';
+        }
+        str[str.size()-1] = '\'';
+        str += "::hstore";
+        return str;
+    }
 
-         for (const auto& member : relation.members()) {
-             switch (member.type()) {
-                 case osmium::item_type::node :
-                     {
-                         std::cout << "member node "
-                             << member.ref()
-                             << " with role "
-                             << member.role();
-                         auto offset_pair = this->get_availability_and_offset(member.type(), member.ref());
-                         if (!offset_pair.first) {
-                             std::cout << '\n';
-                             break;
-                         }
-                         const auto& node = static_cast<const osmium::Node&>
-                             (this->get_member(this->get_offset(member.type(), member.ref())));
-                         std::cout << "\t at "
-                             << node.location()
-                             << '\n';
-                     }
-                     break;
-                 case osmium::item_type::way :
-                     std::cout << "member way "
-                         << member.ref()
-                         << " with role "
-                         << member.role()
-                         << '\n';
-                     // accessing tags, node references and node locations
-                     // works like shown above with nodes, just cast to a
-                     // different class
-                     break;
-                 case osmium::item_type::relation :
-                     std::cout << "member relation "
-                         << member.ref()
-                         << " with role "
-                         << member.role()
-                         << '\n';
-                     break;
-             }
-         }
-#if 0
-          possibly_flush_output_buffer();
-#endif
-     }
+    /** A Restriction:
+     *
+     * from: is of type way
+     * to: is of type way
+     * via: can be of type way or node
+     * can not have a member relation
+     *
+     * Overwritten from the base class.
+     */
+    void complete_relation(osmium::relations::RelationMeta& relation_meta) {
+        const osmium::Relation& relation = this->get_relation(relation_meta);
 
-     void flush() {
-         this->callback();
-     }
+        osmium::object_id_type from;
+        osmium::object_id_type to;
+        osmium::object_id_type via;
+        osmium::item_type via_type;
 
-#if 0
-     osmium::memory::Buffer read() {
-         osmium::memory::Buffer buffer{initial_output_buffer_size, osmium::memory::Buffer::auto_grow::yes};
+        for (const auto& member : relation.members()) {
+            if  (!std::strcmp(member.role(),"via")) {
+                via = member.ref();
+                via_type = member.type();
+            } else if  (!std::strcmp(member.role(),"from")) {
+                from = member.ref();
+            } else if  (!std::strcmp(member.role(),"to")) {
+                to = member.ref();
+            } else {
+                std::cout << "Found an illegal member relation in restriction\n";
+                assert(false);
+            }
+        }
+        std::cout
+            << relation.id() << "\t"
+            << "'" << relation.get_value_by_key("restriction") << "'\t"
+            << from << "\t"
+            << to << ",\t"
+            << via << ",\t"
+            <<  "'" << via_type << "',\t"
+            << attributes_str(relation) << ",\t"
+            << tags_str(relation)
+            << "\n";
+    }
 
-         std::swap(buffer, m_output_buffer);
-
-         return buffer;
-     }
-#endif
-     void print_relations() {
-         for (auto r : relations()) {
-             complete_relation(r);
-         }
-     }
+    void flush() {
+        this->callback();
+    }
 };
 
 
@@ -221,29 +267,25 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
 
 main() {
 
-     osmium::handler::DynamicHandler handler;
-#if 0
-    auto otypes = osmium::osm_entity_bits::node | osmium::osm_entity_bits::way | osmium::osm_entity_bits::relation;
-#endif
-#if 0
-    namespace map = osmium::index::map;
-    using index_type = map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
-    using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
+    /*
+     * Reading the create table query
+     */
+    std::ifstream f("../restrictions.sql");
+    std::stringstream buffer;
 
-    index_type index;
-    location_handler_type location_handler{index};
+    buffer << f.rdbuf();
+    std::string str = buffer.str();
+    std::cout << str << "\n";
+    f.close();
 
-    MyHandler handler;
-    osmium::apply(reader, location_handler, handler);
-#endif
-
+    osmium::handler::DynamicHandler handler;
     osmium::relations::RelationMeta relation_meta;
     MyRelCollector collector;
     std::cerr << "Pass 1...\n";
     osmium::io::Reader reader1{"../../../tools/data/restrictions.osm", osmium::osm_entity_bits::relation};
     collector.read_relations(reader1);
     reader1.close();
-    std::cout << "Pass 1 done\n";
+    std::cerr << "Pass 1 done\n";
 
 
     // Output the amount of main memory used so far. All multipolygon relations
@@ -258,7 +300,7 @@ main() {
     // to the ways.
     location_handler_type location_handler{index};
 
-     // If a location is not available in the index, we ignore it. It might
+    // If a location is not available in the index, we ignore it. It might
     // not be needed (if it is not part of a multipolygon relation), so why
     // create an error?
     location_handler.ignore_errors();
@@ -270,18 +312,14 @@ main() {
     std::cerr << "Pass 2...\n";
     osmium::io::Reader reader2{"../../../tools/data/restrictions.osm"};
     osmium::apply(reader2, location_handler, collector.handler([&handler](osmium::memory::Buffer&& buffer) {
-        osmium::apply(buffer, handler);
-    }));
+                osmium::apply(buffer, handler);
+                }));
     reader2.close();
+    std::cout << "\\.";
     std::cerr << "Pass 2 done\n";
 
     // Output the amount of main memory used so far. All complete multipolygon
     // relations have been cleaned up.
     std::cerr << "Memory:\n";
     collector.used_memory();
-
-
-#if 0
-    colector.print_relations();
-#endif
 }

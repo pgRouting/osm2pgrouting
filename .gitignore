@@ -8,8 +8,13 @@ fix_typos
 *.o
 *.out
 *.osm
+*.osm.bz2
+*.osm.gz
+*.tar.gz
 *~
 .project
 .cproject
 .vagrant
 run.sh
+LOG.txt
+.directory
