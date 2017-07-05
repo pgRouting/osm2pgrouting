@@ -1,4 +1,4 @@
-PROJECT(osm2pgrouting)
+PROJECT(getrestirction)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
@@ -8,7 +8,7 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-SET(SHARE_DIR "/usr/share/osm2pgroutingrestrictions")
+SET(SHARE_DIR "/usr/share/getrestrictions")
 
 FIND_PACKAGE(PostgreSQL REQUIRED)
 find_package(LibPQXX REQUIRED)
@@ -58,9 +58,9 @@ INCLUDE_DIRECTORIES(src
     ${OSM2PGROUTING_INCLUDE_DIRS}
     )
 
-ADD_EXECUTABLE(osm2pgroutingrestrictions ${SRC})
+ADD_EXECUTABLE(getrestrictions ${SRC})
 
-TARGET_LINK_LIBRARIES(osm2pgroutingrestrictions
+TARGET_LINK_LIBRARIES(getrestrictions
     ${LIBPQXX_LIBRARIES}
     ${POSTGRESQL_LIBRARIES}
     ${EXPAT_LIBRARIES}
@@ -68,7 +68,7 @@ TARGET_LINK_LIBRARIES(osm2pgroutingrestrictions
     ${OSMIUM_LIBRARIES}
     )
 
-INSTALL(TARGETS osm2pgroutingrestrictions
+INSTALL(TARGETS getrestrictions
     RUNTIME DESTINATION "/usr/bin"
     )
 
