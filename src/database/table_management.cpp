@@ -286,8 +286,8 @@ Tables::Tables(const  po::variables_map &vm) :
             "\n $$"
             "\n WITH "
             "\n base AS ("
-            "\n     SELECT pid, w.id AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
-            "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.id)"
+            "\n     SELECT pid, w.gid AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
+            "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.gid)"
             + "\n     WHERE edge_id IS NOT NULL AND side IS NULL"
             + "\n ),"
 

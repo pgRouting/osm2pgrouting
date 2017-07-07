@@ -558,7 +558,7 @@ void Export2DB::createFKeys() const {
     /*
      * Ways
      */
-    execute(ways().primary_key("id"));
+    execute(ways().primary_key("gid"));
     execute(ways().foreign_key("source", vertices(), "id"));
     execute(ways().foreign_key("target", vertices(), "id"));
     execute(ways().foreign_key("source_osm", vertices(), "osm_id"));

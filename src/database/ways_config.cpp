@@ -28,7 +28,7 @@ Tables::ways_config() const {
 
             /* standard column creation string */
             std::string(
-                " id bigserial"
+                " gid bigserial"
                 ", osm_id bigint"
                 ", tag_id integer"
 
