@@ -89,56 +89,10 @@ add_quotes(const std::string str, bool force) {
     return std::string("\"") + result + "\"";
 }
 
-#if 0
-class MyHandler : public osmium::handler::Handler {
-    public:
-        void way(const osmium::Way& way) {
-            std::cout << "way " << way.id() << '\n';
-            for (const osmium::Tag& t : way.tags()) {
-                std::cout << t.key() << "=" << t.value() << '\n';
-            }
-            for (const auto& n : way.nodes()) {
-                std::cout << n.ref() << ": " << n.lon() << ", " << n.lat() << '\n';
-            }
-        }
-
-        void node(const osmium::Node& node) {
-            std::cout << "node " << node.id() << '\n';
-            std::cout << node.location() << '\n';
-        }
-};
-#endif
 
 class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true, true, true> {
 
-#if 0
-    osmium::memory::Buffer m_output_buffer;
-
-    static constexpr size_t initial_output_buffer_size = 1024 * 1024;
-    static constexpr size_t max_buffer_size_for_flush = 100 * 1024;
-
-    void flush_output_buffer() {
-        if (this->callback()) {
-            osmium::memory::Buffer buffer{initial_output_buffer_size};
-            using std::swap;
-            swap(buffer, m_output_buffer);
-            this->callback()(std::move(buffer));
-        }
-    }
-
-    void possibly_flush_output_buffer() {
-        if (m_output_buffer.committed() > max_buffer_size_for_flush) {
-            flush_output_buffer();
-        }
-    }
-#endif
     public:
-
-#if 0
-    explicit MyRelCollector() :
-        m_output_buffer(initial_output_buffer_size, osmium::memory::Buffer::auto_grow::yes) {
-        }
-#endif
 
     /**
      * Interested in all relations tagged with type=restriction
