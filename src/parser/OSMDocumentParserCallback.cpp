@@ -58,6 +58,7 @@ void
 OSMDocumentParserCallback::show_progress() {
     try {
         if (m_line == 0) return;
+        assert(m_rDocument.lines());
         if (m_rDocument.lines() == 0) return;
         if (((++m_line) % (m_rDocument.lines() / 100)) == 0) {
             print_progress(m_rDocument.lines(), m_line);

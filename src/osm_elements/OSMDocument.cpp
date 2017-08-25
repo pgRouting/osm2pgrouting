@@ -70,7 +70,11 @@ OSMDocument::wait_child() const {
 
 void
 OSMDocument::AddNode(const Node &n) {
+    if (m_ways.empty()) {
+        std::cout << "\nSaving first osm node\n\n\n";
+    }
     m_nodes.push_back(n);
+
     if ((m_nodes.size() % m_chunk_size) == 0) {
         wait_child();
         if (do_export_osm(m_nodes)) {
@@ -87,7 +91,7 @@ void OSMDocument::AddWay(const Way &w) {
             osm_table_export(m_nodes, "osm_nodes");
         }
         export_pois();
-    std::cout << "\nSaving first way\n\n\n";
+        std::cout << "\nSaving first osm way\n\n\n";
     }
 
     m_ways.push_back(w);
@@ -102,7 +106,7 @@ OSMDocument::AddRelation(const Relation &r) {
     if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nSaving first relation\n\n\n";
+        std::cout << "\nSaving first osm relation\n\n\n";
     }
 
     m_relations.push_back(r);

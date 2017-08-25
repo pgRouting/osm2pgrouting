@@ -100,7 +100,7 @@ Export2DB::install_postGIS() const {
         Xaction.commit();
         return true;
     } catch (const std::exception &e) {
-        cerr << e.what() << std::endl;
+        // cerr << e.what() << std::endl;
     }
     return false;
 }
