@@ -59,8 +59,6 @@ size_t lines_in_file(const std::string file_name) {
     std::istringstream iss(word);
     std::string number;
     iss >> number;
-    std::cout << number;
-
     try {
         return boost::lexical_cast<size_t>(number);
     } catch (...) {
@@ -82,9 +80,8 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed =
         std::chrono::steady_clock::now();
 #endif
-#if 0
+
     try {
-#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -198,8 +195,9 @@ int main(int argc, char* argv[]) {
                 << endl;
             return 1;
         }
-        std::cout << "\nExporting configuration ..." << endl;
+        std::cout << "\nExporting configuration ...";
         dbConnection.export_configuration(config.types());
+        std::cout << "  - Done \n"
 
 
         auto total_lines = lines_in_file(dataFile);
@@ -272,7 +270,6 @@ int main(int argc, char* argv[]) {
         std::cout << "#########################" << endl;
 
         exit(0);
-#if 0
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -286,5 +283,4 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
-#endif
 }
