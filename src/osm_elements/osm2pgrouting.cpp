@@ -190,21 +190,23 @@ int main(int argc, char* argv[]) {
         xml::XMLParser parser;
         int ret = parser.Parse(cCallback, confFile.c_str());
         if (ret != 0) {
-            cout << "Failed to open / parse config file "
+            cout << "Failed to open / parse config file\n"
                 << confFile.c_str()
                 << endl;
             return 1;
         }
-        std::cout << "\nExporting configuration ...";
+        std::cout << "Exporting configuration ...\n";
         dbConnection.export_configuration(config.types());
-        std::cout << "  - Done \n"
+        std::cout << "  - Done \n";
 
 
+        std::cout << "Counting lines ...\n";
         auto total_lines = lines_in_file(dataFile);
+        std::cout << "  - Done \n";
 
         std::cout << "Opening data file: "
             << dataFile
-            << " total lines "
+            << "\ttotal lines: "
             << total_lines
             << endl;
         osm2pgr::OSMDocument document(config, vm, dbConnection, total_lines);
