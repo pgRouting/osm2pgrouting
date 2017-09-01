@@ -338,7 +338,7 @@ Tables::Tables(const  po::variables_map &vm) :
             "\n $$"
             "\n UPDATE " + pois().addSchema()
             + "\n     SET new_geom = ST_LineInterpolatePoint(e.the_geom, fraction)"
-            + "\n         FROM " + ways().addSchema() + " AS e WHERE edge_id = id;"
+            + "\n         FROM " + ways().addSchema() + " AS e WHERE edge_id = gid;"
 
             "\n UPDATE " + pois().addSchema()
             + "\n     SET new_geom = the_geom"

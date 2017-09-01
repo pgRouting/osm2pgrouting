@@ -53,6 +53,8 @@ void get_option_description(po::options_description &od_desc) {
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")
         ("postgis", "Install postgis if not found.")  // TODO(vicky) remove before realesing
         ("addnodes", "Import the osm_nodes table.")
+        ("addways", "Import the osm_ways table.")
+        ("addrelations", "Import the osm_relations table.")
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
         ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
@@ -100,6 +102,8 @@ process_command_line(po::variables_map &vm) {
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("no-index")? "D" : "Don't c") << "reate indexes\n";
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
+    std::cout << (vm.count("addways")? "A" : "Don't a") << "dd ways\n";
+    std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd relations\n";
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
     std::cout << "***************************************************\n";
 }

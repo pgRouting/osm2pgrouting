@@ -70,46 +70,56 @@ OSMDocument::wait_child() const {
 
 void
 OSMDocument::AddNode(const Node &n) {
-    m_nodes.push_back(n);
-    if ((m_nodes.size() % m_chunk_size) == 0) {
-        wait_child();
-        if (do_export_osm(m_nodes)) {
+    if (m_vm.count("addnodes")) {
+        if ((m_nodes.size() % m_chunk_size) == 0) {
+            wait_child();
+            std::cout << "\rCurrent osm_nodes:\t" << m_nodes.size();
             osm_table_export(m_nodes, "osm_nodes");
+            export_pois();
         }
-        export_pois();
     }
+
+    m_nodes.push_back(n);
 }
 
 void OSMDocument::AddWay(const Way &w) {
-    if (m_ways.empty()) {
+    if (m_ways.empty() && m_vm.count("addnodes")) {
         wait_child();
-        if (m_vm.count("addnodes")) {
-            osm_table_export(m_nodes, "osm_nodes");
-        }
+        osm_table_export(m_nodes, "osm_nodes");
+        std::cout << "\nFinal osm_nodes:\t" << m_nodes.size();
         export_pois();
-    std::cout << "\nSaving first way\n\n\n";
+    }
+
+
+    if (m_vm.count("addways")) {
+        if ((m_ways.size() % m_chunk_size) == 0) {
+            wait_child();
+            if (m_ways.size() % 200000 == 0) {
+                std::cout << "\nCurrent osm_ways:\t" << m_ways.size();
+            }
+            osm_table_export(m_ways, "osm_ways");
+        }
     }
 
     m_ways.push_back(w);
-    if (do_export_osm(m_ways)) {
-        wait_child();
-        osm_table_export(m_ways, "osm_ways");
-    }
 }
 
 void
 OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addnodes") && m_relations.empty()) {
+    if (m_vm.count("addways") && m_relations.empty()) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nSaving first relation\n\n\n";
+        std::cout << "\nFinal osm_ways:\t" << m_ways.size();
     }
 
-    m_relations.push_back(r);
-    if (do_export_osm(m_relations)) {
+    if (m_vm.count("addrelations")) {
         wait_child();
+        if (m_relations.size() % 100000 == 0) {
+            std::cout << "\nCurrent osm_relations:\t" << m_relations.size();
+        }
         osm_table_export(m_relations, "osm_relations");
     }
+    m_relations.push_back(r);
 }
 
 void
