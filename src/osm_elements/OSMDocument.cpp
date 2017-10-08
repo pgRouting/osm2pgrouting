@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "osm_elements/OSMDocument.h"
 
 #include <boost/lexical_cast.hpp>
 #include <vector>
@@ -32,7 +33,6 @@
 #endif
 
 #include "utilities/utilities.h"
-#include "osm_elements/OSMDocument.h"
 #include "configuration/configuration.h"
 #include "osm_elements/Node.h"
 #include "osm_elements/Relation.h"
