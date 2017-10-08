@@ -101,9 +101,9 @@ process_command_line(po::variables_map &vm) {
     std::cout << (vm.count("postgis")? "I" : "Don't I") << "nstall postgis if not found\n";
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("no-index")? "D" : "Don't c") << "reate indexes\n";
-    std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
-    std::cout << (vm.count("addways")? "A" : "Don't a") << "dd ways\n";
-    std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd relations\n";
+    std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd OSM nodes\n";
+    std::cout << (vm.count("addways")? "A" : "Don't a") << "dd OSM ways\n";
+    std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd OSM relations\n";
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
     std::cout << "***************************************************\n";
 }

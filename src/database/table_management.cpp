@@ -1,3 +1,6 @@
+
+#include <unistd.h>
+
 #include "boost/lexical_cast.hpp"
 #include "database/table_management.h"
 #include "utilities/utilities.h"
