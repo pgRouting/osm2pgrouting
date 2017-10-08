@@ -130,8 +130,8 @@ class OSMDocument {
                  * finish the child process
                  */
                 _exit(0);
-            }
 #endif
+            }
         }
 
    void export_pois() const;
