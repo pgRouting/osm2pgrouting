@@ -26,7 +26,11 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+
+#ifndef _WIN32
 #include <sys/wait.h>
+#endif
+
 #include "utilities/utilities.h"
 #include "osm_elements/OSMDocument.h"
 #include "configuration/configuration.h"
@@ -53,6 +57,7 @@ OSMDocument::OSMDocument(
 
 void
 OSMDocument::wait_child() const {
+#ifndef _WIN32
     while (true) {
         int status;
         pid_t done = wait(&status);
@@ -64,6 +69,7 @@ OSMDocument::wait_child() const {
                 exit(1);
             }
         }
+#endif
     }
 }
 
@@ -220,6 +226,7 @@ OSMDocument::export_pois() const {
     std::string table("pointsofinterest");
     if (m_nodes.empty()) return;
 
+#ifndef _WIN32
     if (m_vm.count("fork")) {
         auto pid = fork();
         if (pid < 0) {
@@ -228,6 +235,7 @@ OSMDocument::export_pois() const {
         }
         if (pid > 0) return;
     }
+#endif
 
 
     auto residue = m_nodes.size() % m_chunk_size;
@@ -245,12 +253,14 @@ OSMDocument::export_pois() const {
         m_db_conn.export_osm(export_items, table);
     }
 
+#ifndef _WIN32
     if (m_vm.count("fork")) {
         /*
          * finish the child process
          */
         _exit(0);
     }
+#endif
 }
 
 
