@@ -69,8 +69,8 @@ OSMDocument::wait_child() const {
                 exit(1);
             }
         }
-#endif
     }
+#endif
 }
 
 
