@@ -101,7 +101,10 @@ class OSMDocument {
             return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
         }
 
+
+#ifndef _WIN32
     void wait_child() const;
+#endif
 
     template <typename T>
         void

@@ -55,9 +55,9 @@ OSMDocument::OSMDocument(
 }
 
 
+#ifndef _WIN32
 void
 OSMDocument::wait_child() const {
-#ifndef _WIN32
     while (true) {
         int status;
         pid_t done = wait(&status);
@@ -70,8 +70,8 @@ OSMDocument::wait_child() const {
             }
         }
     }
-#endif
 }
+#endif
 
 
 void
