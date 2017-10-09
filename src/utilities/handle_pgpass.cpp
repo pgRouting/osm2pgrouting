@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
+#include <unistd.h>
 
 namespace po = boost::program_options;
 
