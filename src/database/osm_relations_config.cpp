@@ -25,12 +25,12 @@ Tables::osm_relations_config() const {
             /* standard column creation string */
             std::string(
                 " osm_id bigint PRIMARY KEY"
-                " , members " +  (std::string(m_vm.count("hstore") ? "hstore" : "json"))
+                " , members hstore"
                 + (m_vm.count("attributes") ?
-                    (std::string(", attributes ") + (m_vm.count("hstore") ? "hstore" : "json"))
+                    (std::string(", attributes hstore"))
                     : "")
                 + (m_vm.count("tags") ?
-                    (std::string(", tags ") + (m_vm.count("hstore") ? "hstore" : "json"))
+                    (std::string(", tags hstore"))
                     : "")
                 ),
             /* other columns */

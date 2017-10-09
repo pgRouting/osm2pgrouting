@@ -36,10 +36,10 @@ Tables::pois_config() const {
                 ", fraction FLOAT"
                 ", length_m FLOAT"
                 + (m_vm.count("attributes") ?
-                    (std::string(", attributes ") + (m_vm.count("hstore") ? "hstore" : "json"))
+                    (std::string(", attributes hstore"))
                     : "")
                 + (m_vm.count("tags") ?
-                    (std::string(", tags ") + (m_vm.count("hstore") ? "hstore" : "json"))
+                    (std::string(", tags hstore"))
                     : "")),
 
             /* other columns */

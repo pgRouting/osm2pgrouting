@@ -55,7 +55,6 @@ void get_option_description(po::options_description &od_desc) {
         ("addnodes", "Import the osm_nodes, osm_ways & osm_relations tables.")
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
-        ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
         ("chunk", po::value<std::size_t>()->default_value(20000), "Exporting chunk size.")
         ("clean", "Drop previously created tables.")
         ("no-index", "Do not create indexes (Use when indexes are already created)");
@@ -63,6 +62,7 @@ void get_option_description(po::options_description &od_desc) {
         ("addways", "Import the osm_ways table.")
         ("addrelations", "Import the osm_relations table.")
         ("fork", "Use fork (works on small files).");
+        ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
 #endif
 
     db_options_od_desc.add_options()

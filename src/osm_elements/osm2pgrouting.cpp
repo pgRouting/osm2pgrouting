@@ -161,8 +161,8 @@ int main(int argc, char* argv[]) {
             std::cout << "   HINT: CREATE EXTENSION postGIS\n";
             return 1;
         }
-        if ((vm.count("attributes") || vm.count("tags")) && 
-                (vm.count("hstore") && !dbConnection.has_extension("hstore"))) {
+        if ((vm.count("attributes") || vm.count("tags"))
+                && !dbConnection.has_extension("hstore")) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
             return 1;

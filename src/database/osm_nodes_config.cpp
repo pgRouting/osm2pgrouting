@@ -26,10 +26,13 @@ Tables::osm_nodes_config() const {
             std::string(
                 " osm_id bigint PRIMARY KEY"
                 + (m_vm.count("attributes") ?
-                    (std::string(", attributes ") + (m_vm.count("hstore") ? "hstore" : "json"))
+                    (std::string(", attributes hstore"))
                     : "")
                 + (m_vm.count("tags") ?
+                    (std::string(", tags hstore"))
+#if 0
                     (std::string(", tags ") + (m_vm.count("hstore") ? "hstore" : "json"))
+#endif
                     : "")),
 
             /* other columns */
