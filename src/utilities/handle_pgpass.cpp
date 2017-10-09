@@ -53,7 +53,7 @@ handle_pgpass(po::variables_map &vm) {
     std::string user;
     std::string passwd;
     std::string username = vm["username"].as<std::string>().empty() ?
-        getlogin() : vm["username"].as<std::string>();
+        getenv("USER") : vm["username"].as<std::string>();
     vm.at("username").value() = username;
     while (std::getline(infile, host, ':')) {
         std::getline(infile, port, ':');
