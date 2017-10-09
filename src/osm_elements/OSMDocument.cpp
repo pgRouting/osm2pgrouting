@@ -28,7 +28,7 @@
 #include <iostream>
 #include <algorithm>
 
-#ifndef _WIN32
+#if 0
 #include <sys/wait.h>
 #endif
 
@@ -55,9 +55,9 @@ OSMDocument::OSMDocument(
 }
 
 
-#ifndef _WIN32
 void
 OSMDocument::wait_child() const {
+#if 0
     while (true) {
         int status;
         pid_t done = wait(&status);
@@ -70,8 +70,8 @@ OSMDocument::wait_child() const {
             }
         }
     }
-}
 #endif
+}
 
 
 void
@@ -97,7 +97,7 @@ void OSMDocument::AddWay(const Way &w) {
     }
 
 
-    if (m_vm.count("addways")) {
+    if (m_vm.count("addnodes")) {
         if ((m_ways.size() % m_chunk_size) == 0) {
             wait_child();
             if (m_ways.size() % 200000 == 0) {
@@ -112,13 +112,13 @@ void OSMDocument::AddWay(const Way &w) {
 
 void
 OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addways") && m_relations.empty()) {
+    if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
         std::cout << "\nFinal osm_ways:\t" << m_ways.size();
     }
 
-    if (m_vm.count("addrelations")) {
+    if (m_vm.count("addnodes")) {
         wait_child();
         if (m_relations.size() % 100000 == 0) {
             std::cout << "\nCurrent osm_relations:\t" << m_relations.size();
@@ -226,7 +226,7 @@ OSMDocument::export_pois() const {
     std::string table("pointsofinterest");
     if (m_nodes.empty()) return;
 
-#ifndef _WIN32
+#if 0
     if (m_vm.count("fork")) {
         auto pid = fork();
         if (pid < 0) {
@@ -253,7 +253,7 @@ OSMDocument::export_pois() const {
         m_db_conn.export_osm(export_items, table);
     }
 
-#ifndef _WIN32
+#if 0
     if (m_vm.count("fork")) {
         /*
          * finish the child process

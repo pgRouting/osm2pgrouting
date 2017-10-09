@@ -52,16 +52,18 @@ void get_option_description(po::options_description &od_desc) {
         ("prefix", po::value<std::string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")
         ("postgis", "Install postgis if not found.")  // TODO(vicky) remove before realesing
-        ("addnodes", "Import the osm_nodes table.")
-        ("addways", "Import the osm_ways table.")
-        ("addrelations", "Import the osm_relations table.")
+        ("addnodes", "Import the osm_nodes, osm_ways & osm_relations tables.")
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
         ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
         ("chunk", po::value<std::size_t>()->default_value(20000), "Exporting chunk size.")
         ("clean", "Drop previously created tables.")
-        ("no-index", "Do not create indexes (when is not the first file)")
+        ("no-index", "Do not create indexes (Use when indexes are already created)");
+#if 0
+        ("addways", "Import the osm_ways table.")
+        ("addrelations", "Import the osm_relations table.")
         ("fork", "Use fork (works on small files).");
+#endif
 
     db_options_od_desc.add_options()
         // database options
@@ -104,6 +106,8 @@ process_command_line(po::variables_map &vm) {
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd OSM nodes\n";
     std::cout << (vm.count("addways")? "A" : "Don't a") << "dd OSM ways\n";
     std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd OSM relations\n";
+#if 0
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
+#endif
     std::cout << "***************************************************\n";
 }

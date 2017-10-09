@@ -102,9 +102,7 @@ class OSMDocument {
         }
 
 
-#ifndef _WIN32
     void wait_child() const;
-#endif
 
     template <typename T>
         void
@@ -112,7 +110,7 @@ class OSMDocument {
             if (osm_items.empty()) return;
 
             if (m_vm.count("addnodes")) {
-#ifndef _WIN32
+#if 0
                 auto pid = fork();
                 if (pid < 0) {
                     std::cerr << "Failed to fork" << endl;
@@ -128,7 +126,7 @@ class OSMDocument {
             m_db_conn.export_osm(export_items, table);
 
             if (m_vm.count("addnodes")) {
-#ifndef _WIN32
+#if 0
                 /*
                  * finish the child process
                  */

@@ -206,7 +206,7 @@ Tables::Tables(const  po::variables_map &vm) :
             + "\n$$"
             + "\nLANGUAGE plpgsql;"
             + "\nCOMMENT ON FUNCTION osm2pgr_pois_update_part_of_topology()"
-            + "\n  IS 'osm2pgRouting generated function';"
+            + "\n  IS 'osm2pgrouting generated function';"
             );
 
 
@@ -249,7 +249,7 @@ Tables::Tables(const  po::variables_map &vm) :
             +"\n            WHERE ST_Intersects(the_geom, bufferWays)"
             +"\n        ),"
             +"\n        first AS ("
-            +"\n            SELECT   ways.id AS wid,"
+            +"\n            SELECT   ways.gid AS wid,"
             +"\n            source_osm, target_osm,"
             +"\n            ST_distance(pois.the_geom::geography,   ways.the_geom::geography) AS dist,"
             +"\n            pois.osm_id AS vid,"
@@ -281,6 +281,8 @@ Tables::Tables(const  po::variables_map &vm) :
             +"\n END;"
             +"\n $$"
             +"\n LANGUAGE plpgsql;"
+            +"\nCOMMENT ON FUNCTION osm2pgr_pois_update_not_part_of_topology(float,float,bigint[])"
+            + "\n  IS 'osm2pgrouting generated function';"
             );
 
     m_points_of_interest.add_sql(
@@ -333,6 +335,8 @@ Tables::Tables(const  po::variables_map &vm) :
             + "\n WHERE last.pid = " + pois().addSchema() + ".pid;"
             +"\n $$"
             +"\n LANGUAGE sql;"
+            +"\nCOMMENT ON FUNCTION osm2pgr_pois_find_side()"
+            + "\n  IS 'osm2pgrouting generated function';"
             );
 
     m_points_of_interest.add_sql(
@@ -348,11 +352,13 @@ Tables::Tables(const  po::variables_map &vm) :
             + "\n         WHERE vertex_id IS NOT NULL;"
             + "\n $$"
             + "\n LANGUAGE sql;"
+            +"\nCOMMENT ON FUNCTION osm2pgr_pois_new_geom()"
+            + "\n  IS 'osm2pgrouting generated function';"
             );
 
 
     m_points_of_interest.add_sql(
-            "\nCREATE OR REPLACE FUNCTION osm2pgr_pois_update(radius FLOAT, within FLOAT)"
+            "\nCREATE OR REPLACE FUNCTION osm2pgr_pois_update(radius FLOAT DEFAULT 200, within FLOAT DEFAULT 50)"
 
             "\n RETURNS BIGINT AS"
             "\n $$"
@@ -408,6 +414,8 @@ Tables::Tables(const  po::variables_map &vm) :
             +"\n END;"
             +"\n $$"
             +"\n LANGUAGE plpgsql;"
+            +"\nCOMMENT ON FUNCTION osm2pgr_pois_update(float, float)"
+            + "\n  IS 'osm2pgrouting generated function. osm2pgr_pois_update(radius, within)\nworking on areas of (radius)mts\nOn edges that are at least (within) mts of each POI';"
             );
 
 

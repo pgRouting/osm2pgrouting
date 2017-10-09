@@ -575,6 +575,9 @@ void Export2DB::createFKeys() const {
 }
 
 void Export2DB::process_pois() const {
+    if (!m_vm.count("addnodes")) return;
+
+    std::cout << "\nAdding functions for processing Points of Interest ..." << endl;
     /* osm2pgr_pois_update_part_of_topology */
     execute(pois().sql(0));
 
@@ -594,7 +597,15 @@ void Export2DB::process_pois() const {
     /* osm2pgr_pois_update */
     execute(pois().sql(4));
 
+    std::cout << "\nTo process pointsOfInterest table:"
+    "\nosm2pgr_pois_update(radius deault 200, within default 50)\n"
+    "\n  - Using areas of (radius)mts on POIS"
+    "\n  - Using edges that are at least (within) mts of each POI"
+    "\nPOIS that do not have a closest edge is considered as too far\n";
+
+
     return;
+#if 0
     std::string array;
     int64_t total = 0;
     auto limit = get_val(
@@ -636,7 +647,6 @@ void Export2DB::process_pois() const {
 
     execute("SELECT osm2pgr_pois_find_side()");
     execute("SELECT osm2pgr_pois_new_geom()");
-#if 0
     execute(
             "\n WITH "
             "\n base AS ("
