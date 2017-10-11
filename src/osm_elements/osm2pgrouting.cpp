@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                 << endl;
             pqxx::connection C(connection_str);
             if (C.is_open()) {
-                cout << "database connection successfull: " << C.dbname() << endl;
+                cout << "database connection successful: " << C.dbname() << endl;
             } else {
                 cout << "Can't open database" << endl;
                 return 1;
