@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <tag_name name="highway" id="1">
+    <tag_value name="footway" id="115"  priority="2.5" maxspeed="5" />
+    <tag_value name="steps" id="116"  priority="2.5" maxspeed="5" />
+    <tag_value name="pedestrian" id="117"  priority="2.5" maxspeed="5" />
+
+    <tag_value name="unclassified" id="118" priority="3" maxspeed="9"/>
+    <tag_value name="road" id="119" priority="5" maxspeed="5" />
+    <tag_value name="path" id="120"  priority="2.5" maxspeed="5" />
+  </tag_name>
+
+
+
+  <tag_name name="barrier" id="3">
+    <tag_value name="kerb" id="301" priority="1.0" maxspeed="13" />
+    <tag_value name="gate" id="302" priority="1.0" maxspeed="13" />
+    <tag_value name="bollard" id="303" priority="1.0" maxspeed="13" />
+    <tag_value name="cycle_barrier" id="304" priority="1.0" maxspeed="13" />
+  </tag_name>
+
+</configuration>

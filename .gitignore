@@ -4,6 +4,7 @@ Sample/*
 build
 osm2pgrouting
 tools/vagrant/packaging.sh
+fix_typos
 *.o
 *.out
 *.osm
