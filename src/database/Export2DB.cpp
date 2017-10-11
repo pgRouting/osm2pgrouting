@@ -167,16 +167,16 @@ void Export2DB::dropTables() const {
         pqxx::work Xaction(db_conn);
 
         Xaction.exec(ways().drop());
-        std::cout << "TABLE: " << ways().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << ways().addSchema() << " dropped ... OK.\n";
 
         Xaction.exec(vertices().drop());
-        std::cout << "TABLE: " << vertices().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << vertices().addSchema() << " dropped ... OK.\n";
 
         Xaction.exec(pois().drop());
-        std::cout << "TABLE: " << pois().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << pois().addSchema() << " dropped ... OK.\n";
 
         Xaction.exec(configuration().drop());
-        std::cout << "TABLE: " << configuration().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << configuration().addSchema() << " dropped ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -188,13 +188,13 @@ void Export2DB::dropTables() const {
         pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
         Xaction.exec(osm_nodes().drop());
-        std::cout << "TABLE: " << osm_nodes().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << osm_nodes().addSchema() << " dropped ... OK.\n";
 
         Xaction.exec(osm_ways().drop());
-        std::cout << "TABLE: " << osm_ways().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << osm_ways().addSchema() << " dropped ... OK.\n";
 
         Xaction.exec(osm_relations().drop());
-        std::cout << "TABLE: " << osm_relations().addSchema() << " droped ... OK.\n";
+        std::cout << "TABLE: " << osm_relations().addSchema() << " dropped ... OK.\n";
 
         Xaction.commit();
     } catch (const std::exception &e) {
