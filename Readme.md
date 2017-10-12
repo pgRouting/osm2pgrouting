@@ -32,9 +32,7 @@ make
 make install
 ```
 
-If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake.  Commonly useful parameters are
-
-Install some prerqeuisites
+Install some prerequisites:
 
 ```
 sudo apt-get install expat
@@ -43,6 +41,8 @@ sudo apt-get install libboost-dev
 sudo apt-get install libboost-program-options-dev
 sudo apt install libpqxx-dev
 ```
+
+If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake. Commonly useful parameters are
 
 CMAKE options:
 
