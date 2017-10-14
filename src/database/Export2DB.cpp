@@ -598,7 +598,7 @@ void Export2DB::process_pois() const {
     execute(pois().sql(4));
 
     std::cout << "\nTo process pointsOfInterest table:"
-    "\nosm2pgr_pois_update(radius deault 200, within default 50)\n"
+    "\nosm2pgr_pois_update(radius default 200, within default 50)\n"
     "\n  - Using areas of (radius)mts on POIS"
     "\n  - Using edges that are at least (within) mts of each POI"
     "\nPOIS that do not have a closest edge is considered as too far\n";
