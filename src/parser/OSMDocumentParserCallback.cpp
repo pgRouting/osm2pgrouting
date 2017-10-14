@@ -151,7 +151,6 @@ OSMDocumentParserCallback::StartElement(
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "osm") == 0) {
         m_rDocument.endOfFile();
-        delete last_relation;
         return;
     }
     if (strcmp(name, "node") == 0) {
