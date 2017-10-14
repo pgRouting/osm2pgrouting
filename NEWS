@@ -1,5 +1,10 @@
 osm2pgRouting 2.3.0
 
+* Fix: When keys have spaces
+* Fix: Generating relations
+
+osm2pgRouting 2.3.0
+
 * Cost should not return the same value
 * Added a points of Interest table
 * Some default one_way values are taken into consideration
