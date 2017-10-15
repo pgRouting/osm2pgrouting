@@ -92,17 +92,15 @@ void OSMDocument::AddWay(const Way &w) {
     if (m_ways.empty() && m_vm.count("addnodes")) {
         wait_child();
         osm_table_export(m_nodes, "osm_nodes");
-        std::cout << "\nFinal osm_nodes:\t" << m_nodes.size();
         export_pois();
+        std::cout << "\nFinal osm_nodes:\t" << m_nodes.size() << "\n";
     }
 
 
     if (m_vm.count("addnodes")) {
         if ((m_ways.size() % m_chunk_size) == 0) {
             wait_child();
-            if (m_ways.size() % 200000 == 0) {
-                std::cout << "\nCurrent osm_ways:\t" << m_ways.size();
-            }
+            std::cout << "\rCurrent osm_ways:\t" << m_ways.size();
             osm_table_export(m_ways, "osm_ways");
         }
     }
@@ -115,15 +113,15 @@ OSMDocument::AddRelation(const Relation &r) {
     if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nFinal osm_ways:\t" << m_ways.size();
+        std::cout << "\nFinal osm_ways:\t" << m_ways.size() << "\n";
     }
 
     if (m_vm.count("addnodes")) {
-        wait_child();
-        if (m_relations.size() % 100000 == 0) {
-            std::cout << "\nCurrent osm_relations:\t" << m_relations.size();
+        if (m_relations.size() % m_chunk_size == 0) {
+            wait_child();
+            std::cout << "\rCurrent osm_relations:\t" << m_relations.size();
+            osm_table_export(m_relations, "osm_relations");
         }
-        osm_table_export(m_relations, "osm_relations");
     }
     m_relations.push_back(r);
 }
@@ -132,9 +130,10 @@ void
 OSMDocument::endOfFile() const {
     if (m_vm.count("addnodes")) {
         wait_child();
+        std::cout << "\nFinal osm_relations:\t" << m_relations.size();
         osm_table_export(m_relations, "osm_relations");
-        std::cout << "\nEnd Of file\n\n\n";
     }
+    std::cout << "\nEnd Of file\n\n\n";
 }
 
 

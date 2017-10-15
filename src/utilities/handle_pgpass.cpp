@@ -85,7 +85,9 @@ handle_pgpass(po::variables_map &vm) {
                 && (user == "*" || user == username)
                 && (dbase == "*" || host == vm["dbname"].as<std::string>())) {
             infile.close();
+#if 0
             std::cout << passwd << "\n";
+#endif
             vm.at("password").value() = passwd;
             return;
         }

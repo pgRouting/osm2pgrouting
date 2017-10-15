@@ -155,7 +155,8 @@ getHstore(const std::map<std::string, std::string> &values) {
     if (values.empty()) return std::string();
 
     for (const auto item : values) {
-        hstore += item.first 
+        hstore +=
+            addquotes(item.first, true)
             + " => "
             + addquotes(item.second, true)  + ",";
     }
