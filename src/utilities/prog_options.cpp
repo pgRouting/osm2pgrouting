@@ -104,9 +104,9 @@ process_command_line(po::variables_map &vm) {
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("no-index")? "D" : "Don't c") << "reate indexes\n";
     std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd OSM nodes\n";
+#if 0
     std::cout << (vm.count("addways")? "A" : "Don't a") << "dd OSM ways\n";
     std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd OSM relations\n";
-#if 0
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
 #endif
     std::cout << "***************************************************\n";
