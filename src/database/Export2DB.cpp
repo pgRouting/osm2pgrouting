@@ -135,6 +135,7 @@ void Export2DB::createTables() const {
         exit(1);
     }
 
+    if (m_vm.count("addnodes")) {
     try {
         pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
@@ -155,6 +156,7 @@ void Export2DB::createTables() const {
         std::cerr <<  "\n" << e.what() << std::endl;
         std::cerr <<  "WARNING: could not create osm-*  tables" << std::endl;
         std::cerr <<  "   Insertions on osm_* tables are going to be ignored" << std::endl;
+    }
     }
 }
 
