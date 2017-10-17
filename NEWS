@@ -1,4 +1,10 @@
-osm2pgRouting 2.3.0
+osm2pgRouting 2.3.2
+
+* Fix: Only on linux: use the wc command to count lines
+* Fix: the `osm_<tables>` are created only when addnodes flag is on
+* Fix: removed unused flag of the command line
+
+osm2pgRouting 2.3.1
 
 * Fix: When keys have spaces
 * Fix: Generating relations
