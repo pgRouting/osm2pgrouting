@@ -41,6 +41,7 @@
 #include "utilities/handle_pgpass.h"
 #include "utilities/prog_options.h"
 
+#if defined(__linux__)
 static
 size_t lines_in_file(const std::string file_name) {
     FILE *in;
@@ -67,6 +68,7 @@ size_t lines_in_file(const std::string file_name) {
         exit(1);
     }
 }
+#endif
 
 
 int main(int argc, char* argv[]) {
@@ -161,7 +163,7 @@ int main(int argc, char* argv[]) {
             std::cout << "   HINT: CREATE EXTENSION postGIS\n";
             return 1;
         }
-        if ((vm.count("attributes") || vm.count("tags"))
+        if ((vm.count("attributes") || vm.count("tags") || vm.count("addnodes"))
                 && !dbConnection.has_extension("hstore")) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
@@ -201,6 +203,7 @@ int main(int argc, char* argv[]) {
         std::cout << "  - Done \n";
 
 
+#if defined(__linux__)
         std::cout << "Counting lines ...\n";
         auto total_lines = lines_in_file(dataFile);
         std::cout << "  - Done \n";
@@ -210,6 +213,9 @@ int main(int argc, char* argv[]) {
             << "\ttotal lines: "
             << total_lines
             << endl;
+#else
+        size_t total_lines = 0;
+#endif
         osm2pgr::OSMDocument document(config, vm, dbConnection, total_lines);
         osm2pgr::OSMDocumentParserCallback callback(document);
 

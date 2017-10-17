@@ -45,10 +45,10 @@ Tables::osm_relations_config() const {
             std::string(
                 " osm_id bigint PRIMARY KEY"
                 " , members hstore"
-                + (m_vm.count("attributes") ?
+                + (m_vm.count("attributes")  && m_vm.count("addnodes") ?
                     (std::string(", attributes hstore"))
                     : "")
-                + (m_vm.count("tags") ?
+                + (m_vm.count("tags")  && m_vm.count("addnodes")?
                     (std::string(", tags hstore"))
                     : "")
                 ),
