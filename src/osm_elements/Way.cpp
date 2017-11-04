@@ -40,7 +40,7 @@ Way::Way(const char **atts) :
     Element(atts),
     m_maxspeed_forward(-1),
     m_maxspeed_backward(-1),
-    m_oneWay("UNKNOWN") { 
+    m_oneWay("UNKNOWN") {
     }
 
 Tag
@@ -208,13 +208,6 @@ Way::implied_oneWay(const Tag &tag) {
         return;
     }
 
-    if (key == "highway"
-            && (value == "primary"
-                || value == "secondary"
-                || value == "tertiary")) {
-        m_oneWay = "NO";
-        return;
-    }
 }
 
 #if 0
@@ -332,7 +325,7 @@ Way::members_str() const {
     std::string node_list("");
     for (const auto &node_id : m_node_ids) {
         node_list += boost::lexical_cast<std::string>(node_id) + "=>\"type=>nd\",";
-    } 
+    }
     node_list[node_list.size() -1] = ' ';
 
     return node_list;
@@ -363,4 +356,3 @@ std::ostream& operator<<(std::ostream &os, const Way &way) {
 
 
 }  // namespace osm2pgr
-
