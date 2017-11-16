@@ -31,6 +31,7 @@
 #include <ctime>
 #include <chrono>
 #endif
+
 #include <pqxx/pqxx>
 
 #include "parser/ConfigurationParserCallback.h"
@@ -40,6 +41,7 @@
 #include "utilities/handle_pgpass.h"
 #include "utilities/prog_options.h"
 
+#if defined(__linux__)
 static
 size_t lines_in_file(const std::string file_name) {
     FILE *in;
@@ -59,8 +61,6 @@ size_t lines_in_file(const std::string file_name) {
     std::istringstream iss(word);
     std::string number;
     iss >> number;
-    std::cout << number;
-
     try {
         return boost::lexical_cast<size_t>(number);
     } catch (...) {
@@ -68,6 +68,7 @@ size_t lines_in_file(const std::string file_name) {
         exit(1);
     }
 }
+#endif
 
 
 int main(int argc, char* argv[]) {
@@ -82,9 +83,8 @@ int main(int argc, char* argv[]) {
     std::chrono::steady_clock::time_point begin_elapsed =
         std::chrono::steady_clock::now();
 #endif
-#if 0
+
     try {
-#endif
         po::options_description od_desc("Allowed options");
         get_option_description(od_desc);
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.3\n";
+            std::cout << "This is osm2pgrouting Version 2.3.3\n";
             return 0;
         }
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
                 << endl;
             pqxx::connection C(connection_str);
             if (C.is_open()) {
-                cout << "database connection successfull: " << C.dbname() << endl;
+                cout << "database connection successful: " << C.dbname() << endl;
             } else {
                 cout << "Can't open database" << endl;
                 return 1;
@@ -163,8 +163,8 @@ int main(int argc, char* argv[]) {
             std::cout << "   HINT: CREATE EXTENSION postGIS\n";
             return 1;
         }
-        if ((vm.count("attributes") || vm.count("tags")) && 
-                (vm.count("hstore") && !dbConnection.has_extension("hstore"))) {
+        if ((vm.count("attributes") || vm.count("tags") || vm.count("addnodes"))
+                && !dbConnection.has_extension("hstore")) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
             return 1;
@@ -193,22 +193,29 @@ int main(int argc, char* argv[]) {
         xml::XMLParser parser;
         int ret = parser.Parse(cCallback, confFile.c_str());
         if (ret != 0) {
-            cout << "Failed to open / parse config file "
+            cout << "Failed to open / parse config file\n"
                 << confFile.c_str()
                 << endl;
             return 1;
         }
-        std::cout << "\nExporting configuration ..." << endl;
+        std::cout << "Exporting configuration ...\n";
         dbConnection.export_configuration(config.types());
+        std::cout << "  - Done \n";
 
 
+#if defined(__linux__)
+        std::cout << "Counting lines ...\n";
         auto total_lines = lines_in_file(dataFile);
+        std::cout << "  - Done \n";
 
         std::cout << "Opening data file: "
             << dataFile
-            << " total lines "
+            << "\ttotal lines: "
             << total_lines
             << endl;
+#else
+        size_t total_lines = 0;
+#endif
         osm2pgr::OSMDocument document(config, vm, dbConnection, total_lines);
         osm2pgr::OSMDocumentParserCallback callback(document);
 
@@ -272,7 +279,6 @@ int main(int argc, char* argv[]) {
         std::cout << "#########################" << endl;
 
         exit(0);
-#if 0
     }
     catch (exception &e) {
         std::cout << e.what() << endl;
@@ -286,5 +292,4 @@ int main(int argc, char* argv[]) {
         std::cout << "Terminating" << endl;
         return 1;
     }
-#endif
 }

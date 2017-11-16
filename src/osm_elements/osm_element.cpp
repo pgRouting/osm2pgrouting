@@ -155,7 +155,8 @@ getHstore(const std::map<std::string, std::string> &values) {
     if (values.empty()) return std::string();
 
     for (const auto item : values) {
-        hstore += item.first 
+        hstore +=
+            addquotes(item.first, true)
             + " => "
             + addquotes(item.second, true)  + ",";
     }
@@ -164,6 +165,7 @@ getHstore(const std::map<std::string, std::string> &values) {
     return hstore;
 }
 
+#if 0
 static
 std::string
 getJSON(const std::map<std::string, std::string> &values) {
@@ -178,6 +180,7 @@ getJSON(const std::map<std::string, std::string> &values) {
     json += "";
     return json;
 }
+#endif
 
 std::vector<std::string>
 Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
@@ -206,19 +209,12 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
         }
 
         if (column == "attributes") {
-            if (is_hstore) {
-                values.push_back(getHstore(m_attributes));
-            } else {
-                values.push_back(getJSON(m_attributes));
-            }   
+            values.push_back(getHstore(m_attributes));
             continue;
         }   
         if (column == "tags") {
-            if (is_hstore) {
-                values.push_back(getHstore(m_tags));
-            } else {
-                values.push_back(getJSON(m_tags));
-            }   
+            values.push_back(getHstore(m_tags));
+            if (is_hstore) {};
 
             continue;
         }   

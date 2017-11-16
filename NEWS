@@ -1,11 +1,24 @@
-osm2pgRouting 2.3.0 develop
+osm2pgRouting 2.3.3
+* Fix: wrong assumption in implied_oneWay() function
+* Fix: regression on 2.3.2: fixed hstore refs handling
+
+osm2pgRouting 2.3.2
+
+* Fix: Only on linux: use the wc command to count lines
+* Fix: the `osm_<tables>` are created only when addnodes flag is on
+* Fix: removed unused flag of the command line
+
+osm2pgRouting 2.3.1
+
+* Fix: When keys have spaces
+* Fix: Generating relations
+
+osm2pgRouting 2.3.0
 
 * Cost should not return the same value
 * Added a points of Interest table
 * Some default one_way values are taken into consideration
 * Relations are also condsidered
-* Can be forked
-* TODO remove install postGIS, that should be taken care of the user
 * New mapconfig_for_pedestrian.xml
 
 

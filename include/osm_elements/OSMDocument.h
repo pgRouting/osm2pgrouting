@@ -101,6 +101,7 @@ class OSMDocument {
             return m_vm.count("addnodes") && (container.size() % m_chunk_size) == 0;
         }
 
+
     void wait_child() const;
 
     template <typename T>
@@ -109,14 +110,14 @@ class OSMDocument {
             if (osm_items.empty()) return;
 
             if (m_vm.count("addnodes")) {
+#if 0
                 auto pid = fork();
                 if (pid < 0) {
                     std::cerr << "Failed to fork" << endl;
                     exit(1);
                 }
-                if (pid > 0) {
-                    return;
-                }
+                if (pid > 0) return;
+#endif
             }
             auto residue = osm_items.size() % m_chunk_size;
             size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
@@ -125,10 +126,12 @@ class OSMDocument {
             m_db_conn.export_osm(export_items, table);
 
             if (m_vm.count("addnodes")) {
+#if 0
                 /*
                  * finish the child process
                  */
                 _exit(0);
+#endif
             }
         }
 

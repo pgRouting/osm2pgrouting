@@ -51,15 +51,21 @@ void get_option_description(po::options_description &od_desc) {
         ("schema", po::value<std::string>()->default_value(""), "Database schema to put tables.\n  blank:\t defaults to default schema dictated by PostgreSQL search_path.")
         ("prefix", po::value<std::string>()->default_value(""), "Prefix added at the beginning of the table names.")
         ("suffix", po::value<std::string>()->default_value(""), "Suffix added at the end of the table names.")
+#if 0
         ("postgis", "Install postgis if not found.")  // TODO(vicky) remove before realesing
-        ("addnodes", "Import the osm_nodes table.")
+#endif
+        ("addnodes", "Import the osm_nodes, osm_ways & osm_relations tables.")
         ("attributes", "Include attributes information.")
         ("tags", "Include tag information.")
-        ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
         ("chunk", po::value<std::size_t>()->default_value(20000), "Exporting chunk size.")
         ("clean", "Drop previously created tables.")
-        ("no-index", "Do not create indexes (when is not the first file)")
+        ("no-index", "Do not create indexes (Use when indexes are already created)");
+#if 0
+        ("addways", "Import the osm_ways table.")
+        ("addrelations", "Import the osm_relations table.")
         ("fork", "Use fork (works on small files).");
+        ("hstore", "Use hstore for attributes and/or tags. (not indicating will use json)")
+#endif
 
     db_options_od_desc.add_options()
         // database options
@@ -96,10 +102,16 @@ process_command_line(po::variables_map &vm) {
     std::cout << "schema= " << vm["schema"].as<std::string>() << "\n";
     std::cout << "prefix = " << vm["prefix"].as<std::string>() << "\n";
     std::cout << "suffix = " << vm["suffix"].as<std::string>() << "\n";
+#if 0
     std::cout << (vm.count("postgis")? "I" : "Don't I") << "nstall postgis if not found\n";
+#endif
     std::cout << (vm.count("clean")? "D" : "Don't d") << "rop tables\n";
     std::cout << (vm.count("no-index")? "D" : "Don't c") << "reate indexes\n";
-    std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd nodes\n";
+    std::cout << (vm.count("addnodes")? "A" : "Don't a") << "dd OSM nodes\n";
+#if 0
+    std::cout << (vm.count("addways")? "A" : "Don't a") << "dd OSM ways\n";
+    std::cout << (vm.count("addrelations")? "A" : "Don't a") << "dd OSM relations\n";
     std::cout << (vm.count("fork")? "F" : "Don't f") << "ork\n";
+#endif
     std::cout << "***************************************************\n";
 }

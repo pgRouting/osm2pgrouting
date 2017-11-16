@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "osm_elements/OSMDocument.h"
 
 #include <boost/lexical_cast.hpp>
 #include <vector>
@@ -26,9 +27,12 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+
+#if 0
 #include <sys/wait.h>
+#endif
+
 #include "utilities/utilities.h"
-#include "osm_elements/OSMDocument.h"
 #include "configuration/configuration.h"
 #include "osm_elements/Node.h"
 #include "osm_elements/Relation.h"
@@ -53,6 +57,7 @@ OSMDocument::OSMDocument(
 
 void
 OSMDocument::wait_child() const {
+#if 0
     while (true) {
         int status;
         pid_t done = wait(&status);
@@ -65,36 +70,42 @@ OSMDocument::wait_child() const {
             }
         }
     }
+#endif
 }
 
 
 void
 OSMDocument::AddNode(const Node &n) {
-    m_nodes.push_back(n);
-    if ((m_nodes.size() % m_chunk_size) == 0) {
-        wait_child();
-        if (do_export_osm(m_nodes)) {
+    if (m_vm.count("addnodes")) {
+        if ((m_nodes.size() % m_chunk_size) == 0) {
+            wait_child();
+            std::cout << "\rCurrent osm_nodes:\t" << m_nodes.size();
             osm_table_export(m_nodes, "osm_nodes");
+            export_pois();
         }
-        export_pois();
     }
+
+    m_nodes.push_back(n);
 }
 
 void OSMDocument::AddWay(const Way &w) {
-    if (m_ways.empty()) {
+    if (m_ways.empty() && m_vm.count("addnodes")) {
         wait_child();
-        if (m_vm.count("addnodes")) {
-            osm_table_export(m_nodes, "osm_nodes");
-        }
+        osm_table_export(m_nodes, "osm_nodes");
         export_pois();
-    std::cout << "\nSaving first way\n\n\n";
+        std::cout << "\nFinal osm_nodes:\t" << m_nodes.size() << "\n";
+    }
+
+
+    if (m_vm.count("addnodes")) {
+        if ((m_ways.size() % m_chunk_size) == 0) {
+            wait_child();
+            std::cout << "\rCurrent osm_ways:\t" << m_ways.size();
+            osm_table_export(m_ways, "osm_ways");
+        }
     }
 
     m_ways.push_back(w);
-    if (do_export_osm(m_ways)) {
-        wait_child();
-        osm_table_export(m_ways, "osm_ways");
-    }
 }
 
 void
@@ -102,20 +113,24 @@ OSMDocument::AddRelation(const Relation &r) {
     if (m_vm.count("addnodes") && m_relations.empty()) {
         wait_child();
         osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nSaving first relation\n\n\n";
+        std::cout << "\nFinal osm_ways:\t" << m_ways.size() << "\n";
     }
 
-    m_relations.push_back(r);
-    if (do_export_osm(m_relations)) {
-        wait_child();
-        osm_table_export(m_relations, "osm_relations");
+    if (m_vm.count("addnodes")) {
+        if (m_relations.size() % m_chunk_size == 0) {
+            wait_child();
+            std::cout << "\rCurrent osm_relations:\t" << m_relations.size();
+            osm_table_export(m_relations, "osm_relations");
+        }
     }
+    m_relations.push_back(r);
 }
 
 void
 OSMDocument::endOfFile() const {
     if (m_vm.count("addnodes")) {
         wait_child();
+        std::cout << "\nFinal osm_relations:\t" << m_relations.size();
         osm_table_export(m_relations, "osm_relations");
     }
     std::cout << "\nEnd Of file\n\n\n";
@@ -210,6 +225,7 @@ OSMDocument::export_pois() const {
     std::string table("pointsofinterest");
     if (m_nodes.empty()) return;
 
+#if 0
     if (m_vm.count("fork")) {
         auto pid = fork();
         if (pid < 0) {
@@ -218,6 +234,7 @@ OSMDocument::export_pois() const {
         }
         if (pid > 0) return;
     }
+#endif
 
 
     auto residue = m_nodes.size() % m_chunk_size;
@@ -235,12 +252,14 @@ OSMDocument::export_pois() const {
         m_db_conn.export_osm(export_items, table);
     }
 
+#if 0
     if (m_vm.count("fork")) {
         /*
          * finish the child process
          */
         _exit(0);
     }
+#endif
 }
 
 

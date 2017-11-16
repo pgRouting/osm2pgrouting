@@ -11,6 +11,7 @@ Before you can use this tool for importing Openstreetmap data you need to instal
 3. pgrouting
 4. boost
 5. expat
+5. libpqxx
 6. cmake
 
 and to prepare a database.
@@ -31,9 +32,7 @@ make
 make install
 ```
 
-If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake.  Commonly useful parameters are
-
-Install some prerqeuisites
+Install some prerequisites:
 
 ```
 sudo apt-get install expat
@@ -42,6 +41,8 @@ sudo apt-get install libboost-dev
 sudo apt-get install libboost-program-options-dev
 sudo apt install libpqxx-dev
 ```
+
+If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake. Commonly useful parameters are
 
 CMAKE options:
 
@@ -85,9 +86,7 @@ osm2pgrouting --f next-OSM-XML-File.osm --conf mapconfig.xml --dbname routing --
 A complete list of arguments are:
 
 ```
-Allowed options:
-
-
+ osm2pgrouting --help
 Allowed options:
 
 Help:
@@ -106,15 +105,22 @@ General:
                                         table names.
   --suffix arg                          Suffix added at the end of the table 
                                         names.
-  --addnodes                            Import the osm_nodes table.
+  --postgis                             Install postgis if not found.
+  --addnodes                            Import the osm_nodes, osm_ways &
+                                        osm_relations tables.
+  --attributes                          Include attributes information.
+  --tags                                Include tag information.
+  --chunk arg (=20000)                  Exporting chunk size.
   --clean                               Drop previously created tables.
+  --no-index                            Do not create indexes (Use when indexes
+                                        are already created)
 
 Database options:
-  -d [ --dbname ] arg               Name of your database (Required).
-  -U [ --username ] arg (=postgres) Name of the user, which have write access 
-                                    to the database.
-  -h [ --host ] arg (=localhost)    Host of your postgresql database.
-  -p [ --port ] arg (=5432)         db_port of your database.
-  -W [ --password ] arg             Password for database access.
+  -d [ --dbname ] arg            Name of your database (Required).
+  -U [ --username ] arg          Name of the user, which have write access to
+                                 the database.
+  -h [ --host ] arg (=localhost) Host of your postgresql database.
+  -p [ --port ] arg (=5432)      db_port of your database.
+  -W [ --password ] arg          Password for database access.
 
 ```
