@@ -182,7 +182,6 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
     }
 
     if (strcmp(name, "relation") == 0) {
-        m_rDocument.AddRelation(*last_relation);
         if (m_rDocument.config_has_tag(last_relation->tag_config())) {
             for (auto it = last_relation->way_refs().begin();  it != last_relation->way_refs().end(); ++it) {
                 auto way_id = *it;
@@ -200,8 +199,8 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                     }
                 }
             }
-            m_rDocument.AddRelation(*last_relation);
         }
+        m_rDocument.AddRelation(*last_relation);
         delete last_relation;
         return;
     } 

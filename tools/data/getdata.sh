@@ -2,6 +2,9 @@
 
 exit(0);
 
+# https://github.com/GeographicaGS/osm-itinera/blob/master/itinera/const.py#L43
+BBOX="1.97180,41.26684,2.26478,41.55818"
+wget --progress=dot:mega -O "bcn" "http://www.overpass-api.de/api/xapi?*[bbox=${BBOX}][@meta]"
 
 BBOX="13.15,47.24,13.52,47.45"
 wget --progress=dot:mega -O "restrictions.osm" "http://www.overpass-api.de/api/xapi?*[bbox=${BBOX}][@meta]"

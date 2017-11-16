@@ -46,6 +46,8 @@ OSMDocument::OSMDocument(
         const po::variables_map &vm,
         const Export2DB &db_conn,
         size_t lines) :
+    m_relPending(false),
+    m_waysPending(true),
     m_rConfig(config),
     m_vm(vm),
     m_db_conn(db_conn),
@@ -110,25 +112,29 @@ void OSMDocument::AddWay(const Way &w) {
 
 void
 OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addnodes") && m_relations.empty()) {
+    if (m_vm.count("addnodes") && m_waysPending) {
+        m_waysPending = false;
         wait_child();
         osm_table_export(m_ways, "osm_ways");
         std::cout << "\nFinal osm_ways:\t" << m_ways.size() << "\n";
     }
 
+    m_relPending = true;
+    m_relations.push_back(r);
     if (m_vm.count("addnodes")) {
         if (m_relations.size() % m_chunk_size == 0) {
             wait_child();
-            std::cout << "\rCurrent osm_relations:\t" << m_relations.size();
+            std::cout << "Current osm_relations:\t" << m_relations.size();
             osm_table_export(m_relations, "osm_relations");
+            m_relPending = false;
         }
     }
-    m_relations.push_back(r);
 }
 
 void
-OSMDocument::endOfFile() const {
-    if (m_vm.count("addnodes")) {
+OSMDocument::endOfFile() {
+    if (m_vm.count("addnodes") && m_relPending == true) {
+        m_relPending = false;
         wait_child();
         std::cout << "\nFinal osm_relations:\t" << m_relations.size();
         osm_table_export(m_relations, "osm_relations");
