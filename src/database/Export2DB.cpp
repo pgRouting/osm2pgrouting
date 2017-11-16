@@ -599,8 +599,10 @@ void Export2DB::process_pois() const {
     /* osm2pgr_pois_update */
     execute(pois().sql(4));
 
-    std::cout << "\nTo process pointsOfInterest table:"
-        << "\n" << m_schema << (m_schema == "" ? "" :  ".")
+    std::cout << "\nTo process pointsOfInterest table:\n"
+#if 0 //TODO
+        << m_schema << (m_schema == "" ? "" :  ".")
+#endif
         << "osm2pgr_pois_update(radius default 200, within default 50)\n"
         "\n  - Using areas of (radius)mts on POIS"
         "\n  - Using edges that are at least (within) mts of each POI"
