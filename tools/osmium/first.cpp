@@ -9,8 +9,6 @@
 #include <osmium/osm/object.hpp>
 #include <osmium/builder/builder.hpp>
 #include <osmium/builder/osm_object_builder.hpp>
-#include <osmium/io/any_input.hpp>
-#include <osmium/io/any_output.hpp>
 #include <osmium/io/any_compression.hpp>
 #include <osmium/index/map/sparse_mem_array.hpp>
 #include <osmium/handler/node_locations_for_ways.hpp>
@@ -94,6 +92,15 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
 
     public:
 
+    MyRelCollector() :
+        m_file(std::cout) {
+    }
+
+    MyRelCollector(std::ostream &file) :
+        m_file(file) {
+    }
+
+
     /**
      * Interested in all relations tagged with type=restriction
      *
@@ -109,6 +116,7 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
          * TODO save in a configuration file
          */
         std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
+
         /*
          *  ignore relations without "type" tag
          */
@@ -146,26 +154,23 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
             const osmium::Relation& relation) const {
         std::string user = std::string(relation.user());
         user = add_quotes(user, true);
-        std::string str("\'");
+        std::string str("");
         str += "version=>" + std::to_string(relation.version()) + ",";
         str += "timestamp=>" + relation.timestamp().to_iso() + ",";
         str += "changeset=>" + std::to_string(relation.changeset()) + ",";
         str += "uid=>" + std::to_string(relation.uid()) + ",";
         str += "user=>" + user;
-        str += '\'';
-        str += "::hstore";
         return str;
     }
 
 
     std::string tags_str(
             const osmium::Relation& relation) const {
-        std::string str("\'");
+        std::string str("");
         for (const osmium::Tag& tag : relation.tags()) {
             str += std::string(tag.key()) + "=>" +  tag.value() + ',';
         }
-        str[str.size()-1] = '\'';
-        str += "::hstore";
+        str[str.size()-1] = ' ';
         return str;
     }
 
@@ -199,14 +204,14 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
                 assert(false);
             }
         }
-        std::cout
+        m_file
             << relation.id() << "\t"
             << "'" << relation.get_value_by_key("restriction") << "'\t"
             << from << "\t"
-            << to << ",\t"
-            << via << ",\t"
-            <<  "'" << via_type << "',\t"
-            << attributes_str(relation) << ",\t"
+            << to << "\t"
+            << via << "\t"
+            <<  via_type << "\t"
+            << attributes_str(relation) << "\t"
             << tags_str(relation)
             << "\n";
     }
@@ -214,12 +219,19 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
     void flush() {
         this->callback();
     }
+  private:
+
+    std::ostream &m_file;
 };
 
 
 
 
 main() {
+    /*
+     * The output file
+     */
+    std::ofstream of("restrictions_output.sql");
 
     /*
      * Reading the create table query
@@ -227,14 +239,14 @@ main() {
     std::ifstream f("../restrictions.sql");
     std::stringstream buffer;
 
-    buffer << f.rdbuf();
+    of  << f.rdbuf();
     std::string str = buffer.str();
     std::cout << str << "\n";
     f.close();
 
     osmium::handler::DynamicHandler handler;
     osmium::relations::RelationMeta relation_meta;
-    MyRelCollector collector;
+    MyRelCollector collector(of);
     std::cerr << "Pass 1...\n";
     osmium::io::Reader reader1{"../../../tools/data/restrictions.osm", osmium::osm_entity_bits::relation};
     collector.read_relations(reader1);
@@ -271,6 +283,11 @@ main() {
     reader2.close();
     std::cout << "\\.";
     std::cerr << "Pass 2 done\n";
+    std::ifstream l("../restrictions_end.sql");
+    of  << "\\.";
+    of  << l.rdbuf();
+    l.close();
+    of.close();
 
     // Output the amount of main memory used so far. All complete multipolygon
     // relations have been cleaned up.
