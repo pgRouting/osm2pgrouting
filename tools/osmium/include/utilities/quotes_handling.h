@@ -22,9 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 /*! @file */
 
+#ifndef TOOLS_OSMIUM_INCLUDE_UTILITIES_QUOTES_HANDLING_H_
+#define TOOLS_OSMIUM_INCLUDE_UTILITIES_QUOTES_HANDLING_H_
 
 #include <string>
 
 std::string
 add_quotes(const std::string str, bool force);
 
+#endif  // TOOLS_OSMIUM_INCLUDE_UTILITIES_QUOTES_HANDLING_H_

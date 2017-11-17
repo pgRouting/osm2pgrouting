@@ -1,7 +1,7 @@
 /*PGR-GNU*****************************************************************
  * File: getrestrictions.cpp
  *
- * Copyright (c) 2017 pgRouting developers
+   Copyright (c) 2017 pgRouting developers
  *
  * File developer: Celia Virginia Vergara Castillo (2017)
  *
@@ -25,8 +25,10 @@
 
 #include <fstream>
 #include <iostream> // for std::cout, std::cerr
+
 #include "utilities/quotes_handling.h"
 #include "collectors/turn_restrictions.h"
+
 #if 0
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/location.hpp>
@@ -37,16 +39,12 @@
 #include <osmium/builder/builder.hpp>
 #include <osmium/builder/osm_object_builder.hpp>
 #include <osmium/io/any_compression.hpp>
-#endif
 #include <osmium/index/map/sparse_mem_array.hpp>
 #include <osmium/relations/collector.hpp>
 
-#if 0
 #include <cstdlib>  // for std::exit
 #include <getopt.h> // for getopt_long
-#endif
 
-#if 0
 // For assembling multipolygons
 #include <osmium/area/assembler.hpp>
 #include <osmium/area/multipolygon_collector.hpp>
@@ -58,17 +56,13 @@
 #if 0
 // For the WKT factory
 #include <osmium/geom/wkt.hpp>
-#endif
 
-#if 0
 // For the Dump handler
 #include <osmium/handler/dump.hpp>
 #endif
 
-#if 1
 // For the NodeLocationForWays handler
 #include <osmium/handler/node_locations_for_ways.hpp>
-#endif
 
 // Allow any format of input files (XML, PBF, ...)
 #include <osmium/io/any_input.hpp>
@@ -76,9 +70,7 @@
 #if 0
 // For osmium::apply()
 #include <osmium/visitor.hpp>
-#endif
 
-#if 0
 // For the location index. There are different types of indexes available.
 // This will work for small and medium sized input files.
 #include <osmium/index/map/sparse_mem_array.hpp>
@@ -88,7 +80,11 @@
 
 
 
+
 main() {
+    using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
+    using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
+
     /*
      * The output file
      */

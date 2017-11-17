@@ -1,7 +1,7 @@
 /*PGR-GNU*****************************************************************
  * File: turn_restrictions.cpp
  *
- * Copyright (c) 2017 pgRouting developers
+ * Copyright(c) 2017 pgRouting developers
  *
  * File developer: Celia Virginia Vergara Castillo (2017)
  *
@@ -26,68 +26,10 @@
 #include "collectors/turn_restrictions.h"
 
 #include <fstream>
-#include <iostream> // for std::cout, std::cerr
+#include <vector>
+#include <string>
+#include <iostream>
 #include "utilities/quotes_handling.h"
-#if 0
-#include <osmium/osm/types.hpp>
-#include <osmium/osm/location.hpp>
-#include <osmium/osm/segment.hpp>
-#include <osmium/osm/undirected_segment.hpp>
-#include <osmium/osm/box.hpp>
-#include <osmium/osm/object.hpp>
-#include <osmium/builder/builder.hpp>
-#include <osmium/builder/osm_object_builder.hpp>
-#include <osmium/io/any_compression.hpp>
-#endif
-#include <osmium/index/map/sparse_mem_array.hpp>
-#include <osmium/relations/collector.hpp>
-
-#if 0
-#include <cstdlib>  // for std::exit
-#include <getopt.h> // for getopt_long
-#endif
-
-#if 0
-// For assembling multipolygons
-#include <osmium/area/assembler.hpp>
-#include <osmium/area/multipolygon_collector.hpp>
-#endif
-
-// For the DynamicHandler class
-#include <osmium/dynamic_handler.hpp>
-
-#if 0
-// For the WKT factory
-#include <osmium/geom/wkt.hpp>
-#endif
-
-#if 0
-// For the Dump handler
-#include <osmium/handler/dump.hpp>
-#endif
-
-#if 1
-// For the NodeLocationForWays handler
-#include <osmium/handler/node_locations_for_ways.hpp>
-#endif
-
-// Allow any format of input files (XML, PBF, ...)
-#include <osmium/io/any_input.hpp>
-
-#if 0
-// For osmium::apply()
-#include <osmium/visitor.hpp>
-#endif
-
-#if 0
-// For the location index. There are different types of indexes available.
-// This will work for small and medium sized input files.
-#include <osmium/index/map/sparse_mem_array.hpp>
-#endif
-
-
-using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
-using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
 
 MyRelCollector::MyRelCollector() :
@@ -112,7 +54,9 @@ bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
      * known transportation modes
      * TODO save in a configuration file
      */
-    std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
+    std::vector<std::string> transportation_mode{
+        "hgv", "caravan", "motorcar", "bus",
+            "agricultural", "bicycle", "hazmat", "psv", "emergency"};
 
     /*
      *  ignore relations without "type" tag
@@ -126,7 +70,9 @@ bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
     }
 
     for (const auto& tm : transportation_mode) {
-        if ((std::string("restriction:") + tm) == std::string(type)) return true;
+        if ((std::string("restriction:") + tm) == std::string(type)) {
+            return true;
+        }
     }
     return false;
 }
@@ -140,7 +86,7 @@ bool MyRelCollector::keep_member(
     /*
      * Interested in members of type way & node.
      */
-    return member.type() == osmium::item_type::way || 
+    return member.type() == osmium::item_type::way ||
         member.type() == osmium::item_type::node;
 }
 
@@ -180,7 +126,8 @@ std::string MyRelCollector::tags_str(
  *
  * Overwritten from the base class.
  */
-void MyRelCollector::complete_relation(osmium::relations::RelationMeta& relation_meta) {
+void MyRelCollector::complete_relation(
+        osmium::relations::RelationMeta& relation_meta) {
     const osmium::Relation& relation = this->get_relation(relation_meta);
 
     osmium::object_id_type from;
@@ -189,12 +136,12 @@ void MyRelCollector::complete_relation(osmium::relations::RelationMeta& relation
     osmium::item_type via_type;
 
     for (const auto& member : relation.members()) {
-        if  (!std::strcmp(member.role(),"via")) {
+        if (!std::strcmp(member.role(), "via")) {
             via = member.ref();
             via_type = member.type();
-        } else if  (!std::strcmp(member.role(),"from")) {
+        } else if (!std::strcmp(member.role(), "from")) {
             from = member.ref();
-        } else if  (!std::strcmp(member.role(),"to")) {
+        } else if (!std::strcmp(member.role(), "to")) {
             to = member.ref();
         } else {
             std::cout << "Found an illegal member relation in restriction\n";
