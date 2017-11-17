@@ -18,3 +18,4 @@ fix_typos
 run.sh
 LOG.txt
 .directory
+*.swp

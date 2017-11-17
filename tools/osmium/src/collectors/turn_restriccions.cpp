@@ -23,10 +23,11 @@
 /*! @file */
 
 
+#include "collectors/turn_restrictions.h"
+
 #include <fstream>
 #include <iostream> // for std::cout, std::cerr
 #include "utilities/quotes_handling.h"
-#include "collectors/turn_restrictions.h"
 #if 0
 #include <osmium/osm/types.hpp>
 #include <osmium/osm/location.hpp>
@@ -88,54 +89,6 @@
 using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-#if 0
-std::string
-add_quotes(const std::string str, bool force) {
-    std::string result("");
-
-    for (auto c : str) {
-        if ( c == '"' ) {
-            /*
-             * To avoid problems with json & hstore
-             * all quotes are converted to single quotes
-             */
-            result += "\'\'";
-            continue;
-        } else if ( c == '\\' ) {
-            result += '\\';
-        } else if (c == '\'') {
-            result += '\'';
-        } else if (c == '\n') {
-            result += "\\n";
-            continue;
-        } else if (c == '\r') {
-            result += "\\r";
-            continue;
-        } else if (c == '\t') {
-            result += "\\t";
-            continue;
-        }
-        result += c;
-    }
-    if (!force) {
-        for (auto c : result) {
-            if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
-                return std::string("\"") + result + "\"";
-            }
-        }
-        return result;
-    }
-    return std::string("\"") + result + "\"";
-}
-#endif
-
-
-#if 0
-class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true, true, true> {
-
-    public:
-
-#endif
 
 MyRelCollector::MyRelCollector() :
     m_file(std::cout) {
@@ -263,80 +216,3 @@ void MyRelCollector::complete_relation(osmium::relations::RelationMeta& relation
 void MyRelCollector::flush() {
     this->callback();
 }
-#if 0
-private:
-
-std::ostream &m_file;
-};
-
-
-
-
-main() {
-    /*
-     * The output file
-     */
-    std::ofstream of("restrictions_output.sql");
-
-    /*
-     * Reading the create table query
-     */
-    std::ifstream f("../restrictions.sql");
-    std::stringstream buffer;
-
-    of  << f.rdbuf();
-    std::string str = buffer.str();
-    std::cout << str << "\n";
-    f.close();
-
-    osmium::handler::DynamicHandler handler;
-    osmium::relations::RelationMeta relation_meta;
-    MyRelCollector collector(of);
-    std::cerr << "Pass 1...\n";
-    osmium::io::Reader reader1{"../../../tools/data/restrictions.osm", osmium::osm_entity_bits::relation};
-    collector.read_relations(reader1);
-    reader1.close();
-    std::cerr << "Pass 1 done\n";
-
-
-    // Output the amount of main memory used so far. All multipolygon relations
-    // are in memory now.
-    std::cerr << "Memory:\n";
-    collector.used_memory();
-
-    // The index storing all node locations.
-    index_type index;
-
-    // The handler that stores all node locations in the index and adds them
-    // to the ways.
-    location_handler_type location_handler{index};
-
-    // If a location is not available in the index, we ignore it. It might
-    // not be needed (if it is not part of a multipolygon relation), so why
-    // create an error?
-    location_handler.ignore_errors();
-
-    // On the second pass we read all objects and run them first through the
-    // node location handler and then the multipolygon collector. The collector
-    // will put the areas it has created into the "buffer" which are then
-    // fed through our "handler".
-    std::cerr << "Pass 2...\n";
-    osmium::io::Reader reader2{"../../../tools/data/restrictions.osm"};
-    osmium::apply(reader2, location_handler, collector.handler([&handler](osmium::memory::Buffer&& buffer) {
-                osmium::apply(buffer, handler);
-                }));
-    reader2.close();
-    std::cout << "\\.";
-    std::cerr << "Pass 2 done\n";
-    std::ifstream l("../restrictions_end.sql");
-    of  << "\\.";
-    of  << l.rdbuf();
-    l.close();
-    of.close();
-
-    // Output the amount of main memory used so far. All complete multipolygon
-    // relations have been cleaned up.
-    std::cerr << "Memory:\n";
-    collector.used_memory();
-}
-#endif

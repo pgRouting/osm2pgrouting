@@ -85,63 +85,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-#if 0
-std::string
-add_quotes(const std::string str, bool force) {
-    std::string result("");
-
-    for (auto c : str) {
-        if ( c == '"' ) {
-            /*
-             * To avoid problems with json & hstore
-             * all quotes are converted to single quotes
-             */
-            result += "\'\'";
-            continue;
-        } else if ( c == '\\' ) {
-            result += '\\';
-        } else if (c == '\'') {
-            result += '\'';
-        } else if (c == '\n') {
-            result += "\\n";
-            continue;
-        } else if (c == '\r') {
-            result += "\\r";
-            continue;
-        } else if (c == '\t') {
-            result += "\\t";
-            continue;
-        }
-        result += c;
-    }
-    if (!force) {
-        for (auto c : result) {
-            if  (c == ' ' || c == ',' || c == '=' || c == '>' || c == ':') {
-                return std::string("\"") + result + "\"";
-            }
-        }
-        return result;
-    }
-    return std::string("\"") + result + "\"";
-}
-#endif
-
 
 class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true, true, true> {
 
     public:
 
     MyRelCollector();
-#if 0
-        m_file(std::cout) {
-    }
-#endif
-
     explicit MyRelCollector(std::ostream &file);
-#if 0
-        m_file(file) {
-    }
-#endif
 
     /**
      * Interested in all relations tagged with type=restriction
@@ -152,31 +102,6 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
      * Overwritten from the base class.
      */
     bool keep_relation(const osmium::Relation& relation) const;
-#if 0
-        const char* type = relation.tags().get_value_by_key("type");
-        /*
-         * known transportation modes
-         * TODO save in a configuration file
-         */
-        std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
-
-        /*
-         *  ignore relations without "type" tag
-         */
-        if (!type) {
-            return false;
-        }
-
-        if ((!std::strcmp(type, "restriction"))) {
-            return true;
-        }
-
-        for (const auto& tm : transportation_mode) {
-            if ((std::string("restriction:") + tm) == std::string(type)) return true;
-        }
-        return false;
-    }
-#endif
 
     /**
      * Overwritten from the base class.
@@ -184,45 +109,16 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
     bool keep_member(
             const osmium::relations::RelationMeta&,
             const osmium::RelationMember& member) const ;
-#if 0
-        /*
-         * Interested in members of type way & node.
-         */
-        return member.type() == osmium::item_type::way || 
-            member.type() == osmium::item_type::node;
-    }
-#endif
 
     /*
      * (2654080,'no_right_turn',30513235,30513221,336812979,'n','version=>1,timestamp=>2012-12-22T17:01:50Z,changeset=>14368535,uid=>381316,user=>Schermy'::hstore,'except=>hgv,restriction=>no_right_turn,type=>restriction'::hstore)
      */
     std::string attributes_str(
             const osmium::Relation& relation) const ;
-#if 0
-        std::string user = std::string(relation.user());
-        user = add_quotes(user, true);
-        std::string str("");
-        str += "version=>" + std::to_string(relation.version()) + ",";
-        str += "timestamp=>" + relation.timestamp().to_iso() + ",";
-        str += "changeset=>" + std::to_string(relation.changeset()) + ",";
-        str += "uid=>" + std::to_string(relation.uid()) + ",";
-        str += "user=>" + user;
-        return str;
-    }
-#endif
 
 
     std::string tags_str(
             const osmium::Relation& relation) const ;
-#if 0
-        std::string str("");
-        for (const osmium::Tag& tag : relation.tags()) {
-            str += std::string(tag.key()) + "=>" +  tag.value() + ',';
-        }
-        str[str.size()-1] = ' ';
-        return str;
-    }
-#endif
 
     /** A Restriction:
      *
@@ -234,119 +130,12 @@ class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true,
      * Overwritten from the base class.
      */
     void complete_relation(osmium::relations::RelationMeta& relation_meta) ;
-#if 0
-        const osmium::Relation& relation = this->get_relation(relation_meta);
-
-        osmium::object_id_type from;
-        osmium::object_id_type to;
-        osmium::object_id_type via;
-        osmium::item_type via_type;
-
-        for (const auto& member : relation.members()) {
-            if  (!std::strcmp(member.role(),"via")) {
-                via = member.ref();
-                via_type = member.type();
-            } else if  (!std::strcmp(member.role(),"from")) {
-                from = member.ref();
-            } else if  (!std::strcmp(member.role(),"to")) {
-                to = member.ref();
-            } else {
-                std::cout << "Found an illegal member relation in restriction\n";
-                assert(false);
-            }
-        }
-        m_file
-            << relation.id() << "\t"
-            << "'" << relation.get_value_by_key("restriction") << "'\t"
-            << from << "\t"
-            << to << "\t"
-            << via << "\t"
-            <<  via_type << "\t"
-            << attributes_str(relation) << "\t"
-            << tags_str(relation)
-            << "\n";
-    }
-#endif
 
     void flush();
-#if 0
-        this->callback();
-    }
-#endif
+
   private:
 
     std::ostream &m_file;
 };
 
 
-
-
-#if 0
-main() {
-    /*
-     * The output file
-     */
-    std::ofstream of("restrictions_output.sql");
-
-    /*
-     * Reading the create table query
-     */
-    std::ifstream f("../restrictions.sql");
-    std::stringstream buffer;
-
-    of  << f.rdbuf();
-    std::string str = buffer.str();
-    std::cout << str << "\n";
-    f.close();
-
-    osmium::handler::DynamicHandler handler;
-    osmium::relations::RelationMeta relation_meta;
-    MyRelCollector collector(of);
-    std::cerr << "Pass 1...\n";
-    osmium::io::Reader reader1{"../../../tools/data/restrictions.osm", osmium::osm_entity_bits::relation};
-    collector.read_relations(reader1);
-    reader1.close();
-    std::cerr << "Pass 1 done\n";
-
-
-    // Output the amount of main memory used so far. All multipolygon relations
-    // are in memory now.
-    std::cerr << "Memory:\n";
-    collector.used_memory();
-
-    // The index storing all node locations.
-    index_type index;
-
-    // The handler that stores all node locations in the index and adds them
-    // to the ways.
-    location_handler_type location_handler{index};
-
-    // If a location is not available in the index, we ignore it. It might
-    // not be needed (if it is not part of a multipolygon relation), so why
-    // create an error?
-    location_handler.ignore_errors();
-
-    // On the second pass we read all objects and run them first through the
-    // node location handler and then the multipolygon collector. The collector
-    // will put the areas it has created into the "buffer" which are then
-    // fed through our "handler".
-    std::cerr << "Pass 2...\n";
-    osmium::io::Reader reader2{"../../../tools/data/restrictions.osm"};
-    osmium::apply(reader2, location_handler, collector.handler([&handler](osmium::memory::Buffer&& buffer) {
-                osmium::apply(buffer, handler);
-                }));
-    reader2.close();
-    std::cout << "\\.";
-    std::cerr << "Pass 2 done\n";
-    std::ifstream l("../restrictions_end.sql");
-    of  << "\\.";
-    of  << l.rdbuf();
-    l.close();
-    of.close();
-
-    // Output the amount of main memory used so far. All complete multipolygon
-    // relations have been cleaned up.
-    std::cerr << "Memory:\n";
-    collector.used_memory();
-}
-#endif
