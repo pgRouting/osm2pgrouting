@@ -199,8 +199,8 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
                     }
                 }
             }
+            m_rDocument.AddRelation(*last_relation);
         }
-        m_rDocument.AddRelation(*last_relation);
         delete last_relation;
         return;
     } 
