@@ -1,5 +1,5 @@
 /*PGR-GNU*****************************************************************
- * File: turn_restrictions.cpp
+ * File: getrestrictions.cpp
  *
  * Copyright (c) 2017 pgRouting developers
  *
@@ -85,10 +85,10 @@
 #endif
 
 
+#if 0
 using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-#if 0
 std::string
 add_quotes(const std::string str, bool force) {
     std::string result("");
@@ -127,147 +127,144 @@ add_quotes(const std::string str, bool force) {
     }
     return std::string("\"") + result + "\"";
 }
-#endif
 
 
-#if 0
 class MyRelCollector : public osmium::relations::Collector<MyRelCollector, true, true, true> {
 
     public:
 
-#endif
-
-MyRelCollector::MyRelCollector() :
-    m_file(std::cout) {
+    MyRelCollector() :
+        m_file(std::cout) {
     }
 
-MyRelCollector::MyRelCollector(std::ostream &file) :
-    m_file(file) {
+    MyRelCollector(std::ostream &file) :
+        m_file(file) {
     }
 
-/**
- * Interested in all relations tagged with type=restriction
- *
- * OSM WIKI about restrictions
- * http://wiki.openstreetmap.org/wiki/Relation:restriction
- *
- * Overwritten from the base class.
- */
-bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
-    const char* type = relation.tags().get_value_by_key("type");
-    /*
-     * known transportation modes
-     * TODO save in a configuration file
-     */
-    std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
 
-    /*
-     *  ignore relations without "type" tag
+    /**
+     * Interested in all relations tagged with type=restriction
+     *
+     * OSM WIKI about restrictions
+     * http://wiki.openstreetmap.org/wiki/Relation:restriction
+     *
+     * Overwritten from the base class.
      */
-    if (!type) {
+    bool keep_relation(const osmium::Relation& relation) const {
+        const char* type = relation.tags().get_value_by_key("type");
+        /*
+         * known transportation modes
+         * TODO save in a configuration file
+         */
+        std::vector<std::string> transportation_mode{"hgv","caravan","motorcar","bus","agricultural","bicycle","hazmat","psv","emergency"}; 
+
+        /*
+         *  ignore relations without "type" tag
+         */
+        if (!type) {
+            return false;
+        }
+
+        if ((!std::strcmp(type, "restriction"))) {
+            return true;
+        }
+
+        for (const auto& tm : transportation_mode) {
+            if ((std::string("restriction:") + tm) == std::string(type)) return true;
+        }
         return false;
     }
 
-    if ((!std::strcmp(type, "restriction"))) {
-        return true;
-    }
-
-    for (const auto& tm : transportation_mode) {
-        if ((std::string("restriction:") + tm) == std::string(type)) return true;
-    }
-    return false;
-}
-
-/**
- * Overwritten from the base class.
- */
-bool MyRelCollector::keep_member(
-        const osmium::relations::RelationMeta&,
-        const osmium::RelationMember& member) const {
-    /*
-     * Interested in members of type way & node.
+    /**
+     * Overwritten from the base class.
      */
-    return member.type() == osmium::item_type::way || 
-        member.type() == osmium::item_type::node;
-}
-
-/*
- * (2654080,'no_right_turn',30513235,30513221,336812979,'n','version=>1,timestamp=>2012-12-22T17:01:50Z,changeset=>14368535,uid=>381316,user=>Schermy'::hstore,'except=>hgv,restriction=>no_right_turn,type=>restriction'::hstore)
- */
-std::string MyRelCollector::attributes_str(
-        const osmium::Relation& relation) const {
-    std::string user = std::string(relation.user());
-    user = add_quotes(user, true);
-    std::string str("");
-    str += "version=>" + std::to_string(relation.version()) + ",";
-    str += "timestamp=>" + relation.timestamp().to_iso() + ",";
-    str += "changeset=>" + std::to_string(relation.changeset()) + ",";
-    str += "uid=>" + std::to_string(relation.uid()) + ",";
-    str += "user=>" + user;
-    return str;
-}
-
-
-std::string MyRelCollector::tags_str(
-        const osmium::Relation& relation) const {
-    std::string str("");
-    for (const osmium::Tag& tag : relation.tags()) {
-        str += std::string(tag.key()) + "=>" +  tag.value() + ',';
+    bool keep_member(
+            const osmium::relations::RelationMeta&,
+            const osmium::RelationMember& member) const {
+        /*
+         * Interested in members of type way & node.
+         */
+        return member.type() == osmium::item_type::way || 
+            member.type() == osmium::item_type::node;
     }
-    str[str.size()-1] = ' ';
-    return str;
-}
 
-/** A Restriction:
- *
- * from: is of type way
- * to: is of type way
- * via: can be of type way or node
- * can not have a member relation
- *
- * Overwritten from the base class.
- */
-void MyRelCollector::complete_relation(osmium::relations::RelationMeta& relation_meta) {
-    const osmium::Relation& relation = this->get_relation(relation_meta);
+    /*
+     * (2654080,'no_right_turn',30513235,30513221,336812979,'n','version=>1,timestamp=>2012-12-22T17:01:50Z,changeset=>14368535,uid=>381316,user=>Schermy'::hstore,'except=>hgv,restriction=>no_right_turn,type=>restriction'::hstore)
+     */
+    std::string attributes_str(
+            const osmium::Relation& relation) const {
+        std::string user = std::string(relation.user());
+        user = add_quotes(user, true);
+        std::string str("");
+        str += "version=>" + std::to_string(relation.version()) + ",";
+        str += "timestamp=>" + relation.timestamp().to_iso() + ",";
+        str += "changeset=>" + std::to_string(relation.changeset()) + ",";
+        str += "uid=>" + std::to_string(relation.uid()) + ",";
+        str += "user=>" + user;
+        return str;
+    }
 
-    osmium::object_id_type from;
-    osmium::object_id_type to;
-    osmium::object_id_type via;
-    osmium::item_type via_type;
 
-    for (const auto& member : relation.members()) {
-        if  (!std::strcmp(member.role(),"via")) {
-            via = member.ref();
-            via_type = member.type();
-        } else if  (!std::strcmp(member.role(),"from")) {
-            from = member.ref();
-        } else if  (!std::strcmp(member.role(),"to")) {
-            to = member.ref();
-        } else {
-            std::cout << "Found an illegal member relation in restriction\n";
-            assert(false);
+    std::string tags_str(
+            const osmium::Relation& relation) const {
+        std::string str("");
+        for (const osmium::Tag& tag : relation.tags()) {
+            str += std::string(tag.key()) + "=>" +  tag.value() + ',';
         }
+        str[str.size()-1] = ' ';
+        return str;
     }
-    m_file
-        << relation.id() << "\t"
-        << "'" << relation.get_value_by_key("restriction") << "'\t"
-        << from << "\t"
-        << to << "\t"
-        << via << "\t"
-        <<  via_type << "\t"
-        << attributes_str(relation) << "\t"
-        << tags_str(relation)
-        << "\n";
-}
 
-void MyRelCollector::flush() {
-    this->callback();
-}
-#if 0
-private:
+    /** A Restriction:
+     *
+     * from: is of type way
+     * to: is of type way
+     * via: can be of type way or node
+     * can not have a member relation
+     *
+     * Overwritten from the base class.
+     */
+    void complete_relation(osmium::relations::RelationMeta& relation_meta) {
+        const osmium::Relation& relation = this->get_relation(relation_meta);
 
-std::ostream &m_file;
+        osmium::object_id_type from;
+        osmium::object_id_type to;
+        osmium::object_id_type via;
+        osmium::item_type via_type;
+
+        for (const auto& member : relation.members()) {
+            if  (!std::strcmp(member.role(),"via")) {
+                via = member.ref();
+                via_type = member.type();
+            } else if  (!std::strcmp(member.role(),"from")) {
+                from = member.ref();
+            } else if  (!std::strcmp(member.role(),"to")) {
+                to = member.ref();
+            } else {
+                std::cout << "Found an illegal member relation in restriction\n";
+                assert(false);
+            }
+        }
+        m_file
+            << relation.id() << "\t"
+            << "'" << relation.get_value_by_key("restriction") << "'\t"
+            << from << "\t"
+            << to << "\t"
+            << via << "\t"
+            <<  via_type << "\t"
+            << attributes_str(relation) << "\t"
+            << tags_str(relation)
+            << "\n";
+    }
+
+    void flush() {
+        this->callback();
+    }
+  private:
+
+    std::ostream &m_file;
 };
+#endif
 
 
 
@@ -339,4 +336,3 @@ main() {
     std::cerr << "Memory:\n";
     collector.used_memory();
 }
-#endif
