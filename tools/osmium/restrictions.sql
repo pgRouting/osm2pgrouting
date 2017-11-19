@@ -25,11 +25,11 @@ SET default_with_oids = false;
 
 CREATE TABLE IF NOT EXISTS foo.osm_restrictions(
     osm_id BIGINT PRIMARY KEY,
-    restriction TEXT,
-    osm_from BIGINT,
-    osm_to BIGINT,
-    osm_via BIGINT,
-    type_via char,
+    osm_from    BIGINT[],
+    osm_to      BIGINT[],
+    osm_via     BIGINT[],
+    via_type char,
+    osm_location_hint BIGINT,
     attributes hstore,
     tags hstore);
 
@@ -44,6 +44,8 @@ WITH NO DATA;
 
 -- On a created table Use the original table
 COPY __osm_restrictions_tmp (
-    osm_id, restriction,
-    osm_from, osm_to, osm_via, type_via,
+    osm_id,
+    osm_from, osm_to, osm_via,
+    via_type,
+    osm_location_hint,
     attributes, tags) FROM STDIN;

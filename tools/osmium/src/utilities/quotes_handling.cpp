@@ -65,3 +65,14 @@ add_quotes(const std::string str, bool force) {
     return std::string("\"") + result + "\"";
 }
 
+
+std::string
+pg_null(const std::ostringstream &original) {
+    return original.str().empty() ? "\\N" : original.str();
+};
+
+std::string
+pg_null_array(const std::ostringstream &original) {
+    return original.str().empty() ? "\\N" : "{" + original.str() + "}";
+};
+

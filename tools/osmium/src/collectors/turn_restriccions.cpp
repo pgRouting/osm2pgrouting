@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include "utilities/quotes_handling.h"
 
 
@@ -69,11 +70,13 @@ bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
         return true;
     }
 
+#if 0
     for (const auto& tm : transportation_mode) {
         if ((std::string("restriction:") + tm) == std::string(type)) {
             return true;
         }
     }
+#endif
     return false;
 }
 
@@ -82,12 +85,16 @@ bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
  */
 bool MyRelCollector::keep_member(
         const osmium::relations::RelationMeta&,
-        const osmium::RelationMember& member) const {
+        const osmium::RelationMember &member) const {
+#if 0
     /*
      * Interested in members of type way & node.
      */
     return member.type() == osmium::item_type::way ||
         member.type() == osmium::item_type::node;
+#else
+    return false;
+#endif
 }
 
 /*
@@ -95,14 +102,13 @@ bool MyRelCollector::keep_member(
  */
 std::string MyRelCollector::attributes_str(
         const osmium::Relation& relation) const {
-    std::string user = std::string(relation.user());
-    user = add_quotes(user, true);
+    std::string user = add_quotes(std::string(relation.user()));
     std::string str("");
     str += "version=>" + std::to_string(relation.version()) + ",";
     str += "timestamp=>" + relation.timestamp().to_iso() + ",";
     str += "changeset=>" + std::to_string(relation.changeset()) + ",";
     str += "uid=>" + std::to_string(relation.uid()) + ",";
-    str += "user=>" + user;
+    str += "user=>" + add_quotes(std::string(relation.user()));
     return str;
 }
 
@@ -111,7 +117,7 @@ std::string MyRelCollector::tags_str(
         const osmium::Relation& relation) const {
     std::string str("");
     for (const osmium::Tag& tag : relation.tags()) {
-        str += std::string(tag.key()) + "=>" +  tag.value() + ',';
+        str += std::string(tag.key()) + "=>" +  add_quotes(tag.value()) + ',';
     }
     str[str.size()-1] = ' ';
     return str;
@@ -130,31 +136,71 @@ void MyRelCollector::complete_relation(
         osmium::relations::RelationMeta& relation_meta) {
     const osmium::Relation& relation = this->get_relation(relation_meta);
 
-    osmium::object_id_type from;
-    osmium::object_id_type to;
-    osmium::object_id_type via;
-    osmium::item_type via_type;
+    /*
+     * http://wiki.openstreetmap.org/wiki/Relation:restriction#Members
+     *
+     * From:  A no_entry restriction can have more than 1 from member, all others have exactly 1 from.
+     * to:   A no_exit restriction can have more than 1 to member, all others have exactly 1 to.
+     * Via: One node
+     * Via: One or more ways
+     */
+     std::ostringstream from;
+     std::ostringstream to;
+     std::ostringstream via;
+     std::ostringstream location_hint;
+     osmium::item_type via_type;
 
-    for (const auto& member : relation.members()) {
+    for (const auto &member : relation.members()) {
         if (!std::strcmp(member.role(), "via")) {
-            via = member.ref();
-            via_type = member.type();
+            if (via.str().empty()) {
+                /*
+                 * Via: One or more ways with a via role
+                 * Catching only the first via_type (n, w)
+                 * - all the others (if any) must be the same
+                 *   - Not checking here
+                 *
+                 *
+                 * On the database:
+                 * - if via_type is n:
+                 *   - the array must be of size == 1
+                 *   - the array[i] contains node ID
+                 * - if via_type is w:
+                 *   - the array can be of size >= 1
+                 *   - the array[i] contains ways ID
+                 */
+                via_type = member.type();
+            } else {
+                via << ",";
+            }
+
+            via << member.ref();
+
         } else if (!std::strcmp(member.role(), "from")) {
-            from = member.ref();
+            if (!from.str().empty()) {
+                from << ",";
+            }
+            from << member.ref();
         } else if (!std::strcmp(member.role(), "to")) {
-            to = member.ref();
+            if (!to.str().empty()) {
+                to << ",";
+            }
+            to << member.ref();
+        } else if (!std::strcmp(member.role(), "location_hint")) {
+            location_hint << member.ref();
         } else {
-            std::cout << "Found an illegal member relation in restriction\n";
-            assert(false);
+            std::cerr
+                << "Found currently unsuported member role: '"
+                << member.role()
+                << "' on restriction: " << relation.id() << "\n";
         }
     }
     m_file
         << relation.id() << "\t"
-        << "'" << relation.get_value_by_key("restriction") << "'\t"
-        << from << "\t"
-        << to << "\t"
-        << via << "\t"
-        <<  via_type << "\t"
+        << pg_null_array(from) << "\t"
+        << pg_null_array(to) << "\t"
+        << pg_null_array(via) << "\t"
+        << via_type << "\t"
+        << pg_null(location_hint) << "\t"
         << attributes_str(relation) << "\t"
         << tags_str(relation)
         << "\n";

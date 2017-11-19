@@ -26,8 +26,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #define TOOLS_OSMIUM_INCLUDE_UTILITIES_QUOTES_HANDLING_H_
 
 #include <string>
+#include <sstream>
 
 std::string
-add_quotes(const std::string str, bool force);
+add_quotes(const std::string str, bool force = false);
+
+std::string
+pg_null(const std::ostringstream &original);
+
+std::string
+pg_null_array(const std::ostringstream &original);
 
 #endif  // TOOLS_OSMIUM_INCLUDE_UTILITIES_QUOTES_HANDLING_H_

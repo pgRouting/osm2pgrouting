@@ -29,37 +29,9 @@
 #include "utilities/quotes_handling.h"
 #include "collectors/turn_restrictions.h"
 
-#if 0
-#include <osmium/osm/types.hpp>
-#include <osmium/osm/location.hpp>
-#include <osmium/osm/segment.hpp>
-#include <osmium/osm/undirected_segment.hpp>
-#include <osmium/osm/box.hpp>
-#include <osmium/osm/object.hpp>
-#include <osmium/builder/builder.hpp>
-#include <osmium/builder/osm_object_builder.hpp>
-#include <osmium/io/any_compression.hpp>
-#include <osmium/index/map/sparse_mem_array.hpp>
-#include <osmium/relations/collector.hpp>
-
-#include <cstdlib>  // for std::exit
-#include <getopt.h> // for getopt_long
-
-// For assembling multipolygons
-#include <osmium/area/assembler.hpp>
-#include <osmium/area/multipolygon_collector.hpp>
-#endif
-
 // For the DynamicHandler class
 #include <osmium/dynamic_handler.hpp>
 
-#if 0
-// For the WKT factory
-#include <osmium/geom/wkt.hpp>
-
-// For the Dump handler
-#include <osmium/handler/dump.hpp>
-#endif
 
 // For the NodeLocationForWays handler
 #include <osmium/handler/node_locations_for_ways.hpp>
@@ -67,28 +39,32 @@
 // Allow any format of input files (XML, PBF, ...)
 #include <osmium/io/any_input.hpp>
 
-#if 0
-// For osmium::apply()
-#include <osmium/visitor.hpp>
-
-// For the location index. There are different types of indexes available.
-// This will work for small and medium sized input files.
-#include <osmium/index/map/sparse_mem_array.hpp>
-#endif
 
 
 
 
-
-
-main() {
+main(int argc, char *argv[]) {
     using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
     using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
+
+    if (argc != 2) {
+        std::cerr << "file to process missing\n";
+        exit(1);
+    }
+    /*
+     *  the input file
+     */
+    std::string in_file_name = argv[1];
+    std::string out_file_name = 
+        std::string(in_file_name, 0, in_file_name.size()-4) + "_restrictions.sql";
+
+    std::cout << "processing: " << in_file_name << "\n";
+    std::cout << "results at: " << out_file_name << "\n";
 
     /*
      * The output file
      */
-    std::ofstream of("restrictions_output.sql");
+    std::ofstream of(out_file_name);
 
     /*
      * Reading the create table query
@@ -96,16 +72,22 @@ main() {
     std::ifstream f("../restrictions.sql");
     std::stringstream buffer;
 
-    of  << f.rdbuf();
+    /*
+     * output of the create tables
+     */
+    of << f.rdbuf();
+
+    f.close();
+
     std::string str = buffer.str();
     std::cout << str << "\n";
-    f.close();
 
     osmium::handler::DynamicHandler handler;
     osmium::relations::RelationMeta relation_meta;
+
     MyRelCollector collector(of);
     std::cerr << "Pass 1...\n";
-    osmium::io::Reader reader1{"../../../tools/data/restrictions.osm", osmium::osm_entity_bits::relation};
+    osmium::io::Reader reader1{in_file_name, osmium::osm_entity_bits::relation};
     collector.read_relations(reader1);
     reader1.close();
     std::cerr << "Pass 1 done\n";
@@ -133,19 +115,20 @@ main() {
     // will put the areas it has created into the "buffer" which are then
     // fed through our "handler".
     std::cerr << "Pass 2...\n";
-    osmium::io::Reader reader2{"../../../tools/data/restrictions.osm"};
+    osmium::io::Reader reader2{in_file_name};
     osmium::apply(reader2, location_handler, collector.handler([&handler](osmium::memory::Buffer&& buffer) {
                 osmium::apply(buffer, handler);
                 }));
-    reader2.close();
-    std::cout << "\\.";
-    std::cerr << "Pass 2 done\n";
-    std::ifstream l("../restrictions_end.sql");
     of  << "\\.";
+    std::cerr << "Pass 2 done\n";
+
+    std::ifstream l("../restrictions_end.sql");
     of  << l.rdbuf();
     l.close();
+
     of.close();
 
+    reader2.close();
     // Output the amount of main memory used so far. All complete multipolygon
     // relations have been cleaned up.
     std::cerr << "Memory:\n";
