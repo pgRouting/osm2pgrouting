@@ -65,7 +65,7 @@ set(_osmium_include_path
 )
 
 # Look for the header file.
-find_path(OSMIUM_INCLUDE_DIR osmium/version.hpp
+find_path(OSMIUM_INCLUDE_DIR osmium/osm.hpp
     PATH_SUFFIXES include
     PATHS ${_osmium_include_path}
 )
@@ -367,4 +367,3 @@ if(Osmium_DEBUG)
     message(STATUS "OSMIUM_LIBRARIES=" ${OSMIUM_LIBRARIES})
     message(STATUS "OSMIUM_INCLUDE_DIRS=" ${OSMIUM_INCLUDE_DIRS})
 endif()
-
