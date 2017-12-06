@@ -51,6 +51,7 @@ MyRelCollector::MyRelCollector(std::ostream &file) :
  */
 bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
     const char* type = relation.tags().get_value_by_key("type");
+    //std::cout <<  "my function name is: " << __FUNCTION__ << "\n";
     /*
      * known transportation modes
      * TODO save in a configuration file
@@ -86,6 +87,7 @@ bool MyRelCollector::keep_relation(const osmium::Relation& relation) const {
 bool MyRelCollector::keep_member(
         const osmium::relations::RelationMeta&,
         const osmium::RelationMember &member) const {
+    //std::cout <<  "my function name is: " << __FUNCTION__ << "\n";
 #if 0
     /*
      * Interested in members of type way & node.
@@ -93,7 +95,7 @@ bool MyRelCollector::keep_member(
     return member.type() == osmium::item_type::way ||
         member.type() == osmium::item_type::node;
 #else
-    return false;
+    return true;
 #endif
 }
 
@@ -102,6 +104,7 @@ bool MyRelCollector::keep_member(
  */
 std::string MyRelCollector::attributes_str(
         const osmium::Relation& relation) const {
+    //std::cout <<  "my function name is: " << __FUNCTION__ << "\n";
     std::string user = add_quotes(std::string(relation.user()));
     std::string str("");
     str += "version=>" + std::to_string(relation.version()) + ",";
@@ -135,6 +138,7 @@ std::string MyRelCollector::tags_str(
 void MyRelCollector::complete_relation(
         osmium::relations::RelationMeta& relation_meta) {
     const osmium::Relation& relation = this->get_relation(relation_meta);
+    //std::cout <<  "my function name is: " << __FUNCTION__ << "\n";
 
     /*
      * http://wiki.openstreetmap.org/wiki/Relation:restriction#Members
@@ -194,6 +198,18 @@ void MyRelCollector::complete_relation(
                 << "' on restriction: " << relation.id() << "\n";
         }
     }
+#if 0
+    std::cout 
+        << relation.id() << "\t"
+        << pg_null_array(from) << "\t"
+        << pg_null_array(to) << "\t"
+        << pg_null_array(via) << "\t"
+        << via_type << "\t"
+        << pg_null(location_hint) << "\t"
+        << attributes_str(relation) << "\t"
+        << tags_str(relation)
+        << "\n";
+#endif
     m_file
         << relation.id() << "\t"
         << pg_null_array(from) << "\t"
