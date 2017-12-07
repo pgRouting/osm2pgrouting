@@ -22,7 +22,7 @@ See in the documentation of the pgrouting website for more information: http://p
 
 ## Installation
 
-For compiling this tool, you will need boost, libpq, expat and cmake:
+For compiling this tool, you will need boost, libpqxx, expat and cmake:
 Then just type the following in the root directory:
 
 ```
@@ -41,6 +41,9 @@ sudo apt-get install libboost-dev
 sudo apt-get install libboost-program-options-dev
 sudo apt install libpqxx-dev
 ```
+
+**Note:** FindLibPQXX.cmake does not find the version of libpqxx, but its documentation says C++11 is needed for the latests versions.
+
 
 If you have libraries installed in non-standard locations, you might need to pass in parameters to cmake. Commonly useful parameters are
 
