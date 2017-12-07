@@ -127,7 +127,7 @@ Table::create() const {
 
 std::string
 Table::drop() const {
-    return "DROP TABLE IF EXISTS " + addSchema() + ";";
+    return "DROP TABLE IF EXISTS " + addSchema() + " CASCADE;";
 }
 
 
