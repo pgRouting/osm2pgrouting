@@ -110,23 +110,48 @@ Export2DB::install_postGIS() const {
 
 
 // /////////////////////
-void Export2DB::createTables() const {
-    //  the following are particular of the file tables
+
+
+bool Export2DB::exists(const std::string &table) const {
     try {
         pqxx::connection db_conn(conninf);
         pqxx::work Xaction(db_conn);
 
-        Xaction.exec(vertices().create());
-        std::cout << "TABLE: " << vertices().addSchema() << " created ... OK.\n";
+        Xaction.exec(std::string("SELECT '") + table + "'::regclass");
+        std::cout << "TABLE: " << vertices().addSchema() << " already exists.\n";
+        return true;
+    } catch (const std::exception &e) {
+        return false;
+    }
+}
 
-        Xaction.exec(ways().create());
-        std::cout << "TABLE: " << ways().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(pois().create());
-        std::cout << "TABLE: " << pois().addSchema() << " created ... OK.\n";
 
-        Xaction.exec(configuration().create());
-        std::cout << "TABLE: " << configuration().addSchema() << " created ... OK.\n";
+void Export2DB::createTables() const {
+    try {
+        pqxx::connection db_conn(conninf);
+        pqxx::work Xaction(db_conn);
+
+        if (!exists(vertices().addSchema())) {
+            Xaction.exec(vertices().create());
+            std::cout << "TABLE: " << vertices().addSchema() << " created ... OK.\n";
+        }
+
+        if (!exists(ways().addSchema())) {
+            Xaction.exec(ways().create());
+            std::cout << "TABLE: " << ways().addSchema() << " created ... OK.\n";
+        }
+
+        if (!exists(pois().addSchema())) {
+            Xaction.exec(pois().create());
+            std::cout << "TABLE: " << pois().addSchema() << " created ... OK.\n";
+        }
+
+        if (!exists(configuration().addSchema())) {
+            Xaction.exec(configuration().create());
+            std::cout << "TABLE: " << configuration().addSchema() << " created ... OK.\n";
+        }
+
 
         Xaction.commit();
     } catch (const std::exception &e) {
@@ -136,27 +161,33 @@ void Export2DB::createTables() const {
     }
 
     if (m_vm.count("addnodes")) {
-    try {
-        pqxx::connection db_conn(conninf);
-        pqxx::work Xaction(db_conn);
-        /*
-         * optional tables
-         */
-        Xaction.exec(osm_nodes().create());
-        std::cout << "TABLE: " << osm_nodes().addSchema() << " created ... OK.\n";
+        try {
+            pqxx::connection db_conn(conninf);
+            pqxx::work Xaction(db_conn);
+            /*
+             * optional tables
+             */
+            if (!exists(osm_nodes().addSchema())) {
+                Xaction.exec(osm_nodes().create());
+                std::cout << "TABLE: " << osm_nodes().addSchema() << " created ... OK.\n";
+            }
 
-        Xaction.exec(osm_ways().create());
-        std::cout << "TABLE: " << osm_ways().addSchema() << " created ... OK.\n";
+            if (!exists(osm_ways().addSchema())) {
+                Xaction.exec(osm_ways().create());
+                std::cout << "TABLE: " << osm_ways().addSchema() << " created ... OK.\n";
+            }
 
-        Xaction.exec(osm_relations().create());
-        std::cout << "TABLE: " << osm_relations().addSchema() << " created ... OK.\n";
+            if (!exists(osm_relations().addSchema())) {
+                Xaction.exec(osm_relations().create());
+                std::cout << "TABLE: " << osm_relations().addSchema() << " created ... OK.\n";
+        }
 
         Xaction.commit();
-    } catch (const std::exception &e) {
-        std::cerr <<  "\n" << e.what() << std::endl;
-        std::cerr <<  "WARNING: could not create osm-*  tables" << std::endl;
-        std::cerr <<  "   Insertions on osm_* tables are going to be ignored" << std::endl;
-    }
+        } catch (const std::exception &e) {
+            std::cerr <<  "\n" << e.what() << std::endl;
+            std::cerr <<  "WARNING: could not create osm-*  tables" << std::endl;
+            std::cerr <<  "   Insertions on osm_* tables are going to be ignored" << std::endl;
+        }
     }
 }
 

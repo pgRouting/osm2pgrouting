@@ -173,13 +173,10 @@ int main(int argc, char* argv[]) {
         if (clean) {
             std::cout << "\nDropping tables..." << endl;
             dbConnection.dropTables();
-            std::cout << "\nCreating tables..." << endl;
-            dbConnection.createTables();
         }
-#if 0
         std::cout << "\nCreating tables..." << endl;
         dbConnection.createTables();
-#endif
+
         /* 
          * End: preparing the databasse
          */
