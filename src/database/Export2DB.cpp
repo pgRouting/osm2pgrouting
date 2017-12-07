@@ -543,7 +543,6 @@ Export2DB::execute(const std::string sql) const {
  *
  */
 void Export2DB::createFKeys() const {
-
     /*
      * configuration:
      */
@@ -575,6 +574,7 @@ void Export2DB::createFKeys() const {
     execute(pois().gist_index());
     execute(pois().unique("osm_id"));
 }
+
 
 void Export2DB::process_pois() const {
     if (!m_vm.count("addnodes")) return;
