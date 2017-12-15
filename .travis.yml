@@ -7,10 +7,7 @@
 
 #choose precise or trusty
 
-group: edge
-dist: trusty    
-
-
+dist: precise
 
 language: cpp
 
@@ -26,22 +23,16 @@ matrix:
 
     - os: linux
       sudo: required
-      dist: trusty
-      group: edge
       env: POSTGRESQL_VERSION=9.6   PG_USER=postgres DIST=trusty
 
 
     - os: linux
       sudo: required
-      dist: trusty
-      group: edge
       env: POSTGRESQL_VERSION=9.5   PG_USER=postgres DIST=trusty
 
 
     - os: linux
       sudo: required
-      dist: trusty
-      group: edge
       env: POSTGRESQL_VERSION=9.4   PG_USER=postgres DIST=trusty
 
 
