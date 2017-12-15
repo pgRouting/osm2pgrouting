@@ -23,6 +23,8 @@ SET default_with_oids = false;
 -- Name: osm_restrictions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
+CREATE SCHEMA IF NOT EXISTS foo;
+
 CREATE TABLE IF NOT EXISTS foo.osm_restrictions(
     osm_id BIGINT PRIMARY KEY,
     osm_from    BIGINT[],
