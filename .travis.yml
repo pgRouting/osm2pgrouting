@@ -7,7 +7,7 @@
 
 #choose precise or trusty
 
-dist: precise
+dist: trusty
 
 language: cpp
 
