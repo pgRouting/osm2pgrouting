@@ -26,7 +26,7 @@ namespace osm2pgr {
 
 /*
  * configuring TABLE osm_ways
- */ 
+ */
 
 
 Table
@@ -44,9 +44,9 @@ Tables::osm_ways_config() const {
             /* standard column creation string */
             std::string(
                 " osm_id bigint PRIMARY KEY"
-                //" , members hstore"
+                " , members hstore"
                 + (m_vm.count("attributes")  && m_vm.count("addnodes") ?
-                    (std::string(", attributes hstore")) 
+                    (std::string(", attributes hstore"))
                     : "")
                 + (m_vm.count("tags")  && m_vm.count("addnodes") ?
                     (std::string(", tags hstore"))

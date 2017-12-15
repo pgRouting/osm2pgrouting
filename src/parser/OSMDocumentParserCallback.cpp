@@ -79,6 +79,11 @@ OSMDocumentParserCallback::StartElement(
         const char *name,
         const char** atts) {
     show_progress();
+
+    if (strcmp(name, "osm") == 0) {
+        m_section = 1;
+    }
+
     if ((m_section == 1 && (strcmp(name, "way") == 0))
             || (m_section == 2 && (strcmp(name, "relation") == 0))) {
         ++m_section;
@@ -151,8 +156,10 @@ OSMDocumentParserCallback::StartElement(
 void OSMDocumentParserCallback::EndElement(const char* name) {
     if (strcmp(name, "osm") == 0) {
         m_rDocument.endOfFile();
+        show_progress();
         return;
     }
+
     if (strcmp(name, "node") == 0) {
         m_rDocument.AddNode(*last_node);
         delete last_node;
@@ -172,8 +179,8 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
         }
         delete last_way;
         return;
-
     }
+
     if (strcmp(name, "relation") == 0) {
         if (m_rDocument.config_has_tag(last_relation->tag_config())) {
             for (auto it = last_relation->way_refs().begin();  it != last_relation->way_refs().end(); ++it) {
@@ -194,9 +201,10 @@ void OSMDocumentParserCallback::EndElement(const char* name) {
             }
             m_rDocument.AddRelation(*last_relation);
         }
+        // TODO add all other relations
         delete last_relation;
-
-    }
+        return;
+    } 
 }
 
 }  // end namespace osm2pgr

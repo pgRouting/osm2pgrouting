@@ -1,5 +1,5 @@
-PROJECT(osm2pgrouting)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(getrestirction)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
 
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
     message(FATAL_ERROR "In-source builds not allowed.
@@ -8,11 +8,22 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-SET(SHARE_DIR "/usr/share/osm2pgrouting")
+SET(SHARE_DIR "/usr/share/getrestrictions")
 
 FIND_PACKAGE(PostgreSQL REQUIRED)
 find_package(LibPQXX REQUIRED)
 FIND_PACKAGE(EXPAT REQUIRED)
+
+
+find_package(Osmium REQUIRED COMPONENTS io pbf xml)
+if(NOT OSMIUM_FOUND)
+    message(WARNING "Libosmium not found!\n")
+endif()
+include_directories(SYSTEM ${OSMIUM_INCLUDE_DIRS})
+
+
+
+
 
 
 FIND_PACKAGE(Boost)
@@ -24,10 +35,10 @@ endif(Boost_INCLUDE_DIRS)
 
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 
-FILE(GLOB osm2pgrouting_lib_SOURCES "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
+FILE(GLOB SRC "${CMAKE_SOURCE_DIR}/src/*.cpp"  "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64 -std=c++0x")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated -fmax-errors=10")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated -fmax-errors=10")
 
 
 set (OSM2PGROUTING_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
@@ -47,32 +58,17 @@ INCLUDE_DIRECTORIES(src
     ${OSM2PGROUTING_INCLUDE_DIRS}
     )
 
-ADD_EXECUTABLE(osm2pgrouting ${osm2pgrouting_lib_SOURCES})
+ADD_EXECUTABLE(getrestrictions ${SRC})
 
-TARGET_LINK_LIBRARIES(osm2pgrouting
+TARGET_LINK_LIBRARIES(getrestrictions
     ${LIBPQXX_LIBRARIES}
     ${POSTGRESQL_LIBRARIES}
     ${EXPAT_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${OSMIUM_LIBRARIES}
     )
 
-INSTALL(TARGETS osm2pgrouting
+INSTALL(TARGETS getrestrictions
     RUNTIME DESTINATION "/usr/bin"
     )
 
-if(WIN32)
-    target_link_libraries(osm2pgrouting wsock32 ws2_32)
-endif()
-
-INSTALL(FILES
-    "${CMAKE_SOURCE_DIR}/COPYING"
-    "${CMAKE_SOURCE_DIR}/Readme.md"
-    "${CMAKE_SOURCE_DIR}/mapconfig.xml"
-    "${CMAKE_SOURCE_DIR}/mapconfig_for_cars.xml"
-    "${CMAKE_SOURCE_DIR}/mapconfig_for_bicycles.xml"
-    "${CMAKE_SOURCE_DIR}/mapconfig_for_pedestrian.xml"
-    DESTINATION "${SHARE_DIR}")
-
-
-#INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
-#TARGET_LINK_LIBRARIES( osm2pgrouting ${Boost_LIBRARIES} )

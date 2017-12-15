@@ -71,6 +71,8 @@ class Relation : public Element{
      int64_t add_member(const char **atts);
      std::string members_str() const;
 
+     friend std::ostream& operator<<(std::ostream &os, const Relation &r);
+
  private:
      std::vector<int64_t> m_WayRefs;
 };
