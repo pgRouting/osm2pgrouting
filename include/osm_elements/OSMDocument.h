@@ -75,7 +75,7 @@ class OSMDocument {
     void AddNode(const Node &n);
     void AddWay(const Way &w);
     void AddRelation(const Relation &r);
-    void endOfFile() const;
+    void endOfFile();
 
     //! find node by using an ID
     bool has_node(int64_t nodeRefId) const;
@@ -145,6 +145,8 @@ class OSMDocument {
     Ways m_ways;
     //! parsed relations
     Relations  m_relations;
+    bool       m_relPending;
+    bool       m_waysPending;
 
     const Configuration& m_rConfig;
     po::variables_map m_vm;

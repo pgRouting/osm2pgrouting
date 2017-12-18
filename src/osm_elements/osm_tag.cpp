@@ -31,6 +31,8 @@ Tag::Tag(const char **atts) {
         std::string name = *attribut++;
         std::string value = *attribut++;
         if (name  == "k") {
+            std::transform(value.begin(), value.end(), value.begin(), [](char ch) {
+                    return ch == ' ' ? '_' : ch;});
             m_key = value;
         } else if (name == "v") {
             m_value = value;
