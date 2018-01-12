@@ -8,7 +8,7 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-SET(SHARE_DIR "/usr/share/osm2pgrouting")
+SET(SHARE_DIR "${CMAKE_INSTALL_PREFIX}/share/osm2pgrouting")
 
 FIND_PACKAGE(PostgreSQL REQUIRED)
 find_package(LibPQXX REQUIRED)
@@ -106,7 +106,7 @@ TARGET_LINK_LIBRARIES(osm2pgrouting
     )
 
 INSTALL(TARGETS osm2pgrouting
-    RUNTIME DESTINATION "/usr/bin"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
     )
 
 if(WIN32)
