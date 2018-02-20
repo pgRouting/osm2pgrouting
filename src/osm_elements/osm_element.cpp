@@ -38,7 +38,7 @@ Element::Element(const char **atts) :
                 m_osm_id = boost::lexical_cast<int64_t>(value);
             }
             if (name == "visible") {
-                m_visible = boost::lexical_cast<bool>(value);
+                m_visible = (value == "true")? true : false;
             }
            m_attributes[name] = value;
         }
