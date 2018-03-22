@@ -4,11 +4,11 @@
 
 # Table of Contents
 
-* [Requirements](#Requirements)
-* [Documentation](#Documentation)
-* [Installation](#Installation)
-* [How to use](#How-to-use)
-* [Tips](#Tips)
+* [Requirements](#requirements)
+* [Documentation](#documentation)
+* [Installation](#installation)
+* [How to use](#how-to-use)
+* [Tips](#tips)
   
 
 ## Requirements
