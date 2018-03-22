@@ -127,3 +127,17 @@ Database options:
   -W [ --password ] arg          Password for database access.
 
 ```
+
+### Tips
+
+Open Street Map (OSM) files contains tags not used at all for routing operations by PgRouting (i.e. author, version, timestamps, etc.). You can reduce a lot the size of your OSM file to import removing this metadata tags from original file (you can get around half size of original file).
+
+The best tool to remove tags is [osmconvert](https://wiki.openstreetmap.org/wiki/Osmconvert).
+ There are another tools but osmconvert is the fastest parsing osm files. 
+
+Example:
+```
+$ osmconvert output_data.osm.pbf --drop-author --drop-version --out-osm -o=output_data_reduc.osm
+```
+
+You can download OSM data as PBF (protobuffer) format. This is a binary format and it has a lower size than OSM raw files (better for downloading operations).
