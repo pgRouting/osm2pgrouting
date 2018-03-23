@@ -2,6 +2,15 @@
 
 [![Join the chat at https://gitter.im/pgRouting/osm2pgrouting](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pgRouting/osm2pgrouting?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Table of Contents
+
+* [Requirements](#requirements)
+* [Documentation](#documentation)
+* [Installation](#installation)
+* [How to use](#how-to-use)
+* [Tips](#tips)
+  
+
 ## Requirements
 
 Before you can use this tool for importing Openstreetmap data you need to install:
@@ -127,3 +136,17 @@ Database options:
   -W [ --password ] arg          Password for database access.
 
 ```
+
+## Tips
+
+Open Street Map (OSM) files contains tags not used at all for routing operations by PgRouting (i.e. author, version, timestamps, etc.). You can reduce a lot the size of your OSM file to import removing this metadata tags from original file (you can get around half size of original file).
+
+The best tool to remove tags is [osmconvert](https://wiki.openstreetmap.org/wiki/Osmconvert).
+There are another tools but osmconvert is the fastest parsing osm files. 
+
+Example:
+```
+$ osmconvert output_data.osm.pbf --drop-author --drop-version --out-osm -o=output_data_reduc.osm
+```
+
+You can download OSM data as PBF (protobuffer) format. This is a binary format and it has a lower size than OSM raw files (better for downloading operations).
