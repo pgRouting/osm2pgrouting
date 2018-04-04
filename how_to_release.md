@@ -2,7 +2,9 @@
 
 This document explains step by step how to release a new version for osm2pgrouting.
 
+
 ## Steps to follow
+0. Make sure that the NEWS file has the changes for the release. (review issues closed in milestone).
 
 1. Clone branch master:
 
@@ -34,7 +36,7 @@ This document explains step by step how to release a new version for osm2pgrouti
 
 7. Click on the tag number then click on the edit tag button for release title (use the same number, i.e. v2.3.4).
 
-8. Write comments about changes introduced by this new release (review issues closed in milestone). Click on update release button.
+8. Write comments about changes introduced by this new release (review issues closed in milestone or the NEWS file). Click on update release button.
 
 9. Close milestone.
 
