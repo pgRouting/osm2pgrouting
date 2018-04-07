@@ -369,7 +369,7 @@ void Export2DB::fill_source_target(
     std::string sql3(
             " UPDATE " + table +
             " SET  length_m = ST_length(geography(ST_Transform(the_geom, 4326))),"
-            "      coST_s = CASE "
+            "      cost_s = CASE "
             "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END, "
@@ -377,7 +377,7 @@ void Export2DB::fill_source_target(
             "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
-            " WHERE length_m IS NULL;");
+            " WHERE length_m IS NULL AND maxspeed_forward != 0;");
     Xaction.exec(sql3);
 }
 
