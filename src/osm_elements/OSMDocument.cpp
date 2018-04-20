@@ -127,18 +127,19 @@ OSMDocument::AddRelation(const Relation &r) {
 
 void
 OSMDocument::endOfFile() {
-    if (m_vm.count("addnodes") && m_relPending) {
-        m_relPending = false;
-        wait_child();
-        std::cout << "\nFinal osm_relations:\t" << m_relations.size();
-        osm_table_export(m_relations, "osm_relations");
-    }
     
     if (m_vm.count("addnodes") && m_waysPending) {
         m_waysPending = false;
         wait_child();
         osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nFinal osm_ways:\t\t" << m_ways.size() << "\n";
+        std::cout << "\nFinal osm_ways:\t\t" << m_ways.size();
+    }
+    
+    if (m_vm.count("addnodes") && m_relPending) {
+        m_relPending = false;
+        wait_child();
+        std::cout << "\nFinal osm_relations:\t" << m_relations.size() << "\n";
+        osm_table_export(m_relations, "osm_relations");
     }
     
     std::cout << "\nEnd Of file\n\n\n";
