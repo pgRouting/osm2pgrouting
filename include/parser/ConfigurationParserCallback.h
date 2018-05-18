@@ -23,9 +23,7 @@
 #define SRC_CONFIGURATIONPARSERCALLBACK_H_
 #pragma once
 
-#if __GNUC__ > 4 || \
-                    (__GNUC__ == 4 && (__GNUC_MINOR__ >= 6))
-#else
+#ifdef BOOST_NO_CXX11_NULLPTR
 #define nullptr NULL
 #endif
 
