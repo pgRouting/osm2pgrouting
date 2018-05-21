@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.3.5\n";
+            std::cout << "This is osm2pgrouting Version 2.3.6\n";
             return 0;
         }
 
@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
         }catch (const std::exception &e){
             cerr << e.what() << std::endl;
             return 1;
-        } 
+        }
 
-        /* 
+        /*
          * preparing the databasse
          */
         std::cout << "Connecting to the database"  << endl;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
             std::cout << "ERROR: hstore not found\n";
             std::cout << "   HINT: CREATE EXTENSION hstore\n";
             return 1;
-        } 
+        }
 
         if (clean) {
             std::cout << "\nDropping tables..." << endl;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         std::cout << "\nCreating tables..." << endl;
         dbConnection.createTables();
 
-        /* 
+        /*
          * End: preparing the databasse
          */
 
