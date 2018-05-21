@@ -1,15 +1,18 @@
 osm2pgRouting 2.3.5
+
 * Fix: zero division error when max_speed = 0.
 * Fix: fixed osm_ways parsing - OSMDocument.
 * Fix: switch to a more inclusive check for nullptr definition (fixes compilation on macOS 10.13 using Xcode 9.3)
 * Docs improvements: How to release doc.
 
 osm2pgRouting 2.3.4
+
 * Fix: osm_elements - fixed boolean assignment with boost::lexical_cast.
 * Use ${CMAKE_INSTALL_PREFIX} in CMakeLists.txt.
 * Readme doc improvements: Tips section and Table of contents.
 
 osm2pgRouting 2.3.3
+
 * Fix: wrong assumption in implied_oneWay() function
 * Fix: regression on 2.3.2: fixed hstore refs handling
 
