@@ -98,7 +98,6 @@ process_command_line(po::variables_map &vm) {
     std::cout << "port = " << vm["port"].as<std::string>() << "\n";
     std::cout << "dbname = " << vm["dbname"].as<std::string>() << "\n";
     std::cout << "username = " << vm["username"].as<std::string>() << "\n";
-    std::cout << "password = " << vm["password"].as<std::string>() << "\n";
     std::cout << "schema= " << vm["schema"].as<std::string>() << "\n";
     std::cout << "prefix = " << vm["prefix"].as<std::string>() << "\n";
     std::cout << "suffix = " << vm["suffix"].as<std::string>() << "\n";
