@@ -1,3 +1,7 @@
+osm2pgRouting 2.3.6
+
+* Fix: command line configuration in print outputs (db password removed).
+
 osm2pgRouting 2.3.5
 
 * Fix: zero division error when max_speed = 0.
