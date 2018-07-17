@@ -215,7 +215,7 @@ void
 Way::pedestrian(const std::string &key, const std::string &value) {
     // TODO(vicky) for 3.0
     // m_pedestrian("UNKNOWN") <-- the default in the constructor
-    if ((key == "sidewak" && value == "no")
+    if ((key == "sidewalk" && value == "no")
             || (key == "foot" && value == "no")) {
         m_pedestrian = "NO";
     }
