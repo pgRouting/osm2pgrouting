@@ -201,9 +201,7 @@ Way::implied_oneWay(const Tag &tag) {
     if (m_oneWay != "UNKNOWN") return;
 
     if ((key == "junction" && value == "roundabout")
-            || (key == "highway"
-                && (value == "motorway"
-                    || value == "trunk") )) {
+            || (key == "highway" && value == "motorway")) {
         m_oneWay = "YES";
         return;
     }
