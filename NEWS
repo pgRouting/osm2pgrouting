@@ -1,6 +1,8 @@
 osm2pgRouting 2.3.6
 
+* Fix: Incorrect classification of one-ways.
 * Fix: command line configuration in print outputs (db password removed).
+* Other minor fixes.
 
 osm2pgRouting 2.3.5
 
