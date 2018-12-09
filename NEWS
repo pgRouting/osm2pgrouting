@@ -1,3 +1,7 @@
+osm2pgRouting 2.3.7
+
+* 
+
 osm2pgRouting 2.3.6
 
 * Fix: Incorrect classification of one-ways.

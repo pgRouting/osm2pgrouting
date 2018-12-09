@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.3.6\n";
+            std::cout << "This is osm2pgrouting Version 2.3.7\n";
             return 0;
         }
 
