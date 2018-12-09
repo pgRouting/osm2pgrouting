@@ -19,7 +19,7 @@ FIND_PACKAGE(Boost)
 if(Boost_INCLUDE_DIRS)
     message(STATUS "Boost headers were found here: ${Boost_INCLUDE_DIRS}")
 else(Boost_INCLUDE_DIRS)
-    message(FATAL_ERROR " Please check your Boost installation ") 
+    message(FATAL_ERROR " Please check your Boost installation ")
 endif(Boost_INCLUDE_DIRS)
 
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
@@ -115,7 +115,7 @@ endif()
 
 INSTALL(FILES
     "${CMAKE_SOURCE_DIR}/COPYING"
-    "${CMAKE_SOURCE_DIR}/Readme.md"
+    "${CMAKE_SOURCE_DIR}/README.md"
     "${CMAKE_SOURCE_DIR}/mapconfig.xml"
     "${CMAKE_SOURCE_DIR}/mapconfig_for_cars.xml"
     "${CMAKE_SOURCE_DIR}/mapconfig_for_bicycles.xml"
