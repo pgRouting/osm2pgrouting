@@ -31,7 +31,7 @@ else(POSTGRESQL_INCLUDE_DIR AND POSTGRESQL_LIBRARIES)
 
     find_path(POSTGRESQL_INCLUDE_DIR libpq-fe.h
         ${T_POSTGRESQL_INCLUDE_DIR}
-		/usr/pgsql-*/include # needed if installation is performed based on instructions here: https://www.postgresql.org/download/linux/redhat/
+		/usr/pgsql-*/include
         /usr/include
         /usr/include/pgsql
         /usr/local/include/pgsql
@@ -53,7 +53,7 @@ else(POSTGRESQL_INCLUDE_DIR AND POSTGRESQL_LIBRARIES)
     find_library(POSTGRESQL_LIBRARIES NAMES pq libpq
         ${T_POSTGRESQL_LIB_DIR}
         PATHS
-		/usr/pgsql-*/lib # needed if installation is performed based on instructions here: https://www.postgresql.org/download/linux/redhat/
+		/usr/pgsql-*/lib
         /usr/lib
         /usr/local/lib
         /usr/lib/postgresql
