@@ -9,7 +9,7 @@
 * [Installation](#installation)
 * [How to use](#how-to-use)
 * [Tips](#tips)
-  
+
 
 ## Requirements
 
@@ -59,12 +59,12 @@ If you have libraries installed in non-standard locations, you might need to pas
 CMAKE options:
 
     -DBOOST_ROOT:PATH=/path/to/boost  folder that contains include, lib, bin directories for boost
-    
+
     -DEXPATH_INCLUDE_DIR:PATH=/path/to/expat/include  the include folder for where your expat is installed
-    
+
     -DPOSTGRESQL_INCLUDE_DIR:PATH=/path/to/postgresql/include  the include folder for postgresql development headers
-    
-    
+
+
 A cmake with custom options might look something like
 
 ```
@@ -110,14 +110,13 @@ General:
   -c [ --conf ] arg (=/usr/share/osm2pgrouting/mapconfig.xml)
                                         Name of the configuration xml file.
   --schema arg                          Database schema to put tables.
-                                          blank: defaults to default schema 
-                                                dictated by PostgreSQL 
+                                          blank: defaults to default schema
+                                                dictated by PostgreSQL
                                                 search_path.
-  --prefix arg                          Prefix added at the beginning of the 
+  --prefix arg                          Prefix added at the beginning of the
                                         table names.
-  --suffix arg                          Suffix added at the end of the table 
+  --suffix arg                          Suffix added at the end of the table
                                         names.
-  --postgis                             Install postgis if not found.
   --addnodes                            Import the osm_nodes, osm_ways &
                                         osm_relations tables.
   --attributes                          Include attributes information.
@@ -142,7 +141,7 @@ Database options:
 Open Street Map (OSM) files contains tags not used at all for routing operations by PgRouting (i.e. author, version, timestamps, etc.). You can reduce a lot the size of your OSM file to import removing this metadata tags from original file (you can get around half size of original file).
 
 The best tool to remove tags is [osmconvert](https://wiki.openstreetmap.org/wiki/Osmconvert).
-There are another tools but osmconvert is the fastest parsing osm files. 
+There are another tools but osmconvert is the fastest parsing osm files.
 
 Example:
 ```
