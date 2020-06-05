@@ -176,7 +176,7 @@ Way::oneWay(const Tag &tag) {
     }
 
     // check false conditions: 0, no, false
-    if ((value == "no") || value == "false" || value == "1") {
+    if ((value == "no") || value == "false" || value == "0") {
         m_oneWay = "NO";
     }
 
