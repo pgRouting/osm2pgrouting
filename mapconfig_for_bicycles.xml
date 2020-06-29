@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- only ways which match to one of the following key-values pares will be imported -->
+<!-- the lines are evaluated in the order of their priority and id (ascending) -->
+<!-- only the tag-id of the first match is stored in the table -->
 <configuration>
   <tag_name name="cycleway" id="1">
     <tag_value name="track" priority="1.0" id="101" />
@@ -40,7 +43,7 @@
     <tag_value name="pedestrian" priority="1.1" id="503" />
     <tag_value name="footway" priority="1.1" id="504" />
     <tag_value name="bridleway" priority="1.3" id="505" />
-    <tag_value name="track" priority="1.0" id="506" />
+    <tag_value name="track" priority="2.0" id="506" />
     <tag_value name="living_street" priority="2.0" id="507" />
     <tag_value name="service" priority="2.0" id="508" />
     <tag_value name="residential" priority="2.2" id="509" />
@@ -54,7 +57,4 @@
     <tag_value name="primary" priority="3.5" id="517" />
     <tag_value name="road" priority="4.0" id="500" />
   </tag_name>
-  <tag_name name="junction" id="6">
-    <tag_value name="roundabout" priority="2.5" id="601" />
-  </tag_name>  
 </configuration>
