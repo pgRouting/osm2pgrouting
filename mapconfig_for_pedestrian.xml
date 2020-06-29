@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
   <tag_name name="highway" id="1">
-    <tag_value name="footway" id="115"  priority="2.5" maxspeed="5" />
-    <tag_value name="steps" id="116"  priority="2.5" maxspeed="5" />
-    <tag_value name="pedestrian" id="117"  priority="2.5" maxspeed="5" />
-
-    <tag_value name="unclassified" id="118" priority="3" maxspeed="9"/>
-    <tag_value name="road" id="119" priority="5" maxspeed="5" />
-    <tag_value name="path" id="120"  priority="2.5" maxspeed="5" />
+    <tag_value name="road" id="100" />
+    <!--<tag_value name="trunk" id="104" /> -->
+    <!--<tag_value name="trunk_link" id="105" /> -->   
+    <tag_value name="primary" id="106" />
+    <tag_value name="primary_link" id="107" />    
+    <tag_value name="secondary" id="108" />
+    <tag_value name="secondary_link" id="124" />
+    <tag_value name="tertiary" id="109" />
+    <tag_value name="tertiary_link" id="125" />
+    <tag_value name="residential" id="110" />
+    <tag_value name="living_street" id="111" />
+    <tag_value name="service" id="112" />
+    <tag_value name="track" id="113" />
+    <tag_value name="pedestrian" id="114" />
+    <tag_value name="services" id="115" />
+    <tag_value name="path" id="117" />
+    <tag_value name="cycleway" id="118" />
+    <tag_value name="footway" id="119" />
+    <tag_value name="bridleway" id="120" />
+    <tag_value name="byway" id="121" />
+    <tag_value name="steps" id="122" />
+    <tag_value name="unclassified" id="123" />
   </tag_name>
-
-
-
-  <tag_name name="barrier" id="3">
-    <tag_value name="kerb" id="301" priority="1.0" maxspeed="13" />
-    <tag_value name="gate" id="302" priority="1.0" maxspeed="13" />
-    <tag_value name="bollard" id="303" priority="1.0" maxspeed="13" />
-    <tag_value name="cycle_barrier" id="304" priority="1.0" maxspeed="13" />
-  </tag_name>
-
 </configuration>
+<!-- for considering the access to the ways you have to import the access information too -->
+<!-- use command line options --addnodes --tags to import all osm attributes -->
