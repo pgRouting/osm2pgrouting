@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- a way is imported if it matches one of the following tag_values -->
+<!-- tag_values are processed in the order of their ID -->
 <configuration>
   <tag_name name="highway" id="1">
+    <tag_value name="road" id="100" />
     <tag_value name="motorway" id="101" />
     <tag_value name="motorway_link" id="102" />
     <tag_value name="motorway_junction" id="103" />
@@ -25,10 +28,9 @@
     <tag_value name="bridleway" id="120" />
     <tag_value name="byway" id="121" />
     <tag_value name="steps" id="122" />
-        
     <tag_value name="unclassified" id="123" />
-    <tag_value name="road" id="100" />
   </tag_name>
+  <!-- the following lines are only evaluated if there is no highway-tag at the way -->
   <tag_name name="cycleway" id="2">
     <tag_value name="lane" id="201" />
     <tag_value name="track" id="202" />
