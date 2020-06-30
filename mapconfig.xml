@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- a way will be imported, if it match to one of the following tag_values -->
-<!-- tag_values are processed in order of their id -->
+<!-- a way is imported if it matches one of the following tag_values -->
+<!-- tag_values are processed in the order of their ID -->
 <configuration>
   <tag_name name="highway" id="1">
     <tag_value name="road" id="100" />
@@ -30,7 +30,7 @@
     <tag_value name="steps" id="122" />
     <tag_value name="unclassified" id="123" />
   </tag_name>
-  <!--the following lines will be only evaluated when there is no highway-tag at the way -->
+  <!-- the following lines are only evaluated if there is no highway-tag at the way -->
   <tag_name name="cycleway" id="2">
     <tag_value name="lane" id="201" />
     <tag_value name="track" id="202" />
