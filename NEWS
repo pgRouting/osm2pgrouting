@@ -1,6 +1,11 @@
 osm2pgRouting 2.3.7
 
-* 
+* fix: Way - fixed bug handling onway false conditions
+* fix: fixed CMakeLists
+* fix: adjustments to FindPostgreSQL.cmake.
+* Improvements on mapconfig XML files.
+* New docs: "Code of Conduct" and "Contributing".
+* Docs improvements.
 
 osm2pgRouting 2.3.6
 
