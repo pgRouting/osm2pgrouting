@@ -176,7 +176,7 @@ Way::oneWay(const Tag &tag) {
     }
 
     // check false conditions: 0, no, false
-    if ((value == "no") || value == "false" || value == "1") {
+    if ((value == "no") || value == "false" || value == "0") {
         m_oneWay = "NO";
     }
 
@@ -201,9 +201,7 @@ Way::implied_oneWay(const Tag &tag) {
     if (m_oneWay != "UNKNOWN") return;
 
     if ((key == "junction" && value == "roundabout")
-            || (key == "highway"
-                && (value == "motorway"
-                    || value == "trunk") )) {
+            || (key == "highway" && value == "motorway")) {
         m_oneWay = "YES";
         return;
     }
@@ -215,7 +213,7 @@ void
 Way::pedestrian(const std::string &key, const std::string &value) {
     // TODO(vicky) for 3.0
     // m_pedestrian("UNKNOWN") <-- the default in the constructor
-    if ((key == "sidewak" && value == "no")
+    if ((key == "sidewalk" && value == "no")
             || (key == "foot" && value == "no")) {
         m_pedestrian = "NO";
     }

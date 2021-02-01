@@ -90,7 +90,8 @@ OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
 }
 
-void OSMDocument::AddWay(const Way &w) {
+void 
+OSMDocument::AddWay(const Way &w) {
     if (m_ways.empty() && m_vm.count("addnodes")) {
         wait_child();
         osm_table_export(m_nodes, "osm_nodes");
@@ -112,13 +113,6 @@ void OSMDocument::AddWay(const Way &w) {
 
 void
 OSMDocument::AddRelation(const Relation &r) {
-    if (m_vm.count("addnodes") && m_waysPending) {
-        m_waysPending = false;
-        wait_child();
-        osm_table_export(m_ways, "osm_ways");
-        std::cout << "\nFinal osm_ways:\t" << m_ways.size() << "\n";
-    }
-
     m_relPending = true;
     m_relations.push_back(r);
     if (m_vm.count("addnodes")) {
@@ -133,12 +127,21 @@ OSMDocument::AddRelation(const Relation &r) {
 
 void
 OSMDocument::endOfFile() {
-    if (m_vm.count("addnodes") && m_relPending == true) {
+    
+    if (m_vm.count("addnodes") && m_waysPending) {
+        m_waysPending = false;
+        wait_child();
+        osm_table_export(m_ways, "osm_ways");
+        std::cout << "\nFinal osm_ways:\t\t" << m_ways.size();
+    }
+    
+    if (m_vm.count("addnodes") && m_relPending) {
         m_relPending = false;
         wait_child();
-        std::cout << "\nFinal osm_relations:\t" << m_relations.size();
+        std::cout << "\nFinal osm_relations:\t" << m_relations.size() << "\n";
         osm_table_export(m_relations, "osm_relations");
     }
+    
     std::cout << "\nEnd Of file\n\n\n";
 }
 

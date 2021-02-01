@@ -110,6 +110,7 @@ class Export2DB {
      void dropTables() const;
      void createFKeys() const;
      void process_pois() const;
+     bool exists(const std::string &table) const;
 
  private:
 
