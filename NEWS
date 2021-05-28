@@ -1,5 +1,18 @@
 osm2pgRouting 2.3.7
 
+* Removing travis tests
+* Updated FindPQXX to get the version
+* Adding github actions for compilation:
+  * Postgres 9.6 to 13
+  * libpqxx 6 & 7
+* Minimum Version Postgres 9.6 (supported version at this time)
+* Minimum Version libpqxx 6
+* C++ minimum standard depends on libpqxx
+  * For version libpqxx 6: C++14
+  * For version libpqxx 7: C++17
+
+osm2pgRouting 2.3.7
+
 * fix: Way - fixed bug handling oneway false conditions
 * fix: fixed CMakeLists
 * fix: adjustments to FindPostgreSQL.cmake.
