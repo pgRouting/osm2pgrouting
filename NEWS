@@ -1,4 +1,4 @@
-osm2pgRouting 2.3.7
+osm2pgRouting 2.3.8
 
 * Removing travis tests
 * Updated FindPQXX to get the version
