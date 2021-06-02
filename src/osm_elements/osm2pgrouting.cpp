@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (vm.count("version")) {
-            std::cout << "This is osm2pgrouting Version 2.3.7\n";
+            std::cout << "This is osm2pgrouting Version 2.3.8\n";
             return 0;
         }
 
@@ -140,7 +140,9 @@ int main(int argc, char* argv[]) {
                 cout << "Can't open database" << endl;
                 return 1;
             }
+#ifdef PQXX_DISCONNECT
             C.disconnect ();
+#endif
         }catch (const std::exception &e){
             cerr << e.what() << std::endl;
             return 1;
