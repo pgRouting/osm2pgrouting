@@ -15,7 +15,7 @@ This document explains step by step how to release a new version for osm2pgrouti
 2. Make sure you are in the last update:
 
   ```
-  $ git pull origin master
+  $ git pull origin main
   ```
 
 3. Make sure last updates was compiled without errors in Travis CI: https://travis-ci.org/pgRouting/osm2pgrouting/builds
@@ -31,7 +31,7 @@ This document explains step by step how to release a new version for osm2pgrouti
   ```
   $ git push origin v2.3.4
   ```
-  
+
 6. Go to Github repository and make sure the new tag was created: https://github.com/pgRouting/osm2pgrouting/releases
 
 7. Click on the tag number then click on the edit tag button for release title (use the same number, i.e. v2.3.4).
