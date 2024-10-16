@@ -20,6 +20,7 @@
 
 
 #include "osm_elements/osm_tag.h"
+#include <algorithm>
 #include <string>
 
 namespace osm2pgr {
