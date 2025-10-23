@@ -90,7 +90,7 @@ OSMDocument::AddNode(const Node &n) {
     m_nodes.push_back(n);
 }
 
-void 
+void
 OSMDocument::AddWay(const Way &w) {
     if (m_ways.empty() && m_vm.count("addnodes")) {
         wait_child();
@@ -127,21 +127,21 @@ OSMDocument::AddRelation(const Relation &r) {
 
 void
 OSMDocument::endOfFile() {
-    
+
     if (m_vm.count("addnodes") && m_waysPending) {
         m_waysPending = false;
         wait_child();
         osm_table_export(m_ways, "osm_ways");
         std::cout << "\nFinal osm_ways:\t\t" << m_ways.size();
     }
-    
+
     if (m_vm.count("addnodes") && m_relPending) {
         m_relPending = false;
         wait_child();
         std::cout << "\nFinal osm_relations:\t" << m_relations.size() << "\n";
         osm_table_export(m_relations, "osm_relations");
     }
-    
+
     std::cout << "\nEnd Of file\n\n\n";
 }
 
@@ -156,25 +156,25 @@ less(const T &item, const int64_t &id) {
 
 Node*
 OSMDocument::FindNode(int64_t node_id) {
-    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>); 
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>);
     return &*it;
 }
 
 bool
 OSMDocument::has_node(int64_t node_id) const {
-    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>); 
+    auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>);
     return (it != m_nodes.end());
 }
 
 Way*
 OSMDocument::FindWay(int64_t way_id) {
-    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>); 
+    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>);
     return &*it;
 }
 
 bool
 OSMDocument::has_way(int64_t way_id) const {
-    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>); 
+    auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>);
     return (it != m_ways.end());
 }
 
@@ -201,7 +201,7 @@ OSMDocument::add_node(Way &way, const char **atts) {
 /*
  * for example
  *  <tag highway="kerb">
- *  
+ *
  *
  * And the configuration file has:
  * <type name="highway" id="1">
@@ -249,7 +249,7 @@ OSMDocument::export_pois() const {
     auto residue = m_nodes.size() % m_chunk_size;
     size_t start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size;
 
-    auto export_items = Nodes(m_nodes.begin() + start, m_nodes.end());
+    auto export_items = Nodes(&m_nodes[start], &m_nodes[m_nodes.size() - 1]);
     /*
      * deleting nodes with no tag information
      */

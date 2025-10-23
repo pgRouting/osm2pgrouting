@@ -121,7 +121,7 @@ class OSMDocument {
             }
             auto residue = osm_items.size() % m_chunk_size;
             size_t start = residue? osm_items.size() - residue : osm_items.size() - m_chunk_size;
-            auto export_items = T(osm_items.begin() + start, osm_items.end());
+            auto export_items = T(&osm_items[start], &osm_items[osm_items.size() - 1]);
 
             m_db_conn.export_osm(export_items, table);
 

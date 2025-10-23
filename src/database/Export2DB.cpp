@@ -269,7 +269,6 @@ Export2DB::export_osm(
 
 #endif
 
-    size_t count = 0;
     try {
 
 
@@ -283,8 +282,6 @@ Export2DB::export_osm(
 
         for (auto it = values.begin(); it != values.end(); ++it) {
             auto str = *it;
-
-            ++count;
 
             PQputline(mycon, str.c_str());
         }
@@ -302,9 +299,11 @@ Export2DB::export_osm(
                 }
                 return;
             }
+
             size_t inc = values.size() / 2;
-            export_osm(std::vector<std::string>(values.begin(), values.begin() + inc), table);
-            export_osm(std::vector<std::string>(values.begin() + inc , values.end()), table);
+            std::vector<std::string> foo(&values[0], &values[inc]);
+            export_osm(std::vector<std::string>(&values[0], &values[inc]), table);
+            export_osm(std::vector<std::string>(&values[inc], &values[values.size() - 1]), table);
             return;
         };
 
@@ -400,7 +399,6 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
     std::string copy_sql( "COPY " + temp_table + " (" + comma_separated(columns) + ") FROM STDIN");
 
 
-    int64_t split_count = 0;
     int64_t count = 0;
     size_t start = 0;
     auto it = ways.begin();
@@ -436,7 +434,6 @@ void Export2DB::exportWays(const Ways &ways, const Configuration &config) const 
                 common_values.push_back(TO_STR(config.priority(way.tag_config())));
 
                 auto splits = way.split_me();
-                split_count +=  splits.size();
                 for (size_t j = 0; j < splits.size(); ++j) {
                     auto length = way.length_str(splits[j]);
 
