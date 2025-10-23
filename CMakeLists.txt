@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
     message(FATAL_ERROR "In-source builds not allowed.
@@ -6,7 +6,8 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
     You may need to remove CMakeCache.txt." )
 endif()
 
-PROJECT(osm2pgrouting)
+PROJECT(osm2pgrouting VERSION 3.0.0
+  LANGUAGES C CXX)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 SET(SHARE_DIR "${CMAKE_INSTALL_PREFIX}/share/osm2pgrouting")
