@@ -44,7 +44,7 @@ Element::Element(const char **atts) :
         }
     }
 
-void 
+void
 Element::tag_config(const Tag &tag) {
     m_tag_config = tag;
 }
@@ -154,7 +154,7 @@ getHstore(const std::map<std::string, std::string> &values) {
     std::string hstore;
     if (values.empty()) return std::string();
 
-    for (const auto item : values) {
+    for (const auto &item : values) {
         hstore +=
             addquotes(item.first, true)
             + " => "
@@ -172,7 +172,7 @@ getJSON(const std::map<std::string, std::string> &values) {
     if (values.empty()) return std::string("{}");
     std::string json("{");
     for (const auto item : values) {
-        json += addquotes(item.first, true) 
+        json += addquotes(item.first, true)
             + ":"
             + addquotes(item.second, true)  + ",";
     }
@@ -185,11 +185,11 @@ getJSON(const std::map<std::string, std::string> &values) {
 std::vector<std::string>
 Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
     std::vector<std::string> values;
-    for (const auto column : columns) {
-        if (column == "osm_id" || column == "tag_id") { 
+    for (const auto &column : columns) {
+        if (column == "osm_id" || column == "tag_id") {
             values.push_back(boost::lexical_cast<std::string>(osm_id()));
             continue;
-        }   
+        }
         if (column == "tag_name") {
             values.push_back(m_tag_config.key());
             continue;
@@ -211,13 +211,13 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
         if (column == "attributes") {
             values.push_back(getHstore(m_attributes));
             continue;
-        }   
+        }
         if (column == "tags") {
             values.push_back(getHstore(m_tags));
             if (is_hstore) {};
 
             continue;
-        }   
+        }
         if (has_attribute(column)) {
             values.push_back(get_attribute(column));
             continue;
