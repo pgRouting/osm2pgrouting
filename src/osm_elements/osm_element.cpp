@@ -198,7 +198,7 @@ Element::values(const std::vector<std::string> &columns, bool is_hstore) const {
             values.push_back(m_tag_config.value());
             continue;
         }
-        if (column == "the_geom") {
+        if (column == "geom") {
             values.push_back(get_geometry());
             continue;
         }

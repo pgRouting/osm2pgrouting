@@ -106,7 +106,7 @@ Tables::ways_config() const {
     columns.push_back("x2"); columns.push_back("y2");
     columns.push_back("source_osm");
     columns.push_back("target_osm");
-    columns.push_back("the_geom");
+    columns.push_back("geom");
     columns.push_back("cost");
     columns.push_back("reverse_cost");
     columns.push_back("name");

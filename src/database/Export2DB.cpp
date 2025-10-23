@@ -336,7 +336,7 @@ void Export2DB::fill_vertices_table(
             ") , "
             " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * FROM osm_vertex) a "
             ") "
-            " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, the_geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
+            " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
     auto result = Xaction.exec(sql);
 
     std::cout << "\t Vertices inserted: " << result.affected_rows();
@@ -367,14 +367,14 @@ void Export2DB::fill_source_target(
 
     std::string sql3(
             " UPDATE " + table +
-            " SET  length_m = ST_length(geography(ST_Transform(the_geom, 4326))),"
+            " SET  length_m = ST_length(geography(ST_Transform(geom, 4326))),"
             "      cost_s = CASE "
-            "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
-            "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
+            "           ELSE ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END, "
             "      reverse_cost_s = CASE "
-            "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
-            "           ELSE ST_length(geography(ST_Transform(the_geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
+            "           ELSE ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
             " WHERE length_m IS NULL AND maxspeed_backward !=0 AND maxspeed_forward != 0;");
     Xaction.exec(sql3);
@@ -487,7 +487,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
     //  std::cout << "Creating indices in temporary table\n";
     auto temp_table(ways().temp_name());
 
-    Xaction.exec("CREATE INDEX "+ temp_table + "_gdx ON "+ temp_table + " using gist(the_geom);");
+    Xaction.exec("CREATE INDEX "+ temp_table + "_gdx ON "+ temp_table + " using gist(geom);");
     Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (source_osm)");
     Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (target_osm)");
 
@@ -498,7 +498,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
     std::string delete_from_temp(
             " DELETE FROM "+ temp_table + " a "
             "     USING " + ways().addSchema() + " b "
-            "     WHERE a.the_geom ~= b.the_geom AND ST_OrderingEquals(a.the_geom, b.the_geom);");
+            "     WHERE a.geom ~= b.geom AND ST_OrderingEquals(a.geom, b.geom);");
     Xaction.exec(delete_from_temp);
 
     //  std::cout << "Updating to existing toplology the temporary table\n";
@@ -683,7 +683,7 @@ void Export2DB::process_pois() const {
     execute(
             "\n WITH "
             "\n base AS ("
-            "\n     SELECT pid, w.id AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
+            "\n     SELECT pid, w.id AS wid, w.geom AS wgeom, p.geom AS pgeom"
             "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.id)"
             + "\n     WHERE edge_id IS not NULL"
             + "\n ),"

@@ -72,7 +72,7 @@ Tables::pois_config() const {
             "POINT");
     std::vector<std::string> columns;
     columns.push_back("osm_id");
-    columns.push_back("the_geom");
+    columns.push_back("geom");
     // TODO get from the configuration
     columns.push_back("tag_name");
     columns.push_back("tag_value");

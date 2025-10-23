@@ -1,6 +1,7 @@
 osm2pgRouting 3.0.0
 
 * cmake >= 3.12
+* geometry column name: `geom`
 
 osm2pgRouting 2.3.9
 
