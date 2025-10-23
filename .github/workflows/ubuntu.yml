@@ -1,45 +1,58 @@
 name: Build for Ubuntu
 
-on:
-  push:
-    branches-ignore:
-      - 'translations_*'
-    tags: []
-  pull_request:
-    paths-ignore:
-      - '**.po'
+# manually triggered workflow
 
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    name: Build
+    name: Ubuntu psql
     runs-on: ${{ matrix.os }}
 
     strategy:
         fail-fast: false
         matrix:
-          psql: [9.6,10,11,12, 13]
-          postgis: [2.5,3]
-          os: [ubuntu-latest]
+          psql: [13, 14, 15, 16, 17, 18]
+          postgis: [3]
+          release: [Debug, Release]
+          os: [ubuntu-latest, ubuntu-22.04]
+          compiler: [ gcc-latest, g++-11, clang ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
-      - name: get postgres version
+      - name: 'Raise Priority for apt.postgresql.org'
         run: |
-          sudo service postgresql start
-          pgver=$(psql --version | grep -Po '(?<=psql \(PostgreSQL\) )[^;]+(?=\.\d \()')
-          echo "PGVER=${pgver}" >> $GITHUB_ENV
-          PGP=5433
-          if [ "${{ matrix.psql }}" == "${pgver}" ]; then PGP=5432; fi
-          echo "PGPORT=${PGP}" >> $GITHUB_ENV
+          cat << EOF >> ./pgdg.pref
+          Package: *
+          Pin: release o=apt.postgresql.org
+          Pin-Priority: 600
+          EOF
+          sudo mv ./pgdg.pref /etc/apt/preferences.d/
+          sudo apt update
 
       - name: Add PostgreSQL APT repository
         run: |
-          sudo apt-get install curl ca-certificates gnupg
-          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ \
-            $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get -y purge postgresql-*
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg-testing main ${{ matrix.psql }}" > /etc/apt/sources.list.d/pgdg.list'
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null
+
+      - name: Install compiler
+        id: install_cc
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: ${{ matrix.compiler }}
 
       - name: Install dependencies
         run: |
@@ -54,23 +67,20 @@ jobs:
             postgresql-${{ matrix.psql }}-pgrouting \
             libpqxx-dev \
             postgresql-server-dev-${{ matrix.psql }}
+            # should be 7 on latest and 6 on 22.04
+            apt-cache policy libpqxx-dev
 
-      - name: Configure
+      - name: Configure compiler
         run: |
+          export CC=/usr/bin/${{ steps.install_cc.outputs.cc }}
+          export CXX=/usr/bin/${{ steps.install_cc.outputs.cxx }}
           export PATH=/usr/lib/postgresql/${{ matrix.psql }}/bin:$PATH
           mkdir build
           cd build
-          cmake -DPOSTGRESQL_VERSION=${{ matrix.psql }} -DCMAKE_BUILD_TYPE=Release -DWITH_DOC=OFF ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.release }} ..
 
       - name: Build
         run: |
           cd build
           make -j 4
           sudo make install
-
-      - name: Test
-        if: false
-        run: |
-          sudo service postgresql start
-          sudo -u postgres createdb -p ${PGPORT}  ___vrp___test___
-          sudo -u postgres bash ./tools/testers/pg_prove_tests.sh postgres ${PGPORT}  Release
