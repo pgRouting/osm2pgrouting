@@ -351,7 +351,7 @@ void Export2DB::fill_adjacent_edges(
   std::string sql (
       "WITH "
       " a AS ("
-      "  SELECT v.id, array_agg(e.gid) as outs FROM " + vertices_tab + " AS v join " + table + " AS e "
+      "  SELECT v.id, array_agg(e.id) as outs FROM " + vertices_tab + " AS v join " + table + " AS e "
       "  ON (v.id = source) where  cost > 0 GROUP BY v.id)"
       "UPDATE " + vertices_tab + " AS v SET out_edges = outs FROM a WHERE v.id = a.id;");
 
@@ -361,7 +361,7 @@ void Export2DB::fill_adjacent_edges(
     sql =
       "WITH "
       " the_ins AS ("
-      "  SELECT v.id, array_agg(e.gid) as ins FROM " + vertices_tab + " AS v join " + table + " AS e "
+      "  SELECT v.id, array_agg(e.id) as ins FROM " + vertices_tab + " AS v join " + table + " AS e "
       "  ON (v.id = target) where  reverse_cost > 0 GROUP BY v.id)"
       "UPDATE " + vertices_tab + " AS v SET in_edges = ins FROM the_ins AS a WHERE v.id = a.id;";
 
@@ -616,7 +616,6 @@ void Export2DB::createFKeys() const {
     /*
      * Ways
      */
-    execute(ways().primary_key("gid"));
     execute(ways().foreign_key("source", vertices(), "id"));
     execute(ways().foreign_key("target", vertices(), "id"));
     execute(ways().foreign_key("source_osm", vertices(), "osm_id"));
