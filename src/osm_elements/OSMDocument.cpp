@@ -157,25 +157,27 @@ less(const T &item, const int64_t &id) {
 Node*
 OSMDocument::FindNode(int64_t node_id) {
     auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>);
+    if (it == m_nodes.end() || it->osm_id() != node_id) return nullptr;
     return &*it;
 }
 
 bool
 OSMDocument::has_node(int64_t node_id) const {
     auto it = std::lower_bound(m_nodes.begin(), m_nodes.end(), node_id, less<Node>);
-    return (it != m_nodes.end());
+    return (it != m_nodes.end() && it->osm_id() == node_id);
 }
 
 Way*
 OSMDocument::FindWay(int64_t way_id) {
     auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>);
+    if (it == m_ways.end() || it->osm_id() != way_id) return nullptr;
     return &*it;
 }
 
 bool
 OSMDocument::has_way(int64_t way_id) const {
     auto it = std::lower_bound(m_ways.begin(), m_ways.end(), way_id, less<Way>);
-    return (it != m_ways.end());
+    return (it != m_ways.end() && it->osm_id() == way_id);
 }
 
 void
@@ -247,9 +249,8 @@ OSMDocument::export_pois() const {
 
 
     auto residue = m_nodes.size() % m_chunk_size;
-    size_t start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size;
-
-    auto export_items = Nodes(&m_nodes[start], &m_nodes[m_nodes.size() - 1]);
+    auto start = residue? m_nodes.size() - residue : m_nodes.size() - m_chunk_size;
+    auto export_items = Nodes(m_nodes.begin() + static_cast<int64_t>(start), m_nodes.end());
     /*
      * deleting nodes with no tag information
      */

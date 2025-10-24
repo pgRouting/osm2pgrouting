@@ -139,6 +139,8 @@ void Export2DB::createTables() const {
 
         if (!exists(ways().addSchema())) {
             Xaction.exec(ways().create());
+            Xaction.exec("CREATE INDEX ON "+ ways().addSchema() + "  USING btree (source)");
+            Xaction.exec("CREATE INDEX ON "+ ways().addSchema() + "  USING btree (target)");
             std::cout << "TABLE: " << ways().addSchema() << " created ... OK.\n";
         }
 
@@ -300,10 +302,11 @@ Export2DB::export_osm(
                 return;
             }
 
-            size_t inc = values.size() / 2;
-            std::vector<std::string> foo(&values[0], &values[inc]);
-            export_osm(std::vector<std::string>(&values[0], &values[inc]), table);
-            export_osm(std::vector<std::string>(&values[inc], &values[values.size() - 1]), table);
+            const int64_t inc = values.size() / 2;
+            std::vector<std::string> first(values.begin(), values.begin() + inc);
+            std::vector<std::string> second(values.begin() + inc, values.end());
+            export_osm(first, table);
+            export_osm(second, table);
             return;
         };
 
@@ -394,9 +397,12 @@ void Export2DB::fill_source_target(
             " WHERE w.target IS NULL and w.target_osm = v.osm_id;");
     Xaction.exec(sql2);
 
+    sql2 = " UPDATE " + table + " SET  length_m = ST_length(geography(geom)) WHERE length_m IS NULL;";
+    Xaction.exec(sql2);
+
     std::string sql3(
             " UPDATE " + table +
-            " SET  length_m = ST_length(geography(ST_Transform(geom, 4326))),"
+            " SET  "
             "      cost_s = CASE "
             "           WHEN one_way = -1 THEN -ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_forward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
@@ -405,7 +411,7 @@ void Export2DB::fill_source_target(
             "           WHEN one_way = 1 THEN -ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "           ELSE ST_length(geography(ST_Transform(geom, 4326))) / (maxspeed_backward::float * 5.0 / 18.0)"
             "             END "
-            " WHERE length_m IS NULL AND maxspeed_backward !=0 AND maxspeed_forward != 0;");
+            " WHERE maxspeed_backward !=0 AND maxspeed_forward != 0;");
     Xaction.exec(sql3);
 }
 
@@ -517,6 +523,8 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
     auto temp_table(ways().temp_name());
 
     Xaction.exec("CREATE INDEX "+ temp_table + "_gdx ON "+ temp_table + " using gist(geom);");
+    Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (source)");
+    Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (target)");
     Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (source_osm)");
     Xaction.exec("CREATE INDEX ON "+ temp_table + "  USING btree (target_osm)");
 
