@@ -336,11 +336,40 @@ void Export2DB::fill_vertices_table(
             ") , "
             " data1 AS (SELECT osm_id, lon, lat FROM (SELECT DISTINCT * FROM osm_vertex) a "
             ") "
-            " INSERT INTO " + vertices_tab + " (osm_id, lon, lat, geom) (SELECT data1.*, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1)");
+            " INSERT INTO " + vertices_tab + " (osm_id, geom) (SELECT osm_id, ST_SetSRID(ST_Point(lon, lat), 4326) FROM data1);");
+
     auto result = Xaction.exec(sql);
 
     std::cout << "\t Vertices inserted: " << result.affected_rows();
 }
+
+
+void Export2DB::fill_adjacent_edges(
+        const std::string &table,
+        const std::string &vertices_tab,
+        pqxx::work &Xaction) const {
+  std::string sql (
+      "WITH "
+      " a AS ("
+      "  SELECT v.id, array_agg(e.gid) as outs FROM " + vertices_tab + " AS v join " + table + " AS e "
+      "  ON (v.id = source) where  cost > 0 GROUP BY v.id)"
+      "UPDATE " + vertices_tab + " AS v SET out_edges = outs FROM a WHERE v.id = a.id;");
+
+    auto result = Xaction.exec(sql);
+    std::cout << "\t out_edges modified: " << result.affected_rows();
+
+    sql =
+      "WITH "
+      " the_ins AS ("
+      "  SELECT v.id, array_agg(e.gid) as ins FROM " + vertices_tab + " AS v join " + table + " AS e "
+      "  ON (v.id = target) where  reverse_cost > 0 GROUP BY v.id)"
+      "UPDATE " + vertices_tab + " AS v SET in_edges = ins FROM the_ins AS a WHERE v.id = a.id;";
+
+    result = Xaction.exec(sql);
+    std::cout << "\t in_edges modified: " << result.affected_rows();
+}
+
+
 
 
 
@@ -518,6 +547,7 @@ void Export2DB::process_section(const std::string &ways_columns, pqxx::work &Xac
             " (SELECT " + ways_columns + ", source, target, length_m, cost_s, reverse_cost_s FROM " + temp_table + "); ");
     auto result = Xaction.exec(insert_into_ways);
     std::cout << "\tSplit ways inserted " << result.affected_rows() << "\n";
+    fill_adjacent_edges(ways().addSchema(), vertices().addSchema(), Xaction);
 }
 
 
@@ -580,7 +610,6 @@ void Export2DB::createFKeys() const {
     /*
      * vertices
      */
-    execute(vertices().primary_key("id"));
     execute(vertices().unique("osm_id"));
     execute(vertices().gist_index());
 
