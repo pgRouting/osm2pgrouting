@@ -1,6 +1,52 @@
+osm2pgRouting 3.0.0
+
+* cmake >= 3.12
+* geometry column name: `geom`
+
+New "ways" table structure
+      Column       |           Type            | Modifications      | Default
+-------------------+---------------------------+--------------------+-----------
+ id                | bigint                    | previously was gid | generated always as identity
+ osm_id            | bigint                    |
+ tag_id            | integer                   |
+ length            | double precision          |
+ length_m          | double precision          |
+ name              | text                      |
+ source            | bigint                    |
+ target            | bigint                    |
+ source_osm        | bigint                    |
+ target_osm        | bigint                    |
+ cost              | double precision          |
+ reverse_cost      | double precision          |
+ cost_s            | double precision          |
+ reverse_cost_s    | double precision          |
+ rule              | text                      |
+ one_way           | integer                   |
+ oneway            | text                      |
+ x1                | double precision          |
+ y1                | double precision          |
+ x2                | double precision          |
+ y2                | double precision          |
+ maxspeed_forward  | double precision          |
+ maxspeed_backward | double precision          |
+ priority          | double precision          |
+ geom              | geometry(LineString,4326) | previously was the_geom
+
+New "ways_vertices_pgr" table structure
+
+  Column   |         Type         |          Default
+-----------+----------------------+-------------------------------------------
+ id        | bigint               |  Default: generated always as identity
+ in_edges  | bigint[]             |  New column
+ out_edges | bigint[]             |  New column
+ x         | numeric(11,8)        |  Default: generated always as (st_x(geom)) stored
+ y         | numeric(11,8)        |  Default: generated always as (st_y(geom)) stored
+ osm_id    | bigint               |
+ geom      | geometry(Point,4326)
+
 osm2pgRouting 2.3.9
 
-*
+* Homebrew: Add algorithm for std::transform
 
 osm2pgRouting 2.3.8
 

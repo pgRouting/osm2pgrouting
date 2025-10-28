@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+
 
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
     message(FATAL_ERROR "In-source builds not allowed.
@@ -6,7 +8,8 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
     You may need to remove CMakeCache.txt." )
 endif()
 
-PROJECT(osm2pgrouting)
+PROJECT(osm2pgrouting VERSION 3.0.0
+  LANGUAGES C CXX)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 SET(SHARE_DIR "${CMAKE_INSTALL_PREFIX}/share/osm2pgrouting")
@@ -46,7 +49,7 @@ else()
 endif()
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated -fmax-errors=10")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated")
 
 if(WIN32 AND MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_DEPRECATE")

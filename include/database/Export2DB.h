@@ -49,9 +49,9 @@ class Export2DB {
      typedef std::vector<Relation> Relations;
 
      /**
-      * Constructor 
+      * Constructor
       * @param vm variable map holding the configuration
-      * @param db_conn conection string 
+      * @param db_conn conection string
       *
       */
      explicit Export2DB(const po::variables_map &vm, const std::string &db_conn);
@@ -82,7 +82,7 @@ class Export2DB {
       *     T.values
       *
       * @param[in] items  vector of values to be inserted into
-      * @param[in] table 
+      * @param[in] table
       */
      template <typename T>
          void export_osm (
@@ -119,6 +119,11 @@ class Export2DB {
              const Table &table) const;
 
      void process_section(const std::string &ways_columns, pqxx::work &Xaction) const;
+
+     void fill_adjacent_edges(
+             const std::string &table,
+             const std::string &vertices_tab,
+             pqxx::work &Xaction) const;
 
      void fill_vertices_table(
              const std::string &table,

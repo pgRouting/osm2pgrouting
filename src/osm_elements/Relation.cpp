@@ -74,7 +74,8 @@ Relation::members_str() const {
          */
             + "=>\"type=>way\",";
     }
-    way_list[way_list.size() -1] = ' ';
+    size_t n = way_list.size();
+    if (n > 0) way_list.resize(n - 1);
 
     return way_list;
 }

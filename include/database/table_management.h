@@ -71,7 +71,7 @@ class Table {
      inline std::vector<std::string> columns() const {
          return m_columns;
      }
-     std::string sql(int i) const {return m_sql[i];}
+     std::string sql(size_t i) const {return m_sql[i];}
 
 
      std::string tmp_create() const;
