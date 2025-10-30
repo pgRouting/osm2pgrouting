@@ -17,17 +17,18 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 ********************************************************************PGR-GNU*/
 
+#include <string>
+
 #include "boost/lexical_cast.hpp"
 #include "database/table_management.h"
 #include "utilities/utilities.h"
-#include <string>
 
 namespace osm2pgr {
 
 
 /*
- * configuring TABLE osm_nodes
- */ 
+ * configuring TABLE edges_pgr
+ */
 
 
 Table
@@ -47,8 +48,8 @@ Tables::ways_config() const {
 
             /* standard column creation string */
             std::string(
-                " gid bigserial"
-                ", osm_id bigint"
+                " id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY"
+                ", osm_id BIGINT"
                 ", tag_id integer"
 
                 ", length double precision"
@@ -75,6 +76,7 @@ Tables::ways_config() const {
                 ", maxspeed_forward double precision"
                 ", maxspeed_backward double precision"
                 ", priority double precision DEFAULT 1"
+                ", geom GEOMETRY(LINESTRING, 4326)"
 #if 0
                 + (m_vm.count("attributes") ?
                         (std::string(", attributes ") + (m_vm.count("hstore") ? "hstore" : "json"))
@@ -89,8 +91,7 @@ Tables::ways_config() const {
             "",
 
             /* geometry */
-            "LINESTRING");
-
+            "");
 
     std::vector<std::string> columns;
     columns.push_back("tag_id");
@@ -106,7 +107,7 @@ Tables::ways_config() const {
     columns.push_back("x2"); columns.push_back("y2");
     columns.push_back("source_osm");
     columns.push_back("target_osm");
-    columns.push_back("the_geom");
+    columns.push_back("geom");
     columns.push_back("cost");
     columns.push_back("reverse_cost");
     columns.push_back("name");

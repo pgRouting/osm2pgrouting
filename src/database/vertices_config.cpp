@@ -26,10 +26,8 @@ namespace osm2pgr {
 
 
 /*
- * configuring TABLE osm_nodes
- */ 
-
-
+ * configuring TABLE vertices_pgr
+ */
 Table
 Tables::ways_vertices_pgr_config() const {
     Table table(
@@ -48,14 +46,14 @@ Tables::ways_vertices_pgr_config() const {
 
             /* standard column creation string */
             std::string(
-                " id bigserial"
-                ", osm_id bigint"
-                ", eout integer"
-                ", lon decimal(11,8)"
-                ", lat decimal(11,8)"
-                ", cnt integer"
-                ", chk integer"
-                ", ein integer"
+                " id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY"
+                ", in_edges bigint[]"
+                ", out_edges bigint[]"
+                ", x decimal(11,8) GENERATED ALWAYS AS (ST_X(geom)) STORED"
+                ", y decimal(11,8) GENERATED ALWAYS AS (ST_Y(geom)) STORED"
+                ", osm_id BIGINT"
+                ", geom GEOMETRY(POINT, 4326)"
+
 #if 0
                 + (m_vm.count("attributes") ?
                     (std::string(", attributes ") + (m_vm.count("hstore") ? "hstore" : "json"))
@@ -70,7 +68,7 @@ Tables::ways_vertices_pgr_config() const {
                 "",
 
                 /* geometry */
-                "POINT");
+                "");
 
             return table;
 }

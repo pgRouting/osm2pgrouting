@@ -47,7 +47,7 @@ Table::Table(
 std::string
 Table::gist_index() const {
     return "CREATE INDEX ON " + addSchema()
-        + "\n  USING GIST (the_geom);";
+        + "\n  USING GIST (geom);";
 }
 
 
@@ -77,7 +77,7 @@ Table::primary_key(const std::string &column) const {
 
 
 
-void 
+void
 Table::set_columns(const std::vector<std::string> &columns) {
     m_columns = columns;
 }
@@ -110,7 +110,7 @@ Table::create() const {
         sql += "SELECT AddGeometryColumn('"
             + m_schema
             + (m_schema == "" ? "" : "', '")
-            + table_name() + "', 'the_geom', 4326, '" + m_geometry + "', 2);";
+            + table_name() + "', 'geom', 4326, '" + m_geometry + "', 2);";
 
         if (name() == "pointsofinterest") {
             sql += "SELECT AddGeometryColumn('"
@@ -134,8 +134,8 @@ Table::drop() const {
 std::string
 Table::temp_name() const {
     return
-        "__" 
-        + table_name() 
+        "__"
+        + table_name()
         + boost::lexical_cast<std::string>(getpid());
 }
 
@@ -143,7 +143,7 @@ Table::temp_name() const {
 std::string
 Table::tmp_create() const {
     std::string sql =
-        "CREATE UNLOGGED TABLE " 
+        "CREATE UNLOGGED TABLE "
         + temp_name()
         + " ("
         + m_create
@@ -151,7 +151,7 @@ Table::tmp_create() const {
         + ");";
     if (m_geometry != "") {
         sql += "SELECT AddGeometryColumn('"
-            + temp_name() + "', 'the_geom', 4326, '" + m_geometry + "', 2);";
+            + temp_name() + "', 'geom', 4326, '" + m_geometry + "', 2);";
     }
     return sql;
 }
@@ -162,13 +162,13 @@ Tables::post_process(const Table &table) const  {
     if (table.name() == "osm_nodes"
             || table.name() == "pointsofinterest"
             || table.name() == "osm_ways"
-            || table.name() == "osm_relations") { 
+            || table.name() == "osm_relations") {
         std::string str(
                 " WITH data AS ("
                 " SELECT a.* "
                 " FROM  " + table.temp_name() + " a LEFT JOIN  " + table.addSchema() + " b USING (osm_id) WHERE (b.osm_id IS NULL))"
 
-                + " INSERT INTO "  +  table.addSchema() 
+                + " INSERT INTO "  +  table.addSchema()
                 + "(" + comma_separated(table.columns()) + ") "
                 + " (SELECT " + comma_separated(table.columns()) + " FROM data); ");
         return str;
@@ -179,7 +179,7 @@ Tables::post_process(const Table &table) const  {
                 " SELECT a.* "
                 " FROM  " + configuration().temp_name() + " a LEFT JOIN  " + configuration().addSchema() + " b USING (tag_id) WHERE (b.tag_id IS NULL))"
 
-                + " INSERT INTO "  +  configuration().addSchema() 
+                + " INSERT INTO "  +  configuration().addSchema()
                 + "(" + comma_separated(configuration().columns()) + ") "
                 + " (SELECT " + comma_separated(configuration().columns()) + " FROM data); ");
         return str;
@@ -256,8 +256,8 @@ Tables::Tables(const  po::variables_map &vm) :
             "\n BEGIN"
             "\n        WITH "
             "\n        poi AS ("
-            "\n            SELECT ST_buffer(the_geom::geography, $1)::geometry AS bufferPois,"
-            "\n            ST_buffer(the_geom::geography, $1 + $2)::geometry AS bufferWays"
+            "\n            SELECT ST_buffer(geom::geography, $1)::geometry AS bufferPois,"
+            "\n            ST_buffer(geom::geography, $1 + $2)::geometry AS bufferWays"
             "\n            FROM " + pois().addSchema()
             +"\n            WHERE vertex_id IS NULL AND edge_id IS NULL"
             +"\n            AND pid not in (SELECT unnest(tooFar))"
@@ -265,20 +265,20 @@ Tables::Tables(const  po::variables_map &vm) :
             +"\n        ),"
             +"\n        pois AS ("
             +"\n            SELECT * FROM " + pois().addSchema() + ", poi"
-            +"\n            WHERE ST_Within(the_geom, bufferPois) "
+            +"\n            WHERE ST_Within(geom, bufferPois) "
             +"\n            AND vertex_id IS NULL AND edge_id IS NULL"
             +"\n            AND pid not in (SELECT unnest(tooFar))"
             +"\n        ),"
             +"\n        wayss AS ("
             +"\n            SELECT * FROM " + ways().addSchema() + ", poi"
-            +"\n            WHERE ST_Intersects(the_geom, bufferWays)"
+            +"\n            WHERE ST_Intersects(geom, bufferWays)"
             +"\n        ),"
             +"\n        first AS ("
-            +"\n            SELECT   ways.gid AS wid,"
+            +"\n            SELECT   ways.id AS wid,"
             +"\n            source_osm, target_osm,"
-            +"\n            ST_distance(pois.the_geom::geography,   ways.the_geom::geography) AS dist,"
+            +"\n            ST_distance(pois.geom::geography,   ways.geom::geography) AS dist,"
             +"\n            pois.osm_id AS vid,"
-            +"\n            ST_linelocatepoint(ways.the_geom, pois.the_geom) AS fraction"
+            +"\n            ST_linelocatepoint(ways.geom, pois.geom) AS fraction"
             +"\n            FROM  wayss AS ways , pois"
             +"\n            WHERE pois.vertex_id IS NULL AND pois.edge_id IS NULL"
             +"\n        ),"
@@ -318,8 +318,8 @@ Tables::Tables(const  po::variables_map &vm) :
             "\n $$"
             "\n WITH "
             "\n base AS ("
-            "\n     SELECT pid, w.gid AS wid, w.the_geom AS wgeom, p.the_geom AS pgeom"
-            "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.gid)"
+            "\n     SELECT pid, w.id AS wid, w.geom AS wgeom, p.geom AS pgeom"
+            "\n     FROM " + pois().addSchema() + " AS p JOIN " + ways().addSchema() + " AS w ON (edge_id = w.id)"
             + "\n     WHERE edge_id IS NOT NULL AND side IS NULL"
             + "\n ),"
 
@@ -373,11 +373,11 @@ Tables::Tables(const  po::variables_map &vm) :
             "\n RETURNS VOID AS"
             "\n $$"
             "\n UPDATE " + pois().addSchema()
-            + "\n     SET new_geom = ST_LineInterpolatePoint(e.the_geom, fraction)"
-            + "\n         FROM " + ways().addSchema() + " AS e WHERE edge_id = gid;"
+            + "\n     SET new_geom = ST_LineInterpolatePoint(e.geom, fraction)"
+            + "\n         FROM " + ways().addSchema() + " AS e WHERE edge_id = e.id;"
 
             "\n UPDATE " + pois().addSchema()
-            + "\n     SET new_geom = the_geom"
+            + "\n     SET new_geom = geom"
             + "\n         WHERE vertex_id IS NOT NULL;"
             + "\n $$"
             + "\n LANGUAGE sql;"

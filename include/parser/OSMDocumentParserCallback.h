@@ -47,7 +47,6 @@ class OSMDocumentParserCallback :
     OSMDocument& m_rDocument;
     //! current way, which will be parsed
     // Way* m_pActWay;
-    Relation* m_pActRelation;
 
     virtual void StartElement(const char *name, const char** atts);
 
@@ -59,11 +58,9 @@ class OSMDocumentParserCallback :
      */
     explicit OSMDocumentParserCallback(OSMDocument& doc) :
         m_rDocument(doc),
-        m_pActRelation(0),
         last_node(nullptr),
         last_way(nullptr),
         last_relation(nullptr),
-        m_line(0),
         m_section(1) {
     }
  private:
@@ -73,7 +70,6 @@ class OSMDocumentParserCallback :
     Node *last_node;
     Way *last_way;
     Relation* last_relation;
-    size_t m_line;
     int m_section;
 };  // class OSMDocumentParserCallback
 

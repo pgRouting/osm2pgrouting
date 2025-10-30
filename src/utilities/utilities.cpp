@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "boost/algorithm/string/replace.hpp"
 
 
 std::string 
@@ -39,6 +40,7 @@ tab_separated(const std::vector<std::string> &columns) {
         if (column.empty() || column == "") {
             result += "\\N\t";
         } else {
+            boost::replace_all(column, "\\", "\\\\");
             result += column + "\t";
         }
     }                       

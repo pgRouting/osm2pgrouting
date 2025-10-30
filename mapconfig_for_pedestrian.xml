@@ -25,5 +25,3 @@
     <tag_value name="unclassified" id="123" />
   </tag_name>
 </configuration>
-<!-- for considering the access to the ways you have to import the access information too -->
-<!-- use command line options --addnodes --tags to import all osm attributes -->

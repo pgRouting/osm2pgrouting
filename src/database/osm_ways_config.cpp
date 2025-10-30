@@ -77,7 +77,7 @@ Tables::osm_ways_config() const {
     // end todo
     if (m_vm.count("attributes")) columns.push_back("attributes");
     if (m_vm.count("tags")) columns.push_back("tags");
-    columns.push_back("the_geom");
+    columns.push_back("geom");
 
     table.set_columns(columns);
 
