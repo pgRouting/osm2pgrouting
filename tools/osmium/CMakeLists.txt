@@ -53,8 +53,8 @@ else()
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64 -std=c++0x")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated -fmax-errors=10")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -Wconversion -pedantic -Wextra  -frounding-math -Wno-deprecated")
 
 if(WIN32 AND MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_DEPRECATE")
@@ -68,7 +68,7 @@ endif()
 #--------------------------------------------------------
 
 set (OSM2PGROUTING_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
-message(STATUS "PQXX_INCLUDE_DIRS: ${PQXX_INCLUDE_DIRS}")
+message(STATUS "PQXX_INCLUDE_DIR: ${PQXX_INCLUDE_DIR}")
 message(STATUS "POSTGRESQL_INCLUDE_DIR: ${POSTGRESQL_INCLUDE_DIR}")
 message(STATUS "EXPAT_INCLUDE_DIRS: ${EXPAT_INCLUDE_DIRS}")
 message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
@@ -97,5 +97,5 @@ INSTALL(TARGETS getrestrictions
     )
 
 if(WIN32)
-    target_link_libraries(osm2pgrouting wsock32 ws2_32)
+    target_link_libraries(getrestrictions wsock32 ws2_32)
 endif()
