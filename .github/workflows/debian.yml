@@ -1,0 +1,92 @@
+name: Build for Debian
+
+# manually triggered workflow
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Debian postgis
+    runs-on: ubuntu-latest
+
+    strategy:
+        fail-fast: false
+        matrix:
+          postgres: [14, 15, 16, 17, 18]
+          postgis: [3.5, 3.6]
+          include:
+            - postgres: 18
+              pqxx: '7.10'
+            - postgres: 17
+              pqxx: '6.4'
+            - postgres: 16
+              pqxx: '6.4'
+            - postgres: 15
+              pqxx: '6.4'
+            - postgres: 14
+              pqxx: '6.4'
+          exclude:
+            - postgres: 18
+              postgis: 3.5
+            - postgres: 17
+              postgis: 3.6
+            - postgres: 16
+              postgis: 3.6
+            - postgres: 15
+              postgis: 3.6
+            - postgres: 14
+              postgis: 3.6
+
+    container:
+      image: postgis/postgis:${{ matrix.postgres }}-${{ matrix.postgis }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: |
+          apt update
+          apt install -y \
+            build-essential \
+            cmake \
+            libboost-program-options-dev \
+            libpqxx-dev \
+            libpqxx-${{ matrix.pqxx }} \
+            libexpat1 \
+            libexpat-dev \
+            libosmium2-dev \
+            zlib1g-dev
+
+      - name: Configure compiler
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+
+          # Build osmium tool
+          cd ../tools/osmium
+          mkdir build
+          cd build
+          cmake ..
+
+      - name: Build
+        run: |
+          cd build
+          make -j $(nproc)
+          make install
+
+          # Build osmium tool
+          cd ../tools/osmium/build
+          make -j $(nproc)
+          make install
