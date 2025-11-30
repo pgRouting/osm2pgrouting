@@ -28,6 +28,11 @@ jobs:
           release: [Debug, Release]
           os: [ubuntu-latest, ubuntu-22.04]
           compiler: [ gcc-latest, g++-11, clang ]
+          include:
+            - os: ubuntu-latest
+              pqxx: '7.8' # 7.8t64
+            - os: ubuntu-22.04
+              pqxx: '6.4'
 
     steps:
       - uses: actions/checkout@v5
@@ -66,6 +71,11 @@ jobs:
             postgresql-${{ matrix.psql }}-postgis-${{ matrix.postgis }}-scripts \
             postgresql-${{ matrix.psql }}-pgrouting \
             libpqxx-dev \
+            libpqxx-${{ matrix.pqxx }} \
+            libexpat1 \
+            libexpat-dev \
+            libosmium2-dev \
+            zlib1g-dev \
             postgresql-server-dev-${{ matrix.psql }}
             # should be 7 on latest and 6 on 22.04
             apt-cache policy libpqxx-dev
@@ -79,8 +89,19 @@ jobs:
           cd build
           cmake -DCMAKE_BUILD_TYPE=${{ matrix.release }} ..
 
+          # Build osmium tool
+          cd ../tools/osmium
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.release }} ..
+
       - name: Build
         run: |
           cd build
+          make -j 4
+          sudo make install
+
+          # Build osmium tool
+          cd ../tools/osmium/build
           make -j 4
           sudo make install
