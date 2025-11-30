@@ -43,13 +43,13 @@
 
 
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     using index_type = osmium::index::map::SparseMemArray<osmium::unsigned_object_id_type, osmium::Location>;
     using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
     if (argc != 2) {
         std::cerr << "file to process missing\n";
-        exit(1);
+        return 1;
     }
     /*
      *  the input file
@@ -133,4 +133,5 @@ main(int argc, char *argv[]) {
     // relations have been cleaned up.
     std::cerr << "Memory:\n";
     collector.used_memory();
+    return 0;
 }
